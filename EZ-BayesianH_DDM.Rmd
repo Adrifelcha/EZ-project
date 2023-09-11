@@ -184,6 +184,7 @@ write_JAGSmodel <- function(prior,fileName = "EZHBDDM.bug"){
 
 ### Basic functions
 
+
 ```{r}
 ################################################################
 ####    Basic functions       ##################################
@@ -218,15 +219,94 @@ sample_data <- function(settings, parameter_set){
   data[,1] = rep(1:settings$nPart, each=settings$nTrials)
   for(i in 1:settings$nP){
       this.sub <- which(data[,1]==i)
-      temp <- wdmrnd(a = parameter_set$bound[i], 
-                     v = parameter_set$drift[i], 
-                     t = parameter_set$nondt[i], 
-                     n = settings$nT[i])
-      data[this.sub,2] = temp$C
-      data[this.sub,3] = temp$RT
+      accuracy = 0
+      while(sum(accuracy)==0){
+            temp <- wdmrnd(a = parameter_set$bound[i], 
+                           v = parameter_set$drift[i], 
+                           t = parameter_set$nondt[i], 
+                           n = settings$nTrials)
+            accuracy = temp$Accuracy
+      }
+      data[this.sub,3] = accuracy
+      data[this.sub,2] = temp$RT
   }
-  colnames(data) <- c("sub", "choice", "rt")
+  data = as.data.frame(data)
+  colnames(data) <- c("sub", "rt", "accuracy")
   return(data)
+}
+
+# Get individual statistics from full data: mean acc and correct-rt mean and var
+get_Statistics <- function(data){
+  if(is.null(data$accuracy)|is.null(data$rt)){
+        error.msg = "Data not available."
+        return(print(error.msg))
+  }
+  
+  subID  = unique(data$sub)
+  
+  sum_correct     = tapply(data$accuracy, data$sub, sum)  
+  always_0 = which(sum_correct==0)
+  if(length(always_0)!=0){
+    bad_participants = (data$sub %in% always_0)
+    data = data[-bad_participants,]
+    sum_correct     = tapply(data$accuracy, data$sub, sum) 
+  }
+  
+  mean_accuracy   = tapply(data$accuracy, data$sub, mean) 
+  
+  keep.correct = which(data$accuracy==1)
+  correct_only = data[keep.correct,]
+  
+  mean_rt_correct = tapply(correct_only$rt, correct_only$sub, mean)
+  var_rt_correct  = tapply(correct_only$rt, correct_only$sub, var)
+  
+  data_statistics = cbind(subID, sum_correct, mean_accuracy, mean_rt_correct, var_rt_correct)
+  data_statistics = as.data.frame(data_statistics)
+  colnames(data_statistics) = c("Person", "Sum Correct","Mean Accuracy", "Mean RT (Correct)", "Variance RT (Correct)")
+  return(data_statistics)
+}
+
+
+data_for_jags <- function(data_statistics){
+    unique_persons = unique(data_stats$sub)
+    nParticipants  = length(unique_persons)
+
+  
+        correct_rts = person_rts[person_accuracy == 1]  # only accurate responses
+    
+            if correct_rts.size > 1:
+                mean_rt_correct[person_id]     = np.mean(correct_rts)
+                variance_rt_correct[person_id] = np.var(correct_rts)
+    
+        # Filter out participants with NaN values in any metric
+        valid_indices = ~(
+            np.isnan(mean_rt_correct) | 
+            np.isnan(variance_rt_correct)
+        )
+    
+        # Extract valid metrics
+        sum_accuracy        = sum_accuracy[valid_indices].tolist()
+        mean_rt_correct     = mean_rt_correct[valid_indices].tolist()
+        variance_rt_correct = variance_rt_correct[valid_indices].tolist()
+        nParticipants       = len(sum_accuracy)  # Update nParticipants after filtering
+    
+        return {
+            "nTrialsPerPerson": int(self.n_TrialsPerPerson),
+            "nParticipants": nParticipants,
+            "meanRT": mean_rt_correct,
+            "varRT": variance_rt_correct,
+            "correct": sum_accuracy,
+        }, unique_persons[valid_indices]
+
+
+    def __str__(self):
+        output = [
+            "Hddm_Data Details:",
+            f"Person:    {self.person}",
+            f"RT:        {self.rt}",
+            f"Accuracy:  {self.accuracy}"
+        ]
+        return '\n'.join(output)
 }
 ```
 
@@ -234,61 +314,11 @@ sample_data <- function(settings, parameter_set){
 
 ```{r, eval=FALSE}
 Hddm_Data <- function(settings, parameter_set){
-  
+  data = sample_data(settings,parameter_set)
+  statistics = get_Statistics(data)
 }
-    def __init__(self, person = None, rt = None, accuracy = None, n_TrialsPerPerson = None):
-        self.person            = person
-        self.rt                = rt
-        self.accuracy          = accuracy
-        self.n_TrialsPerPerson = n_TrialsPerPerson
+  
 
-    @staticmethod
-    def sample(design):
-        T = design.n_TrialsPerPerson
-        P = design.n_Participants
-        parameters = design.parameter_set
-    
-        person_list   = []
-        rt_list       = []
-        accuracy_list = []
-    
-        for p in range(P):
-            accuracy = 0
-            while np.sum(accuracy) == 0:
-                rt, accuracy = wdmrnd(parameters.bound[p], parameters.drift[p], parameters.nondt[p], T)
-            person_list.extend([p] * T)  # Repeat the participant ID for T trials
-            rt_list.extend(rt)
-            accuracy_list.extend(accuracy)
-    
-        # Convert lists to NumPy arrays for consistency and potential performance benefits
-        person   = np.array(person_list)
-        rt       = np.array(rt_list)
-        accuracy = np.array(accuracy_list)
-    
-        return Hddm_Data(person, rt, accuracy, T)
-
-
-    def summary(self):
-        if self.person is None or self.rt is None or self.accuracy is None:
-            print("Data not available.")
-            return
-
-        unique_persons = np.unique(np.array(self.person))
-        print("{:<10} {:<20} {:<20} {:<20}".format("Person", "Mean Accuracy", "Mean RT (Correct)", "Variance RT (Correct)"))
-
-        for person_id in unique_persons:
-            # Filter data for current person
-            person_indices  = np.where(self.person == person_id)
-            person_rts      = np.array(self.rt)[person_indices]
-            person_accuracy = np.array(self.accuracy)[person_indices]
-
-            # Compute the metrics
-            mean_accuracy       = np.mean(person_accuracy)
-            correct_rts         = person_rts[person_accuracy == 1]  # only accurate responses
-            mean_rt_correct     = np.mean(correct_rts) if len(correct_rts) > 0 else np.nan
-            variance_rt_correct = np.var(correct_rts) if len(correct_rts) > 0 else np.nan
-
-            print("{:<10} {:<20.3f} {:<20.3f} {:<20.3f}".format(person_id, mean_accuracy, mean_rt_correct, variance_rt_correct))
 
     def to_jags(self):
         if self.person is None or self.rt is None or self.accuracy is None:
