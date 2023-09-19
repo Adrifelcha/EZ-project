@@ -46,7 +46,7 @@ wdmrnd <- function(a,v,t,n){
         if(X$C>0){  accuracy[i] <- 1
           }else{    accuracy[i] <- 0  }
     }
-    output <- data.frame("RT" = rt + t, "Accuracy" = accuracy)
+    output <- data.frame("RT" = rt + t, "accuracy" = accuracy)
     return(output)
 }
 ```
@@ -61,7 +61,7 @@ n = 10000
 
 data <- wdmrnd(a, v, t, n)
 rt <- data$RT
-accuracy <- data$Accuracy
+accuracy <- data$accuracy
 ```
 
 ```{r, echo=FALSE, fig.height=3.5}
@@ -104,6 +104,7 @@ The code for the auxiliary functions is hidden from this .pdf file (but can be c
 1. `design_summary`: A function to print the settings used in the simulation
 2. `default_priors`: A function to load and print default prior values
 3. `write_JAGSmodel`: A function to write the JAGS model using the prior values
+4. `data_toJAGS`: A function to create a list with all the data objects in the JAGS model
 
 ```{r, echo=FALSE}
 ################################################################
@@ -189,20 +190,46 @@ write_JAGSmodel <- function(prior,fileName = "EZHBDDM.bug"){
                        final_file)
       close(final_file)
 }
+
+data_toJAGS <- function(){
+    passData <- list("nParticipants", "nTrialsPerPerson",
+                     "meanRT", "varRT", "correct")
+    return(passData)
+}
+
+default_inits <- function(n.chains,nParticipants){
+  myinits <- rep(list(list()), n.chains)
+  for(i in 1:n.chains){
+      myinits[[i]] <- list(drift = rnorm(nParticipants,0,1/0.1^2))
+  }
+  return(myinits)
+}
 ```
 
 ### Core functions
 
+```{r, echo=FALSE, message=FALSE, results='hide'}
+nSim <- 200
+prior <- default_priors()
+nParticipants <- 50
+nTrials <- 150
+n.chains = 4
+save_sampleFiles = FALSE
+samplesFileName = "samples.RData"
+settings <- list("nPart"   = nParticipants,
+                 "nTrials" = nTrials,
+                 "prior"   = prior)
+```
 
 ```{r}
 ################################################################
-####    Basic functions       ##################################
+####    Core functions       ##################################
 ################################################################
 
 # Sample 'true' parameter values from the priors specified
 sample_parameters <- function(settings){
     prior <- settings$prior
-    nP <- settings$nP
+    nP <- settings$nPart
     bound_mean <- rnorm(1,prior$bound_mean_mean,prior$bound_mean_sdev)
     drift_mean <- rnorm(1,prior$drift_mean_mean,prior$drift_mean_sdev)
     nondt_mean <- rnorm(1,prior$nondt_mean_mean,prior$nondt_mean_sdev)
@@ -216,7 +243,6 @@ sample_parameters <- function(settings){
                           "nondt_mean" = nondt_mean, "bound_sdev" = bound_sdev,
                           "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
                           "bound" = bound,   "drift" = drift,   "nondt" = nondt)
-    
   return(parameter_set)
 }
 
@@ -233,7 +259,7 @@ sample_data <- function(settings, parameter_set){
                            v = parameter_set$drift[i], 
                            t = parameter_set$nondt[i], 
                            n = settings$nTrials)
-            accuracy = temp$Accuracy
+            accuracy = temp$accuracy
       }
       data[this.sub,3] = accuracy
       data[this.sub,2] = temp$RT
@@ -249,72 +275,25 @@ get_Statistics <- function(data){
         error.msg = "Data not available."
         return(print(error.msg))
   }
-  
   subID  = unique(data$sub)
-  
-  sum_correct     = tapply(data$accuracy, data$sub, sum)  
+  sum_correct = tapply(data$accuracy, data$sub, sum)  
   always_0 = which(sum_correct==0)
   if(length(always_0)!=0){
     bad_participants = (data$sub %in% always_0)
     data = data[-bad_participants,]
     sum_correct     = tapply(data$accuracy, data$sub, sum) 
   }
-  
   mean_accuracy   = tapply(data$accuracy, data$sub, mean) 
   
   keep.correct = which(data$accuracy==1)
   correct_only = data[keep.correct,]
-  
   mean_rt_correct = tapply(correct_only$rt, correct_only$sub, mean)
   var_rt_correct  = tapply(correct_only$rt, correct_only$sub, var)
   
   data_statistics = cbind(subID, sum_correct, mean_accuracy, mean_rt_correct, var_rt_correct)
   data_statistics = as.data.frame(data_statistics)
-  colnames(data_statistics) = c("Person", "Sum Correct","Mean Accuracy", "Mean RT (Correct)", "Variance RT (Correct)")
+  colnames(data_statistics) = c("sub", "sum_correct","meanAccuracy", "meanRT_correct", "varRT_correct")
   return(data_statistics)
-}
-
-
-data_for_jags <- function(data_statistics){
-    unique_persons = unique(data_stats$sub)
-    nParticipants  = length(unique_persons)
-
-  
-        correct_rts = person_rts[person_accuracy == 1]  # only accurate responses
-    
-            if correct_rts.size > 1:
-                mean_rt_correct[person_id]     = np.mean(correct_rts)
-                variance_rt_correct[person_id] = np.var(correct_rts)
-    
-        # Filter out participants with NaN values in any metric
-        valid_indices = ~(
-            np.isnan(mean_rt_correct) | 
-            np.isnan(variance_rt_correct)
-        )
-    
-        # Extract valid metrics
-        sum_accuracy        = sum_accuracy[valid_indices].tolist()
-        mean_rt_correct     = mean_rt_correct[valid_indices].tolist()
-        variance_rt_correct = variance_rt_correct[valid_indices].tolist()
-        nParticipants       = len(sum_accuracy)  # Update nParticipants after filtering
-    
-        return {
-            "nTrialsPerPerson": int(self.n_TrialsPerPerson),
-            "nParticipants": nParticipants,
-            "meanRT": mean_rt_correct,
-            "varRT": variance_rt_correct,
-            "correct": sum_accuracy,
-        }, unique_persons[valid_indices]
-
-
-    def __str__(self):
-        output = [
-            "Hddm_Data Details:",
-            f"Person:    {self.person}",
-            f"RT:        {self.rt}",
-            f"Accuracy:  {self.accuracy}"
-        ]
-        return '\n'.join(output)
 }
 ```
 
@@ -322,70 +301,65 @@ data_for_jags <- function(data_statistics){
 
 ```{r, eval=FALSE}
 Hddm_Data <- function(settings, parameter_set){
-  data = sample_data(settings,parameter_set)
-  statistics = get_Statistics(data)
+    rawData = sample_data(settings,parameter_set)
+    sumData = get_Statistics(rawData)
+    jagsData = data_toJAGS()
+    return(list("rawData" = rawData, 
+                "sumData" = sumData,
+                "jagsData" = jagsData))
 }
+
+Hddm_Design = function(nParticipants, nTrials, prior, n.chains = 4,
+                       save_sampleFiles = FALSE){
+    
+    settings <- list("nPart"   = nParticipants,
+                     "nTrials" = nTrials,
+                     "prior"   = prior)
+    parameter_set = sample_parameters(settings)
+    
+    getData <- Hddm_Data(settings,parameter_set)
+    write_JAGSmodel(prior)
+    
+    sub     <- getData$sumData$sub
+    correct <- getData$sumData$sum_correct
+    varRT   <- getData$sumData$varRT_correct
+    meanRT  <- getData$sumData$meanRT_correct
+    nTrialsPerPerson <- as.numeric(unique(tapply(getData$rawData$accuracy,getData$rawData$sub,length)))
+    nParticipants    <- length(getData$sumData$sub)
+    
+    data <- getData$jagsData
+    init <- default_inits(n.chains, settings$nPart)
+    
+    parameters <- c('bound_mean', 'drift_mean', 'nondt_mean', 'bound_sdev', 
+                    'drift_sdev', 'nondt_sdev', 'bound', 'drift',  'nondt')
+    samples <- jags(data=data, parameters.to.save=parameters, model=modelFile, 
+                    n.chains=n.chains, n.iter=n.iter, n.burnin=n.burnin, 
+                    n.thin=n.thin, DIC=T,inits=myinits)
+    save(samples,file=fileName)
+    load(fileName)
+}
+
+
   
 
-
-    def to_jags(self):
-        if self.person is None or self.rt is None or self.accuracy is None:
-            return None
-    
-        unique_persons = np.unique(np.array(self.person)).astype(int)
-        nParticipants  = len(unique_persons)
-    
-        # Initialize arrays to NaN for storing metrics
-        sum_accuracy        = np.zeros(nParticipants, dtype=int)
-        mean_rt_correct     = np.full(nParticipants, np.nan)
-        variance_rt_correct = np.full(nParticipants, np.nan)
-    
-        # Loop over unique persons and compute metrics
-        for person_id in unique_persons:
-            # Filter data for the current person
-            person_indices  = self.person == person_id
-            person_rts      = self.rt[person_indices]
-            person_accuracy = self.accuracy[person_indices]
-    
-            # Update metrics
-            sum_accuracy[person_id] = np.sum(person_accuracy)
-            correct_rts = person_rts[person_accuracy == 1]  # only accurate responses
-    
-            if correct_rts.size > 1:
-                mean_rt_correct[person_id]     = np.mean(correct_rts)
-                variance_rt_correct[person_id] = np.var(correct_rts)
-    
-        # Filter out participants with NaN values in any metric
-        valid_indices = ~(
-            np.isnan(mean_rt_correct) | 
-            np.isnan(variance_rt_correct)
-        )
-    
-        # Extract valid metrics
-        sum_accuracy        = sum_accuracy[valid_indices].tolist()
-        mean_rt_correct     = mean_rt_correct[valid_indices].tolist()
-        variance_rt_correct = variance_rt_correct[valid_indices].tolist()
-        nParticipants       = len(sum_accuracy)  # Update nParticipants after filtering
-    
-        return {
-            "nTrialsPerPerson": int(self.n_TrialsPerPerson),
-            "nParticipants": nParticipants,
-            "meanRT": mean_rt_correct,
-            "varRT": variance_rt_correct,
-            "correct": sum_accuracy,
-        }, unique_persons[valid_indices]
-
-
-    def __str__(self):
-        output = [
-            "Hddm_Data Details:",
-            f"Person:    {self.person}",
-            f"RT:        {self.rt}",
-            f"Accuracy:  {self.accuracy}"
-        ]
-        return '\n'.join(output)
 ```
 
+```{r, eval=FALSE}
+# Step 5. Show chains obtained per parameter
+################################################################################
+posterior.samples <- samples$BUGSoutput$sims.array
+
+labels <- names(posterior.samples[1,1,])
+for(i in 1:dim(posterior.samples)[3]){
+    plot(posterior.samples[,1,i], type="l", main=labels[i], xlab="Iteration",
+         ylab="Value sampled")  
+    if(n.chains>1){
+         for(a in 2:n.chains){
+         lines(posterior.samples[,a,i],col=a)
+         }
+      }
+}
+```
 
 ```{r, eval=FALSE}
 class Hddm_Parameter_Set:
@@ -443,15 +417,7 @@ class Hddm_Parameter_Set:
 ```{r, eval=FALSE}
 Hddm_Design = function(nParticipants, nTrials, prior){
   
-  settings <- list("nPart"   = nParticipants,
-                   "nTrials" = nTrials,
-                   "prior"   = prior)
-  
-  parameter_set = sample_parameters(settings)
-  
-  getData = sample_data(settings, parameter_set)
-  
-}
+
     
 
     def estimate_parameters(self):
@@ -650,4 +616,16 @@ for k in range(K):
        y = np.append(y, est[k].drift)
 
 recovery_plot(x, y, 'drift', 'Individual drift rates')
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+def __str__(self):
+        output = [
+            "Hddm_Data Details:",
+            f"Person:    {self.person}",
+            f"RT:        {self.rt}",
+            f"Accuracy:  {self.accuracy}"
+        ]
+        return '\n'.join(output)
 ```
