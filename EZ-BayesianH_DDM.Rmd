@@ -105,6 +105,8 @@ The code for the auxiliary functions is hidden from this .pdf file (but can be c
 2. `default_priors`: A function to load and print default prior values
 3. `write_JAGSmodel`: A function to write the JAGS model using the prior values
 4. `data_toJAGS`: A function to create a list with all the data objects in the JAGS model
+5. `default_inits`:  
+6. `extractSamples`: A function to extract individual samples for any parameter
 
 ```{r, echo=FALSE}
 ################################################################
@@ -191,6 +193,7 @@ write_JAGSmodel <- function(prior,fileName = "EZHBDDM.bug"){
       close(final_file)
 }
 
+# A function to create a list with all the data objects in the JAGS model
 data_toJAGS <- function(){
     passData <- list("nParticipants", "nTrialsPerPerson",
                      "meanRT", "varRT", "correct")
@@ -200,9 +203,37 @@ data_toJAGS <- function(){
 default_inits <- function(n.chains,nParticipants){
   myinits <- rep(list(list()), n.chains)
   for(i in 1:n.chains){
-      myinits[[i]] <- list(drift = rnorm(nParticipants,0,1/0.1^2))
+      myinits[[i]] <- list(drift = rnorm(nParticipants,0,0.1))
   }
   return(myinits)
+}
+
+# A function to extract individual samples for any parameter
+extractSamples <- function(parameter.name, samples){
+        postParam.Array <- samples$BUGSoutput$sims.array
+        samplesID <- names(postParam.Array[1,1,])
+        locateParameter  <- which(grepl(parameter.name,samplesID))
+        
+        if(which(grepl("_",parameter.name))==0){
+          locateHierPar <- which(grepl("_",samplesID))
+          locateParameter <- locateParameter[!locateParameter %in% locateHierPar]   
+        }
+        
+        # Now, for individual/task level parameters...
+        if(length(locateParameter)>1){
+              # We isolate the pages ID that contain the parameter of interest
+              samplesRelated <- samplesID[locateParameter]
+              # We identify the maximum index
+              locateParticipantID <- parse_number(samplesRelated)
+              nP <- max(locateParticipantID,na.rm = TRUE)
+              # We locate the page ID containing the last index
+              lastP <- which(grepl(nP,samplesRelated))
+              # And isolate all IDs from there
+              locateParameter <- samplesRelated[(lastP-nP)+1:lastP]
+        }
+        # We retrieve only the pages containing the parameter
+        x <- postParam.Array[,,locateParameter]
+return(x)
 }
 ```
 
@@ -344,22 +375,21 @@ Hddm_Design = function(nParticipants, nTrials, prior,
                     n.thin=1, 
                     DIC=T, 
                     inits=myinits)
-    
     if(!is.na(fileName)){
        save(samples,file=fileName)
     }
     
+    posterior <- samples$BUGSoutput$sims.array
+    
+    drift = extractSamples("drift", samples)
 }
-
-
-  
 
 ```
 
 ```{r, eval=FALSE}
 # Step 5. Show chains obtained per parameter
 ################################################################################
-posterior.samples <- samples$BUGSoutput$sims.array
+
 
 labels <- names(posterior.samples[1,1,])
 for(i in 1:dim(posterior.samples)[3]){
