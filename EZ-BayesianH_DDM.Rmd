@@ -2,13 +2,16 @@
 title: "EZ Bayesian Hierarchical Drift Diffusion Model"
 author: "Adriana F. Chavez"
 subtitle: "Based on Joachim's python code"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "Last time knitted: `r format(Sys.time(), '%d %B, %Y')`"
+geometry: "left=1cm,right=1cm,top=2cm,bottom=2cm"
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+-------------------
 
 # Basic functions to generate DDM data
 
@@ -24,7 +27,7 @@ simulate_ddm <- function(a, v, dt, max_steps){
      for(i in 2:max_steps){
         this_step = drift + noise[i]
         x = x + this_step
-        if(abs(x)>=(a/2)){  break  }
+            if(abs(x)>=(a/2)){  break  }
      }
      output <- list("RT" = (i+1)*dt, "C"  = x)
      return(output)
@@ -43,14 +46,12 @@ wdmrnd <- function(a,v,t,n){
         if(X$C>0){  accuracy[i] <- 1
           }else{    accuracy[i] <- 0  }
     }
-
-    rt = rt + t
-    output <- data.frame("RT" = rt, "Accuracy" = accuracy)
+    output <- data.frame("RT" = rt + t, "Accuracy" = accuracy)
     return(output)
 }
 ```
 
-# Example data
+# Example: Generate some data
 
 ```{r}
 a = 1.50
@@ -92,9 +93,17 @@ axis(1,c(0.7,1.9),c("Incorrect","Correct"))
 ```
 
 
-# Define Simulation Study environment and variables
+\clearpage
+
+# Simulation Study environment and variables
 
 ### Auxiliary functions
+
+The code for the auxiliary functions is hidden from this .pdf file (but can be checked on the .Rmd file). The auxiliary functions are:
+
+1. `design_summary`: A function to print the settings used in the simulation
+2. `default_priors`: A function to load and print default prior values
+3. `write_JAGSmodel`: A function to write the JAGS model using the prior values
 
 ```{r, echo=FALSE}
 ################################################################
@@ -182,7 +191,7 @@ write_JAGSmodel <- function(prior,fileName = "EZHBDDM.bug"){
 }
 ```
 
-### Basic functions
+### Core functions
 
 ```{r}
 ################################################################
@@ -202,7 +211,6 @@ sample_parameters <- function(settings){
     bound <- rnorm(nP,bound_mean, bound_sdev)
     drift <- rnorm(nP,drift_mean, drift_sdev)
     nondt <- rnorm(nP,nondt_mean, nondt_sdev)
-    
     parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean,
                           "nondt_mean" = nondt_mean, "bound_sdev" = bound_sdev,
                           "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
