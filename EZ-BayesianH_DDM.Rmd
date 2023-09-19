@@ -309,8 +309,8 @@ Hddm_Data <- function(settings, parameter_set){
                 "jagsData" = jagsData))
 }
 
-Hddm_Design = function(nParticipants, nTrials, prior, n.chains = 4,
-                       save_sampleFiles = FALSE){
+Hddm_Design = function(nParticipants, nTrials, prior, 
+                       n.chains = 4, fileName = NA){
     
     settings <- list("nPart"   = nParticipants,
                      "nTrials" = nTrials,
@@ -320,6 +320,7 @@ Hddm_Design = function(nParticipants, nTrials, prior, n.chains = 4,
     getData <- Hddm_Data(settings,parameter_set)
     write_JAGSmodel(prior)
     
+    
     sub     <- getData$sumData$sub
     correct <- getData$sumData$sum_correct
     varRT   <- getData$sumData$varRT_correct
@@ -328,15 +329,26 @@ Hddm_Design = function(nParticipants, nTrials, prior, n.chains = 4,
     nParticipants    <- length(getData$sumData$sub)
     
     data <- getData$jagsData
-    init <- default_inits(n.chains, settings$nPart)
+    myinits <- default_inits(n.chains, settings$nPart)
     
-    parameters <- c('bound_mean', 'drift_mean', 'nondt_mean', 'bound_sdev', 
-                    'drift_sdev', 'nondt_sdev', 'bound', 'drift',  'nondt')
-    samples <- jags(data=data, parameters.to.save=parameters, model=modelFile, 
-                    n.chains=n.chains, n.iter=n.iter, n.burnin=n.burnin, 
-                    n.thin=n.thin, DIC=T,inits=myinits)
-    save(samples,file=fileName)
-    load(fileName)
+    parameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
+                    "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
+    
+    library(R2jags)  
+    samples <- jags(data=data, 
+                    parameters.to.save=parameters, 
+                    model="./EZHBDDM.bug", 
+                    n.chains=n.chains, 
+                    n.iter=1000, 
+                    n.burnin=50, 
+                    n.thin=1, 
+                    DIC=T, 
+                    inits=myinits)
+    
+    if(!is.na(fileName)){
+       save(samples,file=fileName)
+    }
+    
 }
 
 
