@@ -241,12 +241,8 @@ plot.Chain <- function(samples){
   posterior.samples <- samples$BUGSoutput$sims.array
   labels <- names(posterior.samples[1,1,])
   N <- dim(posterior.samples)[3]
+  factors <- which((N %% 1:N) == 0)
   
-  for(i in 1:N) {
-      if((N %% i) == 0) {
-          print(i)
-      }
-  }
 
   
   par(mfrow = c(1, 3), 
