@@ -97,7 +97,7 @@ axis(1,c(0.7,1.9),c("Incorrect","Correct"))
 
 # Simulation Study environment and variables
 
-### Auxiliary functions
+## Auxiliary functions
 
 The code for the auxiliary functions is hidden from this .pdf file (but can be checked on the .Rmd file). The auxiliary functions are:
 
@@ -105,14 +105,12 @@ The code for the auxiliary functions is hidden from this .pdf file (but can be c
 2. `default_priors`: A function to load and print default prior values
 3. `write_JAGSmodel`: A function to write the JAGS model using the prior values
 4. `data_toJAGS`: A function to create a list with all the data objects in the JAGS model
-5. `default_inits`:  
+5. `default_inits`:  A function to create an object (list) containing initial values for the drift
 6. `extractSamples`: A function to extract individual samples for any parameter
+7. `plot.Chain`: A function to plot the merging chains for the hierarchical parameters
+8. `getError`: A function to compute the difference between the true value and estimate retrieved for every parameter.
 
 ```{r, echo=FALSE}
-################################################################
-####    Auxiliary functions   ##################################
-################################################################
-
 # A function to print the settings used in the simulation
 design_summary = function(settings){
           cat("========== EZBHDDM Design Parameters: =======\n")
@@ -238,64 +236,54 @@ return(x)
 }
 
 plot.Chain <- function(samples){
-  posterior.samples <- samples$BUGSoutput$sims.array
-  labels <- names(posterior.samples[1,1,])
-  N <- dim(posterior.samples)[3]
-  factors <- which((N %% 1:N) == 0)
-  
+    posterior.samples <- samples$BUGSoutput$sims.array
+    labels <- names(posterior.samples[1,1,])
+    locateHier <- which(grepl("_",labels))
+    N <- length(locateHier)
+    n.chains <- ncol(posterior.samples[,,labels[locateHier[1]]])
+    par(mfrow = c(2, 3), mar =c(5.1,2,4.1,2), bty = "o")
+    for(i in locateHier){
+        plot(posterior.samples[,1,i], type="l", main=labels[i], 
+             xlab="Iteration", ylab="Value sampled")  
+        if(n.chains>1){
+             for(a in 2:n.chains){
+             lines(posterior.samples[,a,i],col=a)
+             }
+          }
+    }
+}
 
-  
-  par(mfrow = c(1, 3), 
-      mar =c(5.1,2,4.1,2),
-      bty = "o")
-  for(i in 1:N){
-      plot(posterior.samples[,1,i], type="l", main=labels[i], xlab="Iteration",
-           ylab="Value sampled")  
-      if(n.chains>1){
-           for(a in 2:n.chains){
-           lines(posterior.samples[,a,i],col=a)
-           }
-        }
-  }
+getError <- function(estimates, parameter_set){
+  error <- list("bound" = estimates$bound - parameter_set$bound,
+                "nondt" = estimates$nondt - parameter_set$nondt,
+                "drift" = estimates$drift - parameter_set$drift,
+                "bound_mean" = estimates$bound_mean - parameter_set$bound_mean,
+                "bound_sdev" = estimates$bound_sdev - parameter_set$bound_sdev,
+                "nondt_mean" = estimates$nondt_mean - parameter_set$nondt_mean,
+                "nondt_sdev" = estimates$nondt_sdev - parameter_set$nondt_sdev,
+                "drift_mean" = estimates$drift_mean - parameter_set$drift_mean,
+                "drift_sdev" = estimates$drift_sdev - parameter_set$drift_sdev)
+  return(error)
 }
 ```
 
-### Core functions
-
-```{r, echo=FALSE, message=FALSE, results='hide'}
-nSim <- 200
-prior <- default_priors()
-nParticipants <- 50
-nTrials <- 150
-n.chains = 4
-save_sampleFiles = FALSE
-samplesFileName = "samples.RData"
-settings <- list("nPart"   = nParticipants,
-                 "nTrials" = nTrials,
-                 "prior"   = prior)
-```
+## Core functions
 
 ```{r}
-################################################################
-####    Core functions       ##################################
-################################################################
-
 # Sample 'true' parameter values from the priors specified
 sample_parameters <- function(settings){
     prior <- settings$prior
-    nP <- settings$nPart
     bound_mean <- rnorm(1,prior$bound_mean_mean,prior$bound_mean_sdev)
     drift_mean <- rnorm(1,prior$drift_mean_mean,prior$drift_mean_sdev)
     nondt_mean <- rnorm(1,prior$nondt_mean_mean,prior$nondt_mean_sdev)
     bound_sdev <- runif(1,prior$bound_sdev_lower,prior$bound_sdev_upper)
     drift_sdev <- runif(1,prior$drift_sdev_lower,prior$drift_sdev_upper)
     nondt_sdev <- runif(1,prior$nondt_sdev_lower,prior$nondt_sdev_upper)
-    bound <- rnorm(nP,bound_mean, bound_sdev)
-    drift <- rnorm(nP,drift_mean, drift_sdev)
-    nondt <- rnorm(nP,nondt_mean, nondt_sdev)
-    parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean,
-                          "nondt_mean" = nondt_mean, "bound_sdev" = bound_sdev,
-                          "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
+    bound <- rnorm(settings$nPart,bound_mean, bound_sdev)
+    drift <- rnorm(settings$nPart,drift_mean, drift_sdev)
+    nondt <- rnorm(settings$nPart,nondt_mean, nondt_sdev)
+    parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean, "nondt_mean" = nondt_mean, 
+                          "bound_sdev" = bound_sdev, "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
                           "bound" = bound,   "drift" = drift,   "nondt" = nondt)
   return(parameter_set)
 }
@@ -309,10 +297,8 @@ sample_data <- function(settings, parameter_set){
       this.sub <- which(data[,1]==i)
       accuracy = 0
       while(sum(accuracy)==0){
-            temp <- wdmrnd(a = parameter_set$bound[i], 
-                           v = parameter_set$drift[i], 
-                           t = parameter_set$nondt[i], 
-                           n = settings$nTrials)
+            temp <- wdmrnd(a = parameter_set$bound[i], v = parameter_set$drift[i], 
+                           t = parameter_set$nondt[i], n = settings$nTrials)
             accuracy = temp$accuracy
       }
       data[this.sub,3] = accuracy
@@ -349,11 +335,42 @@ get_Statistics <- function(data){
   colnames(data_statistics) = c("sub", "sum_correct","meanAccuracy", "meanRT_correct", "varRT_correct")
   return(data_statistics)
 }
+```
 
-# Run JAGS and extract mean posteriors for all relevant parameters
-getJAGS_estimates <- function(modelFile="./EZHBDDM.bug", samplesFile=NA){
+## Main functions
+
+```{r}
+Hddm_Parameter_Set <-function(nParticipants, nTrials){
+    prior <- default_priors()
+    settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= prior)
+    parameter_set <- sample_parameters(settings)
+    return(list("settings" = settings, "parameter_set" = parameter_set))
+}
+
+Hddm_Data <- function(settings, parameter_set){
+    rawData = sample_data(settings,parameter_set)
+    sumData = get_Statistics(rawData)
+    jagsData = data_toJAGS()
+    return(list("rawData" = rawData, "sumData" = sumData, "jagsData" = jagsData))
+}
+
+Hddm_runJAGS <- function(getData, settings, n.chains,
+                              modelFile="./EZHBDDM.bug", 
+                              samplesFile=NA, plot.Chains = FALSE){
     parameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                     "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
+    myinits    <- default_inits(n.chains, settings$nPart)
+    
+    sub     <- getData$sumData$sub
+    correct <- getData$sumData$sum_correct
+    varRT   <- getData$sumData$varRT_correct
+    meanRT  <- getData$sumData$meanRT_correct
+    nTrialsPerPerson <- as.numeric(unique(tapply(getData$rawData$accuracy,getData$rawData$sub,length)))
+    nParticipants    <- length(getData$sumData$sub)
+    
+    write_JAGSmodel(settings$prior)
+    data <- getData$jagsData
+    
     library(R2jags)  
     samples <- jags(data=data, 
                     parameters.to.save=parameters, 
@@ -366,6 +383,9 @@ getJAGS_estimates <- function(modelFile="./EZHBDDM.bug", samplesFile=NA){
                     inits=myinits)
     if(!is.na(samplesFile)){
        save(samples,file=samplesFile)
+    }
+    if(plot.Chains){
+       plot.Chain(samples)
     }
     
     # Isolate samples related to the drift parameter
@@ -380,225 +400,55 @@ getJAGS_estimates <- function(modelFile="./EZHBDDM.bug", samplesFile=NA){
     samples.nondt = extractSamples("nondt", samples)
     samples.nondt_mean = extractSamples("nondt_mean", samples)
     samples.nondt_sdev = extractSamples("nondt_sdev", samples)
-    estimates <- list("drift" = apply(samples.drift,3,mean),
-                      "nondt" = apply(samples.nondt,3,mean),
-                      "bound" = apply(samples.bound,3,mean),
-                      "drift_mean" = mean(samples.drift_mean),
-                      "drift_sdev" = mean(samples.drift_sdev),
-                      "bound_mean" = mean(samples.bound_mean),
-                      "bound_sdev" = mean(samples.bound_sdev),
-                      "nondt_mean" = mean(samples.nondt_mean),
+    estimates <- list("drift" = apply(samples.drift,3,mean), "drift_sdev" = mean(samples.drift_sdev),  
+                      "bound" = apply(samples.bound,3,mean), "drift_mean" = mean(samples.drift_mean),
+                      "nondt" = apply(samples.nondt,3,mean), "bound_mean" = mean(samples.bound_mean),
+                      "bound_sdev" = mean(samples.bound_sdev), "nondt_mean" = mean(samples.nondt_mean),
                       "nondt_sdev" = mean(samples.nondt_sdev))
 return(estimates)
 }
-```
 
-### Main functions
-
-```{r, eval=FALSE}
-Hddm_Data <- function(settings, parameter_set){
-    rawData = sample_data(settings,parameter_set)
-    sumData = get_Statistics(rawData)
-    jagsData = data_toJAGS()
-    return(list("rawData" = rawData, 
-                "sumData" = sumData,
-                "jagsData" = jagsData))
-}
-
-Hddm_Design = function(nParticipants, nTrials, prior, 
+Hddm_runSim <- function(nParticipants, nTrials, 
                        n.chains = 4, samplesFile = NA){
-    
-    settings <- list("nPart"   = nParticipants,
-                     "nTrials" = nTrials,
-                     "prior"   = prior)
-    parameter_set = sample_parameters(settings)
-    
-    getData <- Hddm_Data(settings,parameter_set)
-    sub     <- getData$sumData$sub
-    correct <- getData$sumData$sum_correct
-    varRT   <- getData$sumData$varRT_correct
-    meanRT  <- getData$sumData$meanRT_correct
-    nTrialsPerPerson <- as.numeric(unique(tapply(getData$rawData$accuracy,getData$rawData$sub,length)))
-    nParticipants    <- length(getData$sumData$sub)
-    
-    write_JAGSmodel(prior)
-    data <- getData$jagsData
-    myinits <- default_inits(n.chains, settings$nPart)
-    
-    estimates <- getJAGS_estimates()
-  
-    output <- list("trueValues" = parameter_set,
-                   "estValues" = estimates)
-return(output)
+      
+      design.parameters <- Hddm_Parameter_Set(nParticipants,nTrials)
+      settings <- design.parameters$settings
+      parameter_set <- design.parameters$parameter_set
+      getData <- Hddm_Data(settings,parameter_set)
+      estimates <- Hddm_runJAGS(getData=getData, n.chains = n.chains, settings = settings)
+      error <- getError(estimates, parameter_set)
+return(list("trueValues" = parameter_set, "estValues" = estimates, "error" = error))
 }
-
 ```
-
-
-
-```{r, eval=FALSE}
-class Hddm_Parameter_Set:
-    def __init__(self,
-                 bound_mean = None, bound_sdev = None, bound = None,
-                 drift_mean = None, drift_sdev = None, drift = None,
-                 nondt_mean = None, nondt_sdev = None, nondt = None):
-        self.bound_mean = bound_mean
-        self.bound_sdev = bound_sdev
-        self.bound      = bound
-        self.drift_mean = drift_mean
-        self.drift_sdev = drift_sdev
-        self.drift      = drift
-        self.nondt_mean = nondt_mean
-        self.nondt_sdev = nondt_sdev
-        self.nondt      = nondt
-
-    def __sub__(self, other):
-        if not isinstance(other, Hddm_Parameter_Set):
-            return None
-
-        return Hddm_Parameter_Set(
-            bound_mean = self.bound_mean - other.bound_mean,
-            bound_sdev = self.bound_sdev - other.bound_sdev,
-            drift_mean = self.drift_mean - other.drift_mean,
-            drift_sdev = self.drift_sdev - other.drift_sdev,
-            nondt_mean = self.nondt_mean - other.nondt_mean,
-            nondt_sdev = self.nondt_sdev - other.nondt_sdev,
-            bound      = self.bound - other.bound if self.bound is not None and other.bound is not None else None,
-            drift      = self.drift - other.drift if self.drift is not None and other.drift is not None else None,
-            nondt      = self.nondt - other.nondt if self.nondt is not None and other.nondt is not None else None
-        )
-
-    def __str__(self):
-        output = [
-            "Hddm_Parameter_Set Details:",
-            f"Bound Mean:              {self.bound_mean}",
-            f"Bound Std Dev:           {self.bound_sdev}",
-            f"Drift Mean:              {self.drift_mean}",
-            f"Drift Std Dev:           {self.drift_sdev}",
-            f"Non-decision Time Mean:  {self.nondt_mean}",
-            f"Non-decision Time Std:   {self.nondt_sdev}",
-            f"Bound:                   {self.bound}",
-            f"Drift:                   {self.drift}",
-            f"Non-decision Time:       {self.nondt}"
-        ]
-        return '\n'.join(output)
-
-```
-
-```{r}
-
-```
-
-```{r, eval=FALSE}
-Hddm_Design = function(nParticipants, nTrials, prior){
-  
-
-    
-
-    def estimate_parameters(self):
-        # This is the key bit
-        code = f"""
-        JAGS
-        """
-
-        data, valid_indices = self.data.to_jags()
-
-        n_Participants_Left = data['nParticipants']
-
-        # Initial values
-        init = { "drift" : np.random.normal(0, 0.1, n_Participants_Left) }
-
-        try:
-            model = pyjags.Model(
-                progress_bar = False,
-                code    = code,
-                data    = data,
-                init    = init,
-                adapt   = 100,
-                chains  = 4,
-                threads = 4)
-        except Exception as e:
-            #error_message = str(e)
-            #print(type(error_message))
-            #print(error_message)
-            #self.data.summary()
-            #print(self.data.to_jags())
-            #print(self.parameter_set)
-            print('e', end='')
-            return
-        
-        samples = model.sample(400, 
-                               vars = ['bound_mean', 'drift_mean', 'nondt_mean',
-                                       'bound_sdev', 'drift_sdev', 'nondt_sdev',
-                                       'bound',      'drift',      'nondt'])
-
-        # Annoying management of sample object...  First move individual parameters to their own fields
-        for i in np.arange(0, n_Participants_Left):
-            samples.update({'bound_'+str(valid_indices[i]): samples['bound'][i,:,:], 
-                            'drift_'+str(valid_indices[i]): samples['drift'][i,:,:], 
-                            'nondt_'+str(valid_indices[i]): samples['nondt'][i,:,:], })
-
-        # ... remove the old unwieldy matrices 
-        for s in ["bound", "drift", "nondt"]:
-            samples.pop(s)
-
-        # Start a new dict with estimates only
-        estimate = { "bound": [np.nan] * self.n_Participants,
-                     "drift": [np.nan] * self.n_Participants,
-                     "nondt": [np.nan] * self.n_Participants
-                   }
-        
-        for varname in ['bound_mean', 'drift_mean', 'nondt_mean',
-                        'bound_sdev', 'drift_sdev', 'nondt_sdev']:
-            estimate.update({varname: np.mean(samples[varname])})
-
-        # ... make new, wieldy matrices
-        for i in valid_indices:
-            estimate['bound'][i] = np.mean(samples['bound_'+str(i)])
-            estimate['drift'][i] = np.mean(samples['drift_'+str(i)])
-            estimate['nondt'][i] = np.mean(samples['nondt_'+str(i)])
-
-        # Copy estimate to design object
-        self.estimate = Hddm_Parameter_Set()
-        self.estimate.bound_mean = estimate['bound_mean']
-        self.estimate.drift_mean = estimate['drift_mean']
-        self.estimate.nondt_mean = estimate['nondt_mean']
-        self.estimate.bound_sdev = estimate['bound_sdev']
-        self.estimate.drift_sdev = estimate['drift_sdev']
-        self.estimate.nondt_sdev = estimate['nondt_sdev']
-        self.estimate.bound      = estimate['bound']
-        self.estimate.drift      = estimate['drift']
-        self.estimate.nondt      = estimate['nondt']
-        
-```
-
-
-
-
-
-
 
 # Run simulations
 
-### Simple example 
+## Simple example 
 
 ```{r, eval=FALSE}
 set.seed(123)
 
-prior <- default_priors()
-
-write_JAGSmodel(prior)
-
-design <- Hddm_Design(nParticipants = 20, nTrials = 50, prior = prior)
+sim <- Hddm_runSim(nParticipants = 50, nTrials = 150)
 
 design.sample_parameters()
 design.sample_data()
 design.estimate_parameters()
 ```
 
-### Simulation study (200 repetitions)
+## Simulation study (200 repetitions)
 
 ```{r, eval=FALSE}
+nSim <- 200
+prior <- default_priors()
+nParticipants <- 50
+nTrials <- 150
+n.chains = 4
+save_sampleFiles = FALSE
+samplesFileName = "samples.RData"
+settings <- list("nPart"   = nParticipants,
+                 "nTrials" = nTrials,
+                 "prior"   = prior)
+
 nSim <- 200
 prior <- default_priors()
 settings <- list("nPart"   = 50,
@@ -693,14 +543,3 @@ for k in range(K):
 recovery_plot(x, y, 'drift', 'Individual drift rates')
 ```
 
-
-```{r, echo=FALSE, eval=FALSE}
-def __str__(self):
-        output = [
-            "Hddm_Data Details:",
-            f"Person:    {self.person}",
-            f"RT:        {self.rt}",
-            f"Accuracy:  {self.accuracy}"
-        ]
-        return '\n'.join(output)
-```
