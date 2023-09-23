@@ -440,26 +440,25 @@ return(list("trueValues" = parameter_set, "estValues" = estimates, "error" = err
 
 
 Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4, 
-                          outputFile = "./output_simStudy.RData", 
-                          Show=FALSE, forceSim = FALSE){
+                          outputFile = "./output_simStudy.RData", Show=FALSE, forceSim = FALSE){
     runSim <- TRUE
     if((!forceSim)&(file.exists(outputFile))){runSim <- FALSE}
     if(runSim){
-          simOutput <- array(NA, dim=c(nSim,3,3))
-          for(k in 1:nSim){
-              set.seed(k)
-              cat("Iteration", k, "of", nSim,"\n")
-              sim <- Hddm_runSim(nParticipants = 50, nTrials = 150, Show = FALSE)
-              simOutput[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
-              simOutput[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
-              simOutput[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)
-          }
-          dimnames(simOutput) <- list(NULL, c("true","est","error"), 
-                                            c("drift_mean","bound_mean","nondt_mean"))
-          save(simOutput,file=outputFile)
-    }else{
-         load(outputFile) 
-    }
+      simOutput <- array(NA, dim=c(nSim,3,3))
+      for(k in 1:nSim){
+          set.seed(k)
+          cat("Iteration", k, "of", nSim,"\n")
+          tryCatch({
+            sim <- Hddm_runSim(nParticipants = 50, nTrials = 150, Show = FALSE)
+            simOutput[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
+            simOutput[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
+            simOutput[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)},
+            error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+      }
+      simOutput <- simOutput[which(!is.na(simOutput[,1,1])),,]
+      dimnames(simOutput) <- list(NULL, c("true","est","error"), c("drift_mean","bound_mean","nondt_mean"))
+      save(simOutput,file=outputFile)
+    }else{    load(outputFile)     }
     return(simOutput)
 }
 ```
@@ -485,14 +484,12 @@ recoveryPlot(sim$trueValues$nondt,sim$estValues$nondt, "Individual nondt")
 recoveryPlot(sim$trueValues$drift,sim$estValues$drift, "Individual drift")
 ```
 
-## Simulation study (200 repetitions)
+# Smulation study (200 repetitions)
 
-```{r, message=FALSE, results='hide'}
-simStudy <- Hddm_simStudy(nSim = 200, nParticipants = 50, nTrials = 150)
-```
+```{r, message=FALSE, results='hide', echo=FALSE, fig.height=2.7, fig.align='center'}
+# 50 participants, 150 trials each
+simStudy <- Hddm_simStudy(nSim = 200, nParticipants = 50, nTrials = 150, outputFile = "./simStudy_p50t150.RData")
 
-
-```{r, echo=FALSE, fig.height=3, fig.align='center'}
 par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
 recoveryPlot(simStudy[,"true","drift_mean"],
              simStudy[,"est","drift_mean"],
@@ -503,7 +500,44 @@ recoveryPlot(simStudy[,"true","bound_mean"],
 recoveryPlot(simStudy[,"true","nondt_mean"],
              simStudy[,"est","nondt_mean"],
              "Group mean nondt")
+mtext("50 participants, 150 trials each", side = 3, line =-1.5, outer = TRUE, f=2, col="red3")
 ```
 
+\vspace{-0.2in}
+
+```{r, message=FALSE, results='hide', fig.height=2.7, fig.align='center', echo=FALSE}
+# 50 participants, 50 trials each
+simStudy <- Hddm_simStudy(nSim = 200, nParticipants = 150, nTrials = 50, outputFile = "./simStudy_p150t50.RData")
+
+par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
+recoveryPlot(simStudy[,"true","drift_mean"],
+             simStudy[,"est","drift_mean"],
+             "Group mean drift")
+recoveryPlot(simStudy[,"true","bound_mean"],
+             simStudy[,"est","bound_mean"],
+             "Group mean bound")
+recoveryPlot(simStudy[,"true","nondt_mean"],
+             simStudy[,"est","nondt_mean"],
+             "Group mean nondt")
+mtext("50 participants, 50 trials each", side = 3, line =-1.5, outer = TRUE, f=2, col="red3")
+```
+\vspace{-0.2in}
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.height=2.7, fig.align='center'}
+# 500 participants, 10 trials each
+simStudy <- Hddm_simStudy(nSim = 200, nParticipants = 500, nTrials = 10, outputFile = "./simStudy_p500t10.RData")
+
+par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
+recoveryPlot(simStudy[,"true","drift_mean"],
+             simStudy[,"est","drift_mean"],
+             "Group mean drift")
+recoveryPlot(simStudy[,"true","bound_mean"],
+             simStudy[,"est","bound_mean"],
+             "Group mean bound")
+recoveryPlot(simStudy[,"true","nondt_mean"],
+             simStudy[,"est","nondt_mean"],
+             "Group mean nondt")
+mtext("500 participants, 10 trials each", side = 3, line =-1.5, outer = TRUE, f=2, col="red3")
+```
 
 
