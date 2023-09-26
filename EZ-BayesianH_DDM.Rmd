@@ -282,20 +282,6 @@ plot.Chain <- function(samples){
     }
 }
 
-# A function to compute the difference between the true value and estimate retrieved for every parameter.
-getError <- function(estimates, parameter_set){
-  error <- list("bound" = estimates$bound - parameter_set$bound,
-                "nondt" = estimates$nondt - parameter_set$nondt,
-                "drift" = estimates$drift - parameter_set$drift,
-                "bound_mean" = estimates$bound_mean - parameter_set$bound_mean,
-                "bound_sdev" = estimates$bound_sdev - parameter_set$bound_sdev,
-                "nondt_mean" = estimates$nondt_mean - parameter_set$nondt_mean,
-                "nondt_sdev" = estimates$nondt_sdev - parameter_set$nondt_sdev,
-                "drift_mean" = estimates$drift_mean - parameter_set$drift_mean,
-                "drift_sdev" = estimates$drift_sdev - parameter_set$drift_sdev)
-  return(error)
-}
-
 #
 recoveryPlot <- function(x.true, y.estimated, parameterName){
   allValues <- c(x.true,y.estimated)
@@ -314,13 +300,13 @@ recoveryPlot <- function(x.true, y.estimated, parameterName){
 }
 
 showRecovery <- function(simStudy, nParticipants, nTrials){
-  par(mfrow = c(2, 3), mar =c(5.1,2,4.1,2))
+  par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
   recoveryPlot(simStudy[,"true","drift_mean"],simStudy[,"est","drift_mean"],"Group mean drift")
   recoveryPlot(simStudy[,"true","bound_mean"],simStudy[,"est","bound_mean"],"Group mean bound")
   recoveryPlot(simStudy[,"true","nondt_mean"],simStudy[,"est","nondt_mean"],"Group mean nondt")
-  recoveryPlot(simStudy[,"true","drift"],simStudy[,"est","drift"],"Individual drifts")
-  recoveryPlot(simStudy[,"true","bound"],simStudy[,"est","bound"],"Individual bounds")
-  recoveryPlot(simStudy[,"true","nondt"],simStudy[,"est","nondt"],"Individual nondt")
+  # recoveryPlot(simStudy[,"true","drift"],simStudy[,"est","drift"],"Individual drifts")
+  # recoveryPlot(simStudy[,"true","bound"],simStudy[,"est","bound"],"Individual bounds")
+  # recoveryPlot(simStudy[,"true","nondt"],simStudy[,"est","nondt"],"Individual nondt")
   title <- paste(nParticipants, " participants, ", nTrials, " trials each")
 mtext(title, side = 3, line =-1.7, outer = TRUE, f=2, col="red3")
 }
@@ -377,6 +363,20 @@ get_Statistics <- function(data){
   data_statistics <- as.data.frame(data_statistics)
   colnames(data_statistics) = c("sub", "sum_correct","meanAccuracy", "meanRT_correct", "varRT_correct")
   return(data_statistics)
+}
+
+# A function to compute the difference between the true value and estimate retrieved for every parameter.
+getError <- function(estimates, parameter_set){
+  error <- list("bound" = estimates$bound - parameter_set$bound,
+                "nondt" = estimates$nondt - parameter_set$nondt,
+                "drift" = estimates$drift - parameter_set$drift,
+                "bound_mean" = estimates$bound_mean - parameter_set$bound_mean,
+                "bound_sdev" = estimates$bound_sdev - parameter_set$bound_sdev,
+                "nondt_mean" = estimates$nondt_mean - parameter_set$nondt_mean,
+                "nondt_sdev" = estimates$nondt_sdev - parameter_set$nondt_sdev,
+                "drift_mean" = estimates$drift_mean - parameter_set$drift_mean,
+                "drift_sdev" = estimates$drift_sdev - parameter_set$drift_sdev)
+  return(error)
 }
 ```
 
@@ -456,19 +456,29 @@ Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4,
     runSim <- TRUE
     if((!forceSim)&(file.exists(outputFile))){runSim <- FALSE}
     if(runSim){
-      simOutput <- array(NA, dim=c(nSim,3,3))
+      sim_means <- array(NA, dim=c(nSim,3,3))
+      sim_indiv <- array(NA, dim=c(nSim*nParticipants,3,3))
+      indiv_init = 1
       for(k in 1:nSim){
           set.seed(k)
           cat("Iteration", k, "of", nSim,"\n")
           tryCatch({
             sim <- Hddm_runSim(nParticipants = 50, nTrials = 150, Show = FALSE)
-            simOutput[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
-            simOutput[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
-            simOutput[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)},
-            error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+            sim_means[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
+            sim_means[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
+            sim_means[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)
+            Last = nParticipants*k
+            sim_indiv[indiv_init:Last,,1] = c(sim$trueValues$drift, sim$estValues$drift, sim$error$drift)
+            sim_indiv[indiv_init:Last,,2] = c(sim$trueValues$bound, sim$estValues$bound, sim$error$bound)
+            sim_indiv[indiv_init:Last,,3] = c(sim$trueValues$nondt, sim$estValues$nondt, sim$error$nondt)
+            indiv_init = Last + 1        
+            }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
       }
-      simOutput <- simOutput[which(!is.na(simOutput[,1,1])),,]
-      dimnames(simOutput) <- list(NULL, c("true","est","error"), c("drift_mean","bound_mean","nondt_mean"))
+      sim_means <- sim_means[which(!is.na(sim_means[,1,1])),,]
+      sim_indiv <- sim_indiv[which(!is.na(sim_indiv[,1,1])),,]
+      dimnames(sim_means) <- list(NULL, c("true","est","error"), c("drift_mean","bound_mean","nondt_mean"))
+      dimnames(sim_indiv) <- list(NULL, c("true","est","error"), c("drift","bound","nondt"))
+      simOutput = list("sim_means" = sim_means, "sim_indiv" = sim_indiv)
       save(simOutput,file=outputFile)
     }else{    load(outputFile)     }
     return(simOutput)
