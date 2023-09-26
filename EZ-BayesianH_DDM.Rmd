@@ -468,9 +468,6 @@ Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4,
 
 # Run simple example
 
-```{r, echo=FALSE}
-set.seed(123)
-```
 
 ```{r}
 sim <- Hddm_runSim(nParticipants = 50, nTrials = 150)
