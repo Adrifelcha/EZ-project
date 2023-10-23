@@ -1,9 +1,16 @@
 ---
 title: "EZ Bayesian Hierarchical Drift Diffusion Model"
-author: "Adriana F. Chavez"
+author: "Adriana F. Chavez De la Pena"
 subtitle: "Based on Joachim's python code"
 date: "Last time knitted: `r format(Sys.time(), '%d %B, %Y')`"
 geometry: "left=1cm,right=1cm,top=2cm,bottom=2cm"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[L]{EZ Bayesian Hierarchical Drift Diffusion Model}
+#- \fancyhead[CO,CE]{EZ Bayesian Hierarchical Drift Diffusion Model}
+#- \fancyfoot[CO,CE]{\chaptername}
+- \fancyfoot[LE,RO]{\thepage}
 output: pdf_document
 ---
 
@@ -15,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Basic functions to generate DDM data
 
-```{r}
+```{r generate-DDM-data}
 # Part 1: Simulate single trial outcome
 simulate_ddm <- function(a, v, dt, max_steps){
      x <- 0   
@@ -53,21 +60,22 @@ wdmrnd <- function(a,v,t,n){
 
 # Example: Generate some data
 
-```{r}
+```{r example-parameters}
 a = 1.50
 v = 0.00
 t = 0.30
 n = 10000
 
 data <- wdmrnd(a, v, t, n)
-rt <- data$RT
-accuracy <- data$accuracy
 ```
 
-```{r, echo=FALSE, fig.height=3.5}
+```{r example-plot, echo=FALSE, fig.height=3.5}
 par(mfrow = c(1, 3), 
     mar =c(5.1,2,4.1,2),
     bty = "o")
+
+rt <- data$RT
+accuracy <- data$accuracy
 
 hist(rt[accuracy==1], ann=F, axes=F, breaks=50, col="lightgreen",
      border=NA)
@@ -99,7 +107,7 @@ axis(1,c(0.7,1.9),c("Incorrect","Correct"))
 
 ## Auxiliary functions
 
-The code for the auxiliary functions listed below is hidden from this .pdf file (but can be checked on the .Rmd file). 
+The code for the auxiliary functions listed below is hidden from this pdf file (but can be checked on the .Rmd). 
 
 1. `design_summary`: A function to print the settings used in the simulation.
 2. `default_priors`: A function to load and print default prior values.
@@ -110,7 +118,7 @@ The code for the auxiliary functions listed below is hidden from this .pdf file 
 7. `extractSamples`: A function to extract all samples associated with a `parameter.name`
 8. `plot.Chain`: A function to plot the merging chains for hierarchical parameters
 9. `getError`: A function to compute the difference between the true value and estimate retrieved for every parameter.
-10. `recoveryPlot` : A function to create a quick recovery plot
+10. `nameOutput` : A function to generate an appropriate output name based on the number of trials and participants
 
 ```{r, echo=FALSE}
 # A function to print the settings used in the simulation
@@ -282,7 +290,30 @@ plot.Chain <- function(samples){
     }
 }
 
-#
+# A function to compute the difference between the true value and estimate retrieved for every parameter.
+getError <- function(estimates, parameter_set){
+  error <- list("bound" = estimates$bound - parameter_set$bound,
+                "nondt" = estimates$nondt - parameter_set$nondt,
+                "drift" = estimates$drift - parameter_set$drift,
+                "bound_mean" = estimates$bound_mean - parameter_set$bound_mean,
+                "bound_sdev" = estimates$bound_sdev - parameter_set$bound_sdev,
+                "nondt_mean" = estimates$nondt_mean - parameter_set$nondt_mean,
+                "nondt_sdev" = estimates$nondt_sdev - parameter_set$nondt_sdev,
+                "drift_mean" = estimates$drift_mean - parameter_set$drift_mean,
+                "drift_sdev" = estimates$drift_sdev - parameter_set$drift_sdev)
+  return(error)
+}
+
+# A function to generate an appropriate output name based on the number of trials and participants
+nameOutput <- function(nTrials, nParticipants){
+  fileName <- paste("./sim_P",nParticipants,"T",nTrials,".RData", sep="")
+  return(fileName)
+}
+```
+
+## Plotting functions
+
+```{r}
 recoveryPlot <- function(x.true, y.estimated, parameterName){
   allValues <- c(x.true,y.estimated)
   param.is.bound <- length(which(grepl("ound",parameterName)))!=0
@@ -300,13 +331,15 @@ recoveryPlot <- function(x.true, y.estimated, parameterName){
 }
 
 showRecovery <- function(simStudy, nParticipants, nTrials){
-  par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
-  recoveryPlot(simStudy[,"true","drift_mean"],simStudy[,"est","drift_mean"],"Group mean drift")
-  recoveryPlot(simStudy[,"true","bound_mean"],simStudy[,"est","bound_mean"],"Group mean bound")
-  recoveryPlot(simStudy[,"true","nondt_mean"],simStudy[,"est","nondt_mean"],"Group mean nondt")
-  # recoveryPlot(simStudy[,"true","drift"],simStudy[,"est","drift"],"Individual drifts")
-  # recoveryPlot(simStudy[,"true","bound"],simStudy[,"est","bound"],"Individual bounds")
-  # recoveryPlot(simStudy[,"true","nondt"],simStudy[,"est","nondt"],"Individual nondt")
+  par(mfrow = c(2, 3))#, mar =c(5.1,2,4.1,2))
+  x <- simStudy$sim_means
+  recoveryPlot(x[,"true","drift_mean"],x[,"est","drift_mean"],"Group mean drift")
+  recoveryPlot(x[,"true","bound_mean"],x[,"est","bound_mean"],"Group mean bound")
+  recoveryPlot(x[,"true","nondt_mean"],x[,"est","nondt_mean"],"Group mean nondt")
+  y <- simStudy$sim_indiv
+  recoveryPlot(y[,"true","drift"],y[,"est","drift"],"Individual drifts")
+  recoveryPlot(y[,"true","bound"],y[,"est","bound"],"Individual bounds")
+  recoveryPlot(y[,"true","nondt"],y[,"est","nondt"],"Individual nondt")
   title <- paste(nParticipants, " participants, ", nTrials, " trials each")
 mtext(title, side = 3, line =-1.7, outer = TRUE, f=2, col="red3")
 }
@@ -363,20 +396,6 @@ get_Statistics <- function(data){
   data_statistics <- as.data.frame(data_statistics)
   colnames(data_statistics) = c("sub", "sum_correct","meanAccuracy", "meanRT_correct", "varRT_correct")
   return(data_statistics)
-}
-
-# A function to compute the difference between the true value and estimate retrieved for every parameter.
-getError <- function(estimates, parameter_set){
-  error <- list("bound" = estimates$bound - parameter_set$bound,
-                "nondt" = estimates$nondt - parameter_set$nondt,
-                "drift" = estimates$drift - parameter_set$drift,
-                "bound_mean" = estimates$bound_mean - parameter_set$bound_mean,
-                "bound_sdev" = estimates$bound_sdev - parameter_set$bound_sdev,
-                "nondt_mean" = estimates$nondt_mean - parameter_set$nondt_mean,
-                "nondt_sdev" = estimates$nondt_sdev - parameter_set$nondt_sdev,
-                "drift_mean" = estimates$drift_mean - parameter_set$drift_mean,
-                "drift_sdev" = estimates$drift_sdev - parameter_set$drift_sdev)
-  return(error)
 }
 ```
 
@@ -451,19 +470,21 @@ return(list("trueValues" = parameter_set, "estValues" = estimates, "error" = err
 }
 
 
-Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4, 
-                          outputFile = "./output_simStudy.RData", Show=FALSE, forceSim = FALSE){
+Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4,
+                          Show=FALSE, forceSim = FALSE){
+    outputFile <- nameOutput(nTrials, nParticipants)
     runSim <- TRUE
+    nPar <- 3
     if((!forceSim)&(file.exists(outputFile))){runSim <- FALSE}
     if(runSim){
-      sim_means <- array(NA, dim=c(nSim,3,3))
-      sim_indiv <- array(NA, dim=c(nSim*nParticipants,3,3))
+      sim_means <- array(NA, dim=c(nSim,3,nPar))
+      sim_indiv <- array(NA, dim=c(nSim*nParticipants,3,nPar))
       indiv_init = 1
       for(k in 1:nSim){
           set.seed(k)
           cat("Iteration", k, "of", nSim,"\n")
           tryCatch({
-            sim <- Hddm_runSim(nParticipants = 50, nTrials = 150, Show = FALSE)
+            sim <- Hddm_runSim(nParticipants = nParticipants, nTrials = nTrials, Show = FALSE)
             sim_means[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
             sim_means[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
             sim_means[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)
@@ -503,43 +524,91 @@ recoveryPlot(sim$trueValues$nondt,sim$estValues$nondt, "Individual nondt")
 recoveryPlot(sim$trueValues$drift,sim$estValues$drift, "Individual drift")
 ```
 
-# Smulation study (150 trials - 200 repetitions)
+\clearpage
 
-\vspace{-0.1in}
+\vspace{5in}
 
-```{r, message=FALSE, results='hide', echo=FALSE, fig.width=5.5, fig.height=2.3, fig.align='center'}
+# Full smulation studies (200 repetitions)
+
+\vspace{.75in}
+
+## 150 trials
+
+```{r}
+nSim <- 200
+
 nT <- 150
-nP <- 50
-simStudy <- Hddm_simStudy(nSim = 200, nParticipants = nP, nTrials = nT, outputFile = "./sim_P50T150.RData")
-showRecovery(simStudy, nP, nT)
+nP1 <- 10
+nP2 <- 80
+nP3 <- 200
+nP4 <- 500
 ```
 
-\vspace{-0.4in}
+```{r, results='hide',message=FALSE}
+simStudy1 <- Hddm_simStudy(nSim = nSim, nParticipants = nP1, nTrials = nT)
+simStudy2 <- Hddm_simStudy(nSim = nSim, nParticipants = nP2, nTrials = nT)
+simStudy3 <- Hddm_simStudy(nSim = nSim, nParticipants = nP3, nTrials = nT)
+simStudy4 <- Hddm_simStudy(nSim = nSim, nParticipants = nP4, nTrials = nT)
+```
 
-```{r, message=FALSE, results='hide', echo=FALSE, fig.width=5.5, fig.height=2.3, fig.align='center'}
-nP <- 200
-simStudy <- Hddm_simStudy(nSim = 200, nParticipants = nP, nTrials = nT, outputFile = "./sim_P200T150.RData")
-showRecovery(simStudy, nP, nT)
+\vspace{.75in}
+
+## 150 participants
+
+```{r}
+nSim <- 200
+
+nP <- 150
+nT1 <- 10
+nT2 <- 80
+nT3 <- 200
+nT4 <- 500
+```
+
+```{r, results='hide',message=FALSE}
+simStudy5 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT1)
+simStudy6 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT2)
+simStudy7 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT3)
+simStudy8 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT4)
 ```
 
 
-\vspace{-0.4in}
+\clearpage
 
-```{r, message=FALSE, results='hide', echo=FALSE, fig.width=5.5, fig.height=2.3, fig.align='center'}
-# 500 participants, 10 trials each
-simStudy <- Hddm_simStudy(nSim = 200, nParticipants = 500, nTrials = 10, outputFile = "./simStudy_p500t10.RData")
-
-par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
-recoveryPlot(simStudy[,"true","drift_mean"],
-             simStudy[,"est","drift_mean"],
-             "Group mean drift")
-recoveryPlot(simStudy[,"true","bound_mean"],
-             simStudy[,"est","bound_mean"],
-             "Group mean bound")
-recoveryPlot(simStudy[,"true","nondt_mean"],
-             simStudy[,"est","nondt_mean"],
-             "Group mean nondt")
-mtext("500 participants, 10 trials each", side = 3, line =-1.7, outer = TRUE, f=2, col="red3")
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy1, nP1, nT)
 ```
 
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy2, nP2, nT)
+```
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy3, nP3, nT)
+```
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy4, nP4, nT)
+```
+
+\clearpage
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy5, nP, nT1)
+```
+
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy6, nP, nT2)
+```
+
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy7, nP, nT3)
+```
+
+
+```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
+showRecovery(simStudy8, nP, nT4)
+```
 
