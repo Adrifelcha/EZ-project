@@ -14,6 +14,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rstan)
 ```
 
 -------------------
@@ -21,7 +22,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # Basic functions to generate DDM data
 
 \begin{align*}
-\mathbf{Y}_{} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau\bigl)
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
 \end{align*}
 
 ```{r generate-DDM-data}
@@ -104,13 +105,13 @@ axis(1,c(0.7,1.9),c("Incorrect","Correct"))
 
 # Simulation Study functions and variables
 
-The code for the auxiliary functions listed below is hidden from this pdf file (but can be checked on the .Rmd). 
+The code for the functions listed below is hidden from this pdf file (but can be checked on the .Rmd). Here we present a list of what these functions are and what they do!
 
 ## Auxiliary functions
 
-1. `nameOutput` : A function to generate an appropriate output name based on the number of trials and participants
+1. `nameOutput` : A function to generate an appropriate output name based on the number of trials and participants.
 2. `design_summary`: A function to print the settings used in the simulation.
-3. `show_priors`: A function to print default prior values.
+3. `show_priors`: A function to print the default prior values.
 4. `show_parameters`: A function to print the parameter values used to generate data used in the simulation.
 
 ```{r, echo=FALSE}
@@ -121,10 +122,15 @@ nameOutput <- function(nTrials, nParticipants){
 }
 
 # A function to print the settings used in the simulation
-design_summary = function(nParticipants,nTrials){
+design_summary = function(nParticipants,nTrials,nConditions=NA){
       cat("========== EZBHDDM Design Parameters: =======\n")
       cat("Number of Participants:    ", nParticipants,"\n")
+      if(is.na(nConditions)){
       cat("Trials Per Person:         ",nTrials,"\n")
+      }else{
+      cat("Number of Conditions:      ", nParticipants,"\n")  
+      cat("Trials Per Conditin:       ",nTrials,"\n")
+      }
 }
 
 # A function to print the default prior values
