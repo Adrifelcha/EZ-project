@@ -122,15 +122,15 @@ nameOutput <- function(nTrials, nParticipants){
 }
 
 # A function to print the settings used in the simulation
-design_summary = function(nParticipants,nTrials,nConditions=NA){
-      cat("========== EZBHDDM Design Parameters: =======\n")
-      cat("Number of Participants:    ", nParticipants,"\n")
-      if(is.na(nConditions)){
-      cat("Trials Per Person:         ",nTrials,"\n")
-      }else{
-      cat("Number of Conditions:      ", nParticipants,"\n")  
-      cat("Trials Per Conditin:       ",nTrials,"\n")
-      }
+design_summary = function(nParticipants, nTrials, nConditions=NA){
+    cat("========== EZBHDDM Design Parameters: =======\n")
+    cat("Number of Participants:    ", nParticipants,"\n")
+    if(is.na(nConditions)){
+       cat("Trials Per Person:         ",nTrials,"\n")
+    }else{
+       cat("Number of Conditions:      ", nParticipants,"\n")  
+       cat("Trials Per Conditin:       ",nTrials,"\n")
+    }
 }
 
 # A function to print the default prior values
@@ -165,9 +165,11 @@ show_priors <- function(prior){
 # A function to print the parameter values used to generate data used in the simulation.
 show_parameters <- function(parameter_set){
           cat("===== EZBHDDM True Parameters: ==============\n")
-          if(!is.null(prior$drift_intercept_mean)){  # Simple hierarchical model
+          if(!is.null(parameter_set$drift_B0)){  # Simple hierarchical model
              cat("Drift Intercept:   ", parameter_set$drift_intercept,"\n")
-             cat("Drift Coefficient: ", parameter_set$drift_coefficient,"\n")
+             if(!is.null(parameter_set$drift_B1)){
+                    cat("Drift Coefficient: ", parameter_set$drift_coefficient,"\n")
+             }
              cat("Drift SD:          ", parameter_set$drift_sdev,"\n") 
           }else{
              cat("Drift Mean:   ", parameter_set$drift_mean,"\n")
@@ -512,21 +514,27 @@ Hddm_runJAGS <- function(getData, settings, n.chains, modelFile="./EZHBDDM.bug",
                                 parameters.to.save=parameters, 
                                 model=modelFile, 
                                 n.chains=n.chains, 
-                                n.iter=1000, 
+                                n.iter=4000, 
                                 n.burnin=200, 
                                 n.thin=1, 
                                 DIC=T, 
                                 inits=myinits))
     if(plot.Chains){  plot.Chain(samples)   }
-return(list("drift" = apply(extractSamples("drift", samples),3,mean), 
-            "drift_mean" = mean(extractSamples("drift_mean", samples)),
-            "drift_sdev" = mean(extractSamples("drift_sdev", samples)),  
-            "bound" = apply(extractSamples("bound", samples),3,mean), 
-            "bound_mean" = mean(extractSamples("bound_mean", samples)),
-            "bound_sdev" = mean(extractSamples("bound_sdev", samples)),
-            "nondt" = apply(extractSamples("nondt", samples),3,mean), 
-            "nondt_mean" = mean(extractSamples("nondt_mean", samples)),
-            "nondt_sdev" = mean(extractSamples("nondt_sdev", samples))))
+    
+    object <- samples$BUGSoutput$sims.array
+    Rhats <- apply(object,3,Rhat)
+    rhats <- data.frame("par" = names(Rhats),
+                        "rhat" = as.numeric(Rhats))
+return(list("estimates" <- list("drift" = apply(extractSamples("drift", samples),3,mean), 
+                              "drift_mean" = mean(extractSamples("drift_mean", samples)),
+                              "drift_sdev" = mean(extractSamples("drift_sdev", samples)),  
+                              "bound" = apply(extractSamples("bound", samples),3,mean), 
+                              "bound_mean" = mean(extractSamples("bound_mean", samples)),
+                              "bound_sdev" = mean(extractSamples("bound_sdev", samples)),
+                              "nondt" = apply(extractSamples("nondt", samples),3,mean), 
+                              "nondt_mean" = mean(extractSamples("nondt_mean", samples)),
+                              "nondt_sdev" = mean(extractSamples("nondt_sdev", samples))),
+            "rhats" <- rhats))
 }
 
 # Main function: A function to run a complete simulation for nParticipants and nTrials per participant
@@ -535,9 +543,11 @@ Hddm_runSim <- function(nParticipants, nTrials, n.chains = 4, Show=TRUE){
       settings <- design.parameters$settings
       parameter_set <- design.parameters$parameter_set
       getData <- Hddm_Data(settings,parameter_set)
-      estimates <- Hddm_runJAGS(getData=getData, n.chains = n.chains, settings = settings)
+      runJags <- Hddm_runJAGS(getData=getData, n.chains = n.chains, settings = settings)
+      estimates <- runJags$estimates
       error <- getError(estimates, parameter_set)
-return(list("trueValues" = parameter_set, "estValues" = estimates, "error" = error))
+return(list("values" <- list("trueValues" = parameter_set, "estValues" = estimates, "error" = error),
+            "rhats"  <- runJags$rhats))
 }
 
 
@@ -545,19 +555,27 @@ Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4,
                           Show=FALSE, forceSim = FALSE){
     outputFile <- nameOutput(nTrials, nParticipants)
     runSim <- TRUE
-    nPar <- 3  # No. parameters: Drift, boundary, ndt
+    
+    design.parameters <- Hddm_Parameter_Set(nParticipants,nTrials)
+    parameter_set <- design.parameters$parameter_set
+    nPar <- sum(lapply(parameter_set, length) > 1)
+    no.Rhats  <- nParticipants*nPar+(length(parameter_set)-nPar)+1
+    
     if((!forceSim)&(file.exists(outputFile))){runSim <- FALSE}
     if(runSim){
       # Empty arrays to store hierarchical and individual parameters
       # Pages = Parameter | Rows = Point values | Cols = True/Estimated/Error
       sim_means <- array(NA, dim=c(nSim,3,nPar))
       sim_indiv <- array(NA, dim=c(nSim*nParticipants,3,nPar))
+      sim_rhats <- array(NA, dim=c(no.Rhats,2,nSim))
       indiv_init = 1
       for(k in 1:nSim){
           set.seed(k)
           cat("Iteration", k, "of", nSim,"\n")
           tryCatch({
-            sim <- Hddm_runSim(nParticipants = nParticipants, nTrials = nTrials, Show = FALSE)
+            runSim <- Hddm_runSim(nParticipants = nParticipants, nTrials = nTrials, Show = FALSE)
+            sim <- runSim$values
+            sim_rhats[,,k] <- runSim$rhats
             sim_means[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
             sim_means[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
             sim_means[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)
@@ -635,7 +653,7 @@ nP4 <- 500
 simStudy1 <- Hddm_simStudy(nSim = nSim, nParticipants = nP1, nTrials = nT)
 simStudy2 <- Hddm_simStudy(nSim = nSim, nParticipants = nP2, nTrials = nT)
 simStudy3 <- Hddm_simStudy(nSim = nSim, nParticipants = nP3, nTrials = nT)
-#simStudy4 <- Hddm_simStudy(nSim = nSim, nParticipants = nP4, nTrials = nT)
+simStudy4 <- Hddm_simStudy(nSim = nSim, nParticipants = nP4, nTrials = nT)
 ```
 
 \vspace{.75in}
