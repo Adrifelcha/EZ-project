@@ -201,8 +201,8 @@ default_priors <- function(Show=TRUE){
                         "bound_sdev_upper" = 0.20,
                         "drift_sdev_lower" = 0.20,
                         "drift_sdev_upper" = 0.40,
-                        "nondt_sdev_lower" = 0.01,
-                        "nondt_sdev_upper" = 0.05)
+                        "nondt_sdev_lower" = 0.05,
+                        "nondt_sdev_upper" = 0.1)
     if(Show){       show_priors(prior)           }
   return(prior)
 }
@@ -222,7 +222,7 @@ sample_parameters <- function(settings, Show=TRUE){
     nondt_sdev <- runif(1,prior$nondt_sdev_lower,prior$nondt_sdev_upper)
     bound <- rnorm(settings$nPart,bound_mean, bound_sdev)
     drift <- rnorm(settings$nPart,drift_mean, drift_sdev)
-    nondt <- rnorm(settings$nPart,nondt_mean, nondt_sdev)
+    nondt <- abs(rnorm(settings$nPart,nondt_mean, nondt_sdev))
     parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean, "nondt_mean" = nondt_mean, 
                           "bound_sdev" = bound_sdev, "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
                           "bound" = bound,   "drift" = drift,   "nondt" = nondt)
@@ -233,11 +233,13 @@ sample_parameters <- function(settings, Show=TRUE){
 
 ## Working with JAGS
 
-4. `write_JAGSmodel`: A function to write the JAGS model using the prior values.
-5. `data_toJAGS`: A function to create a list with all the data objects to be passed to JAGS.
-6. `default_inits`:  A function to create an object containing initial values for the drift.
-7. `extractSamples`: A function to extract all samples associated with a `parameter.name`
-9. `getError`: A function to compute the difference between the true value and estimate retrieved for every parameter.
+1. `write_JAGSmodel`: A function to write the JAGS model using the prior values.
+2. `data_toJAGS`: A function to create a list with all the data objects to be passed to JAGS.
+3. `default_inits`:  A function to create an object containing initial values for the drift.
+4. `extractSamples`: A function to extract all samples associated with a `parameter.name`
+5. `getError`: A function to compute the difference between the true value and estimate retrieved for every parameter.
+6. `check_Rhat`: A function to check the Rhats for a simulation
+
 
 
 ```{r, echo=FALSE}
@@ -356,6 +358,28 @@ getError <- function(estimates, parameter_set){
                 "drift_mean" = estimates$drift_mean - parameter_set$drift_mean,
                 "drift_sdev" = estimates$drift_sdev - parameter_set$drift_sdev)
   return(error)
+}
+
+# A function to check the Rhats for a simulation
+check_Rhat <- function(simOutput){
+      rule <- 1.05
+      rhats <-simOutput$sim_rhats
+      bad.Rhat <- which(rhats>rule,arr.ind = TRUE)
+      test.rhat <- length(bad.Rhat) > 0
+      if(!test.rhat){
+        par(mfrow=c(1,1))
+        bad.Rhat.ID <- colnames(rhats)[bad.Rhat[,2]]
+    
+        hist(rhats[which(rhats>rule)],
+             main=paste("Rhats > or = than ", rule))
+        abline(v=rule, col="red", lty=2)
+        legend("top",paste("Rhat = ",rule," | ",
+                           (round(nrow(bad.Rhat)/prod(dim(rhats)),5))*100,
+                           "% of chains | ", length(bad.Rhat.ID), " chains", sep=""), lty=2, col="red", cex=0.4)
+        table(bad.Rhat.ID)
+      }else{
+        paste("No Rhat greater than ", rule, sep="")      
+      }
 }
 ```
 
@@ -651,11 +675,14 @@ nP4 <- 500
 
 ```{r, results='hide',message=FALSE}
 simStudy1 <- Hddm_simStudy(nSim = nSim, nParticipants = nP1, nTrials = nT)
-simStudy2 <- Hddm_simStudy(nSim = nSim, nParticipants = nP2, nTrials = nT)
-simStudy3 <- Hddm_simStudy(nSim = nSim, nParticipants = nP3, nTrials = nT)
-simStudy4 <- Hddm_simStudy(nSim = nSim, nParticipants = nP4, nTrials = nT)
+#simStudy2 <- Hddm_simStudy(nSim = nSim, nParticipants = nP2, nTrials = nT)
+# simStudy3 <- Hddm_simStudy(nSim = nSim, nParticipants = nP3, nTrials = nT)
+# simStudy4 <- Hddm_simStudy(nSim = nSim, nParticipants = nP4, nTrials = nT)
 ```
 
+```{r}
+
+```
 \vspace{.75in}
 
 ## 150 participants
@@ -671,10 +698,10 @@ nT4 <- 500
 ```
 
 ```{r, results='hide',message=FALSE}
-simStudy5 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT1)
-simStudy6 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT2)
-simStudy7 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT3)
-#simStudy8 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT4)
+# simStudy5 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT1)
+# simStudy6 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT2)
+# simStudy7 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT3)
+# #simStudy8 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT4)
 ```
 
 
@@ -693,7 +720,7 @@ showRecovery(simStudy3, nP3, nT)
 ```
 
 ```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
-#showRecovery(simStudy4, nP4, nT)
+showRecovery(simStudy4, nP4, nT)
 ```
 
 \clearpage
