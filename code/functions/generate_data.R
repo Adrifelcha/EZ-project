@@ -2,7 +2,8 @@
 #  Functions to simulate bivariate data under DDM
 ###########################################################
 
-# Part 1: Simulate single trial outcome
+# Simulate single trial outcome
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 simulate_ddm <- function(a, v, dt, max_steps){
   x <- 0   
   random_dev <- rnorm(max_steps)  
@@ -17,7 +18,8 @@ simulate_ddm <- function(a, v, dt, max_steps){
   return(output)
 }
 
-# Part 2: Simulate over 'n' trials
+# Simulate over 'n' trials
+#~~~~~~~~~~~~~~~~~~~~~~~~~!
 wdmrnd <- function(a,v,t,n){
   dt = 0.001
   max_steps = 10 / dt
