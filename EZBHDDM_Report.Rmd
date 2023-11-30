@@ -17,6 +17,10 @@ knitr::opts_chunk$set(echo = TRUE)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 ```
 
+```{r, echo=FALSE}
+source("./code/scripts/load_all_functions.R")
+```
+
 -------------------
 
 # Basic DDM data
@@ -27,10 +31,8 @@ We start by generating a set of bivariate observations
 \mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
 \end{align*}
 
-```{r generate-DDM-data, file="./code/functions/generate_data.R}
+```{r generate-DDM-data, file="./code/functions/generate_data.R", echo=FALSE}
 ```
-
-### Example: Generate some data
 
 ```{r example-parameters}
 a = 1.50
