@@ -1,0 +1,66 @@
+---
+title: "EZ Bayesian Hierarchical Drift Diffusion Model"
+author: "Adriana F. Chavez De la Pena"
+date: "Last time knitted: `r format(Sys.time(), '%d %B, %Y')`"
+geometry: "left=1cm,right=1cm,top=2cm,bottom=2cm"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[L]{EZ Bayesian Hierarchical Drift Diffusion Model}
+- \fancyfoot[LE,RO]{\thepage}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+-------------------
+
+# Basic functions to generate DDM data
+
+\begin{align*}
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
+\end{align*}
+
+```{r generate-DDM-data, file="./code/functions/generate_data.R"}
+```
+
+# Example: Generate some data
+
+```{r example-parameters}
+a = 1.50
+v = 0.00
+t = 0.30
+n = 10000
+
+data <- wdmrnd(a, v, t, n)
+```
+
+```{r example-plot, echo=FALSE, fig.height=3.5, file="./code/scripts/plot_data.R"}
+```
+
+\clearpage
+
+# Simulation Study functions and variables
+
+The code for the functions listed below is hidden from this pdf file (but can be checked on the .Rmd). Here we present a list of what these functions are and what they do!
+
+## Auxiliary functions
+
+```{r, file="./code/functions/auxiliary.R", echo=FALSE}
+```
+
+```{r, file="./code/functions/show_designSettings.R"}
+```
+
+## Setup functions
+
+1. `default_priors`: A function to load default prior values.
+2. `sample_parameters`: A function to sample true parameter values from the priors specified.
+
+```{r, file="./code/functions/generate_parameters.R", echo=FALSE}
+```
+
+## Working with JAGS
