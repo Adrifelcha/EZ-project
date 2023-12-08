@@ -2,7 +2,7 @@
 #     A script that loads all custom functions developed for this project, 
 #                             along with the required R packages
 ###############################################################################
-library(rstudioapi)
+
 
 # Part 1: Working directory (WD) manipulation
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
