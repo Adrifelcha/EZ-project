@@ -70,6 +70,8 @@ data <- data[which(data$RT<=3000),]
 
 # Get summary statistics
 
+**Note:** Since the three-parameters considered by the EZDDM formulation don't predict any difference in shape between the correct and incorrect RT distributions, we use all trials to compute the mean and variance of the RT.
+
 ### Write custom function `ez_summaries`
 
 ```{r}
@@ -80,8 +82,8 @@ ez_summaries <- function(subset){
   # Return relevant summary statistics
   return(data.frame("nTrials" = nrow(subset),
                     "score" = sum(subset$response),
-                    "meanRT"  = mean(subset$RT[which(subset$response==1)]/1000),
-                    "varRT"   = var(subset$RT[which(subset$response==1)]/1000),
+                    "meanRT"  = mean(subset$RT/1000),
+                    "varRT"   = var(subset$RT/1000),
                   # Index variable: Accuracy (-0.5) vs Speed (0.5) condition
                     "Xi"  = as.integer(cond>33)-0.5,
                   # Arbitrary scale of stimulus configuration | 0 is 50/50 black and white 
@@ -95,8 +97,8 @@ ez_summaries <- function(subset){
 # Initialize an empty output data frame (df)
 tmp <- matrix(0,nrow = max(data$cond),ncol = 6)
 df <- as.data.frame(tmp)
-colnames(df) <- c("nTrials", "sum_accuracy", "mean_rt_correct",
-                  "variance_rt_correct", "Xi", "Xs")
+colnames(df) <- c("nTrials", "sum_accuracy", "mean_rt",
+                  "variance_rt", "Xi", "Xs")
 
 # Populate the df output using the ez_summaries function
 for(i in 1:max(data$cond)){
@@ -201,8 +203,8 @@ n.thin    <- 1
 
 # Pass data to JAGS
 data_toJAGS <- list("nTrials"  =  df$nTrials,
-                    "meanRT"   =  df$mean_rt_correct,
-                    "varRT"    =  df$variance_rt_correct,
+                    "meanRT"   =  df$mean_rt,
+                    "varRT"    =  df$variance_rt,
                     "correct"  =  df$sum_accuracy,
                     "Xi"   =  df$Xi,
                     "Xs"   =  df$Xs)
@@ -221,6 +223,7 @@ parameters <- c('beta3', 'beta4', 'drift', 'drift_pred',
 ### Run JAGS
 
 ```{r}
+set.seed(123)
 samples <- jags(data=data_toJAGS,
                 parameters.to.save=parameters,
                 model="./model_perception.bug",
@@ -414,11 +417,11 @@ df$acc_rate <- df$sum_accuracy/df$nTrials
 acc.accRate <- c(df$acc_rate[1:16],NA,df$acc_rate[17:32])
 spd.accRate <- c(df$acc_rate[33:48],NA,df$acc_rate[49:64])
 # Concatenate mean RT-correct with a 'jump', across speed/accuracy conditions
-acc.meanRTcor <- c(df$mean_rt_correct[1:16],NA,df$mean_rt_correct[17:32])
-spd.meanRTcor <- c(df$mean_rt_correct[33:48],NA,df$mean_rt_correct[49:64])
+acc.meanRTcor <- c(df$mean_rt[1:16],NA,df$mean_rt[17:32])
+spd.meanRTcor <- c(df$mean_rt[33:48],NA,df$mean_rt[49:64])
 # Concatenate RT-correct variance with a 'jump', across speed/accuracy conditions
-acc.varRTcor <- c(df$variance_rt_correct[1:16],NA,df$variance_rt_correct[17:32])
-spd.varRTcor <- c(df$variance_rt_correct[33:48],NA,df$variance_rt_correct[49:64])
+acc.varRTcor <- c(df$variance_rt[1:16],NA,df$variance_rt[17:32])
+spd.varRTcor <- c(df$variance_rt[33:48],NA,df$variance_rt[49:64])
 ```
 
 #### Accuracy rates
