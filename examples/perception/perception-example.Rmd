@@ -181,9 +181,9 @@ model {
         
             # Sampling distributions for summary statistics
             correct[p] ~ dbin(Pc[p], nTrials[p])
-            varRT[p]   ~ dnorm(1/PRT[p], 0.5*(correct[p]-1) 
+            varRT[p]   ~ dnorm(1/PRT[p], 0.5*(nTrials[p]-1) 
                                          * PRT[p] * PRT[p])
-            meanRT[p]  ~ dnorm(MRT[p], PRT[p] * correct[p])
+            meanRT[p]  ~ dnorm(MRT[p], PRT[p] * nTrials[p])
       }
 }", "./model_perception.bug")
 ```
