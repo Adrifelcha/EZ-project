@@ -112,6 +112,28 @@ head(df,3)
 
 # The model 
 
+### EZHBDM
+
+The first component of the model is what we called 'the proxy' model:
+
+
+
+\begin{align*}
+\dot{T} &\sim \mbox{Binomial}(PC,N)\\
+\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
+\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)
+\end{align*}
+
+\begin{align*}
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+### Meta-regression structure
+
+The second component of the model is the meta-regression structure we build to explain the DDM parameters as a function of covariates of interest.
+
 The model incorporates an effect ($\beta$) of instruction (i.e., $x_i$, `Xi`) on the *bound parameter ($\alpha$)*. 
 
 \begin{align*}
@@ -223,7 +245,7 @@ parameters <- c('beta3', 'beta4', 'drift', 'drift_pred',
 ### Run JAGS
 
 ```{r}
-set.seed(123)
+set.seed(127)
 samples <- jags(data=data_toJAGS,
                 parameters.to.save=parameters,
                 model="./model_perception.bug",
@@ -235,7 +257,7 @@ samples <- jags(data=data_toJAGS,
                 inits=myinits)
 ```
 
-### Extract samples
+### Extract posterior samples
 
 ```{r}
 ##### Drift rate parameters
@@ -247,12 +269,32 @@ beta4 <- samples$BUGSoutput$sims.list$beta4 # Interaction
 # Fitted values / Predicted drift rates
 drift_pred <- samples$BUGSoutput$sims.list$drift_pred
 
-##### Summary statistics sampled
+##### Noiseless predictions for the statistics sampled
 accRate_hat   <- samples$BUGSoutput$sims.list$Pc_pred
 rtCorMean_hat <- samples$BUGSoutput$sims.list$MRT_pred
 rtCorVar_hat  <- 1/samples$BUGSoutput$sims.list$PRT_pred
 ```
 
+### Obtain posterior predicted summary statistics
+
+```{r}
+nTrials <- df$nTrials
+Pc   <- samples$BUGSoutput$sims.list$Pc
+PRT  <- samples$BUGSoutput$sims.list$PRT
+MRT  <- samples$BUGSoutput$sims.list$MRT
+
+n <- nrow(Pc)
+J <- ncol(Pc)
+pp_accRate <- matrix(NA, nrow=n, ncol=J)
+pp_meanRT  <- matrix(NA, nrow=n, ncol=J)
+pp_varRT   <- matrix(NA, nrow=n, ncol=J)
+for(i in 1:J){
+  correct  <-  rbinom(n,nTrials[i],Pc[,i])
+  pp_accRate[,i] <- correct/nTrials[i]
+  pp_varRT[,i]   <- rnorm(n,1/PRT[,i], sqrt(2/((nTrials[i]-1) * PRT[,i] * PRT[,i])))
+  pp_meanRT[,i]  <- rnorm(n,MRT[,i],sqrt(1/(PRT[,i]*nTrials[i])))
+}
+```
 
 # Results
 
@@ -263,7 +305,7 @@ x_values <- unique(df$Xs)
 fit_x <- c(x_values[1:16],NA,x_values[17:32])
 ```
 
-### Drift rates predicted and recovered
+## Drift rates predicted and recovered
 
 ```{r}
 #### Get mean posterior estimates and percentiles for plotting
@@ -274,7 +316,9 @@ lower_percentiles <- percentiles[1,]  #  2.5%
 upper_percentiles <- percentiles[2,]  # 97.5%
 # Drift predictions (i.e., fitted values)
 preds <- apply(drift_pred,2,mean)
+```
 
+```{r, echo=FALSE, fig.align='center', out.width="100%"}
 ### Concatenate values by instruction and add a "jump" between pixel condition
 # Drift rates recovered
 means_acc <- c(means[1:16],NA,means[17:32])
@@ -287,9 +331,7 @@ errors_acc <- cbind(c(lower_percentiles[1:16],NA, lower_percentiles[17:32]),
                     c(upper_percentiles[1:16],NA, upper_percentiles[17:32]))
 errors_spd <- cbind(c(lower_percentiles[33:48],NA, lower_percentiles[49:64]),
                     c(upper_percentiles[33:48],NA, upper_percentiles[49:64]))
-```
 
-```{r, fig.align='center', out.width="100%"}
 par(mfrow = c(1,2), mai=c(0.9,0.6,1,0.3))
 line.color  <- "darkorange"
 error.color <- "lightblue3"
@@ -347,7 +389,7 @@ box(col="black")
 mtext("Instruction effect on drift rate slope", cex=1.2, f=2, side=3, line=0.8)
 legend("topleft",c("Histogram","KDE"),col=c("lightblue3",line.color),lwd=4, cex=1.1, bty = "n")
 mtext("Density",side=2,line=2.15)
-mtext("Beta4",side=1,line=2)
+mtext("Beta 3",side=1,line=2)
 ```
 
 ### Instruction main effect on drift rate
@@ -359,7 +401,7 @@ box(col="black")
 mtext("Instruction main effect on drift rate", cex=1.2, f=2, side=3, line=0.8)
 legend("topleft",c("Histogram","KDE"),col=c("lightblue3",line.color),lwd=4, cex=1.1, bty = "n")
 mtext("Density",side=2,line=2.15)
-mtext("Beta4",side=1,line=2)
+mtext("Beta 4",side=1,line=2)
 axis(1,seq(0,1.6,0.4),seq(0,1.6,0.4))
 axis(2,seq(0,2,0.5),seq(0,2,0.5),las=2)
 ```

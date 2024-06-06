@@ -17,8 +17,7 @@ model {
         # Hierarchical distributions of individual DDM parameters.        
         for (p in 1:length(meanRT)) {
             # Here, drift rate is the criterion.
-            drift_pred[p] = beta0*phi(beta1 + beta2*abs(Xs[p]) 
-                            + beta3*Xi[p]*abs(Xs[p])) + beta4 * Xi[p] + drift_mean
+            drift_pred[p] = beta0*phi(beta1 + beta2*abs(Xs[p]) + beta3*Xi[p]*abs(Xs[p])) + beta4 * Xi[p] + drift_mean
             drift[p] ~ dnorm(drift_pred[p], (drift_sdev^-2))
             bound_pred[p] = bound_mean + betaweight * Xi[p]
             bound[p] ~ dnorm(bound_pred[p],(bound_sdev^-2))T( 0.10, 3.00)
@@ -30,7 +29,8 @@ model {
             PRT[p] = 2 * pow(drift[p], 3) / bound[p] * 
                      pow(ey[p] + 1, 2) / (2 * -bound[p] * 
                      drift[p] * ey[p] - ey[p] * ey[p] + 1)
-            MDT[p] = (bound[p] / (2 * drift[p])) * (1 - ey[p]) / (1 + ey[p])
+            MDT[p] = (bound[p] / (2 * drift[p])) * 
+                     (1 - ey[p]) / (1 + ey[p])
             MRT[p] = MDT[p] + nondt[p]
             
             # Noiseless predictions from forward EZ DDM
@@ -45,8 +45,8 @@ model {
         
             # Sampling distributions for summary statistics
             correct[p] ~ dbin(Pc[p], nTrials[p])
-            varRT[p]   ~ dnorm(1/PRT[p], 0.5*(correct[p]-1) 
+            varRT[p]   ~ dnorm(1/PRT[p], 0.5*(nTrials[p]-1) 
                                          * PRT[p] * PRT[p])
-            meanRT[p]  ~ dnorm(MRT[p], PRT[p] * correct[p])
+            meanRT[p]  ~ dnorm(MRT[p], PRT[p] * nTrials[p])
       }
 }
