@@ -16,7 +16,7 @@ model {
         
         # Hierarchical distributions of individual DDM parameters.        
         for (p in 1:length(meanRT)) {
-            # Here, drift rate is the criterion.
+            # Here, we focus on the drift rate
             drift_pred[p] = beta0*phi(beta1 + beta2*abs(Xs[p]) + beta3*Xi[p]*abs(Xs[p])) + beta4 * Xi[p] + drift_mean
             drift[p] ~ dnorm(drift_pred[p], (drift_sdev^-2))
             bound_pred[p] = bound_mean + betaweight * Xi[p]
