@@ -14,7 +14,7 @@ sample_data <- function(settings, parameter_set){
     data[this.sub,3] <- accuracy
     data[this.sub,2] <- temp$RT
   }
-  data <- as.data.frame(data)
+  data <- as.matrix(data)
   colnames(data) <- c("sub", "rt", "accuracy")
   return(data)
 }
