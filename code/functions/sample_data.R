@@ -7,8 +7,8 @@ sample_data <- function(settings, parameter_set){
     this.sub <- which(data[,1]==i)
     accuracy = 0
     while(sum(accuracy)==0){
-      temp <- wdmrnd(a = parameter_set$bound[i], v = parameter_set$drift[i], 
-                     t = parameter_set$nondt[i], n = settings$nTrials)
+      temp <- generate_dataset(a = parameter_set$bound[i], v = parameter_set$drift[i], 
+                               t = parameter_set$nondt[i], n = settings$nTrials)
       accuracy = temp$accuracy
     }
     data[this.sub,3] <- accuracy
