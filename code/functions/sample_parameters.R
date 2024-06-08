@@ -1,26 +1,3 @@
-###############################################################################
-# Functions to load default priors and generate sets of parameter values
-###############################################################################
-
-# A function to load the default prior values
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-default_priors <- function(Show=TRUE){
-  prior <- data.frame("bound_mean_mean" = 1.50,
-                      "bound_mean_sdev" = 0.20,
-                      "drift_mean_mean" = 0.00,
-                      "drift_mean_sdev" = 0.50,
-                      "nondt_mean_mean" = 0.30,
-                      "nondt_mean_sdev" = 0.06,
-                      "bound_sdev_lower" = 0.10,
-                      "bound_sdev_upper" = 0.20,
-                      "drift_sdev_lower" = 0.20,
-                      "drift_sdev_upper" = 0.40,
-                      "nondt_sdev_lower" = 0.05,
-                      "nondt_sdev_upper" = 0.1)
-  if(Show){       show_priors(prior)           }
-  return(prior)
-}
-
 # A function to sample true parameter values from the priors specified
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 sample_parameters <- function(settings, Show=TRUE){
