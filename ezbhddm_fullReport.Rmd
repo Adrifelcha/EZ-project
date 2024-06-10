@@ -1,5 +1,6 @@
 ---
 title: "EZ Bayesian Hierarchical Drift Diffusion Model"
+subtitle: "Short report"
 author: "Adriana F. Chávez De la Peña"
 date: "`r Sys.Date()`"
 output:
@@ -26,16 +27,10 @@ library(rmdformats)
 \mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
 \end{align*}
 
-\begin{align*}
-\alpha &\sim \mbox{Normal}\\
-\nu &\sim \mbox{Normal}
-\end{align*}
-
 ## The EZBHDDM
 
-$$Y \Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}$$
-
 \begin{align*}
+Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
 \dot{T} &\sim \mbox{Binomial}(PC,N)\\
 \dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
 \dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
@@ -44,31 +39,60 @@ MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
 PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
 \end{align*}
 
-# Data generation functions
+# Main functions
+
+## Simulation setup functions
+
+```{r, echo=FALSE}
+source("./code/functions/namingFunctions.R")
+source("./code/functions/show_priors.R")
+source("./code/functions/show_parameters.R")
+source("./code/functions/show_design.R")
+source("./code/functions/default_priors.R")
+source("./code/functions/sample_parameters.R")
+```
+
+1. `default_priors()`: A function to load default prior values.
+2. `sample_parameters()`: A function to sample true parameter values from the priors specified.
+
+## Functions to interact with JAGS
+
+```{r, echo=FALSE}
+source("./code/functions/write_JAGSmodel.R")
+source("./code/functions/data_toJAGS.R")
+source("./code/functions/default_inits.R")
+source("./code/functions/extractSamples.R")
+source("./code/functions/getDifferences_TRUEvsEST.R")
+source("./code/functions/check_Rhat.R")
+source("./code/functions/plot_Chain.R")
+```
+
+1. `write_JAGSmodel()`: A function to write the JAGS model using the prior values.
+2. `data_toJAGS()`: A function to create a list with all the data objects to be passed to JAGS.
+3. `default_inits()`:  A function to create an object containing initial values for the drift.
+4. `extractSamples()`: A function to extract all samples associated with a `parameter.name`
+5. `getDifferences_TRUEvsEST()`: A function to compute the difference between the true value and estimate retrieved for every parameter.
+6. `check_Rhat()`: A function to check the Rhats for a simulation
+7. `plot_Chain()`: A function to plot the merging chains for hierarchical parameters
+
+
+## Data managment functions
+
+1. `generate_trial()`:
+2. `generate_dataset()`:
 
 ```{r, echo=FALSE}
 source("./code/functions/generate_trial.R")
 source("./code/functions/generate_dataset.R")
+source("./code/functions/sample_data.R")
+source("./code/functions/getStatistics.R")
 ```
-
-```{r generate-DDM-data, file="./code/functions/generate_trial.R"}
-```
-
-```{r generate-DDM-data, file="./code/functions/generate_trial.R"}
-```
-
-## Example: 
 
 ```{r example-parameters}
-a = 1.50
-v = 0.00
-t = 0.30
-n = 10000
-
-data <- generate_data(a, v, t, n)
+data <- generate_dataset(a=1.5, v=0, t=0.3, n=1000)
 ```
 
-```{r example-plot, echo=FALSE, fig.height=3.5}
+```{r example-plot, echo=FALSE, fig.height=5}
 par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2), bty = "o")
 
 rt <- data$RT
@@ -94,286 +118,49 @@ mtext("Count", 2, cex=0.6, line=1)
 axis(1,c(0.7,1.9),c("Incorrect","Correct"))
 ```
 
-# Auxiliary functions
-
-1. The following script contains miscellaneous functions.
-
-```{r}
-source("./code/functions/miscellaneous.R")
-```
-
-2. Two functions to print to screen the priors and true parameters loaded: `show_priors` and `show_parameters`
-
-```{r}
-source("./code/functions/show_designSettings.R")
-```
-
-# Set-up functions
-
-1. `default_priors`: A function to load default prior values.
-
-```{r, echo=FALSE}
-source("./code/functions/default_priors.R")
-```
-
-```{r, file="./code/functions/default_priors.R"}
-```
-
-2. `sample_parameters`: A function to sample true parameter values from the priors specified.
-
-```{r, echo=FALSE}
-source("./code/functions/sample_parameters.R")
-```
-
-```{r, file="./code/functions/sample_parameters.R"}
-```
-
-# Functions to interact with JAGS
-
-1. `write_JAGSmodel`: A function to write the JAGS model using the prior values.
-
-```{r}
-source("./code/functions/write_JAGSmodel.R")
-```
-
-2. `data_toJAGS`: A function to create a list with all the data objects to be passed to JAGS.
-3. `default_inits`:  A function to create an object containing initial values for the drift.
-4. `extractSamples`: A function to extract all samples associated with a `parameter.name`
-5. `getError`: A function to compute the difference between the true value and estimate retrieved for every parameter.
-6. `check_Rhat`: A function to check the Rhats for a simulation
-7. `plot.Chain`: A function to plot the merging chains for hierarchical parameters
-
-
-```{r, file="./code/functions/jags_settings.R", echo=FALSE}
-```
-
-```{r, file="./code/functions/jags_outputChecks.R", echo=FALSE}
-```
-
-```{r, file="./code/functions/jags_samplesObject.R", echo=FALSE}
-```
+3. `sample_data()`:
+4. `getStatistics()`:
 
 ## Plotting functions
 
-
-```{r}
-
-recoveryPlot <- function(x.true, y.estimated, parameterName){
-  allValues <- c(x.true,y.estimated)
-  param.is.bound <- length(which(grepl("ound",parameterName)))!=0
-  param.is.nondt <- length(which(grepl("no",parameterName)))!=0
-  if(param.is.bound){   color <- "blueviolet"
-                        ax.lim <- c(0.5,2.5)
-  }else{if(param.is.nondt){   color <- "dodgerblue4"
-                              ax.lim <- c(0,0.75)
-  }else{  color <- "goldenrod4"
-          ax.lim <- c(-2,2)
-  }}
-  par(bty="o")
-  plot(x.true,y.estimated, ann=F, col=color, pch=16,
-       xlim=ax.lim, ylim=ax.lim)
-  abline(0,1, lty=2)
-  mtext("Simulated values", 1, line=2.1, cex=0.7)
-  mtext(parameterName, 3, line=0.5, cex=0.8, f=2)
-}
-
-showRecovery <- function(simStudy, nParticipants, nTrials){
-  par(mfrow = c(2, 3))#, mar =c(5.1,2,4.1,2))
-  x <- simStudy$sim_means
-  recoveryPlot(x[,"true","drift_mean"],x[,"est","drift_mean"],"Group mean drift")
-  recoveryPlot(x[,"true","bound_mean"],x[,"est","bound_mean"],"Group mean bound")
-  recoveryPlot(x[,"true","nondt_mean"],x[,"est","nondt_mean"],"Group mean nondt")
-  y <- simStudy$sim_indiv
-  recoveryPlot(y[,"true","drift"],y[,"est","drift"],"Individual drifts")
-  recoveryPlot(y[,"true","bound"],y[,"est","bound"],"Individual bounds")
-  recoveryPlot(y[,"true","nondt"],y[,"est","nondt"],"Individual nondt")
-  title <- paste(nParticipants, " participants, ", nTrials, " trials each")
-mtext(title, side = 3, line =-1.7, outer = TRUE, f=2, col="red3")
-}
+```{r, echo=FALSE}
+source("./code/functions/plot_recoveryPlot.R")
+source("./code/functions/plot_multipleRecoveryPlots.R")
 ```
 
-\clearpage
+1. `plot_recoveryPlot()`:
+2. `plot_multipleRecoveryPlots()`:
 
-## Core functions
+# Scripts
 
-```{r}
-# Sample data using simulation settings and true parameter values sampled
-sample_data <- function(settings, parameter_set){
-  nObs <- settings$nPart*settings$nTrials
-  data <- matrix(NA,ncol=3,nrow=nObs)
-  data[,1] <- rep(1:settings$nPart, each=settings$nTrials)
-  for(i in 1:settings$nP){      # Get data for every Participant
-      this.sub <- which(data[,1]==i)
-      accuracy = 0
-      while(sum(accuracy)==0){
-            temp <- wdmrnd(a = parameter_set$bound[i], v = parameter_set$drift[i], 
-                           t = parameter_set$nondt[i], n = settings$nTrials)
-            accuracy = temp$accuracy
-      }
-      data[this.sub,3] <- accuracy
-      data[this.sub,2] <- temp$RT
-  }
-  data <- as.data.frame(data)
-  colnames(data) <- c("sub", "rt", "accuracy")
-  return(data)
-}
+1. `Hddm_setup`: 
 
-# Get individual statistics from raw data: mean accuracy and mean and variance of correct-RT
-get_Statistics <- function(data){
-  if(is.null(data$accuracy)|is.null(data$rt)){
-        error.msg = "Data not available."
-        return(print(error.msg))
-    }
-  subID <- unique(data$sub)
-  sum_correct <- tapply(data$accuracy, data$sub, sum)  
-  # Remove participants with no correct answer
-  always_0 <- which(sum_correct==0)
-  if(length(always_0)!=0){
-        bad_participants <- (data$sub %in% always_0)
-        data <- data[-bad_participants,]
-        sum_correct <- tapply(data$accuracy, data$sub, sum) 
-  }
-  # Get proportion of correct responses
-  mean_accuracy <- tapply(data$accuracy, data$sub, mean) 
-  # Get mean and variance of correct RT
-  keep.correct <- which(data$accuracy==1)
-  correct_only <- data[keep.correct,]
-  mean_rt_correct <- tapply(correct_only$rt, correct_only$sub, mean)
-  var_rt_correct  <- tapply(correct_only$rt, correct_only$sub, var)
-  # Create a data.frame with just summary statistics
-  data_statistics <- cbind(subID, sum_correct, mean_accuracy, mean_rt_correct, var_rt_correct)
-  data_statistics <- as.data.frame(data_statistics)
-  colnames(data_statistics) = c("sub", "sum_correct","meanAccuracy", "meanRT_correct", "varRT_correct")
-  return(data_statistics)
-}
+```{r, echo=FALSE}
+source("./code/scripts/HDDM_setup.R")
 ```
 
-## Main functions
-
-```{r}
-# A function to load priors and true values to use in simulation
-Hddm_Parameter_Set <-function(nParticipants, nTrials, Show=TRUE){
-    if(Show){  design_summary(nParticipants,nTrials)  }
-    prior <- default_priors(Show)
-    settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= prior)
-    parameter_set <- sample_parameters(settings, Show)
-    return(list("settings" = settings, "parameter_set" = parameter_set))
-}
-
-# A function to generate raw data, summary statistics and data to be passed on JAGS
-Hddm_Data <- function(settings, parameter_set){
-    rawData = sample_data(settings,parameter_set)
-    sumData = get_Statistics(rawData)
-    jagsData = data_toJAGS()
-    return(list("rawData" = rawData, "sumData" = sumData, "jagsData" = jagsData))
-}
-
-# A function to run JAGS model
-Hddm_runJAGS <- function(getData, settings, n.chains, modelFile="./EZHBDDM.bug", plot.Chains = FALSE){
-    # Write model
-    write_JAGSmodel(settings$prior)
-    # Load settings
-    parameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
-                    "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
-    myinits    <- default_inits(n.chains, settings$nPart)
-    data <- getData$jagsData
-    # Prepare data
-    sub     <- getData$sumData$sub
-    correct <- getData$sumData$sum_correct
-    varRT   <- getData$sumData$varRT_correct
-    meanRT  <- getData$sumData$meanRT_correct
-    nTrialsPerPerson <- as.numeric(unique(tapply(getData$rawData$accuracy,getData$rawData$sub,length)))
-    nParticipants    <- length(getData$sumData$sub)
-    # Run model and get samples
-    suppressMessages(library(R2jags))
-    suppressMessages(samples <- jags(data=data, 
-                                parameters.to.save=parameters, 
-                                model=modelFile, 
-                                n.chains=n.chains, 
-                                n.iter=4000, 
-                                n.burnin=200, 
-                                n.thin=1, 
-                                DIC=T, 
-                                inits=myinits))
-    if(plot.Chains){  plot.Chain(samples)   }
-    
-    object <- samples$BUGSoutput$sims.array
-    Rhats <- apply(object,3,Rhat)
-return(list("estimates" = list("drift" = apply(extractSamples("drift", samples),3,mean), 
-                              "drift_mean" = mean(extractSamples("drift_mean", samples)),
-                              "drift_sdev" = mean(extractSamples("drift_sdev", samples)),  
-                              "bound" = apply(extractSamples("bound", samples),3,mean), 
-                              "bound_mean" = mean(extractSamples("bound_mean", samples)),
-                              "bound_sdev" = mean(extractSamples("bound_sdev", samples)),
-                              "nondt" = apply(extractSamples("nondt", samples),3,mean), 
-                              "nondt_mean" = mean(extractSamples("nondt_mean", samples)),
-                              "nondt_sdev" = mean(extractSamples("nondt_sdev", samples))),
-            "rhats" = Rhats))
-}
-
-# Main function: A function to run a complete simulation for nParticipants and nTrials per participant
-Hddm_runSim <- function(nParticipants, nTrials, n.chains = 4, Show=TRUE){
-      design.parameters <- Hddm_Parameter_Set(nParticipants,nTrials, Show=Show)
-      settings <- design.parameters$settings
-      parameter_set <- design.parameters$parameter_set
-      getData <- Hddm_Data(settings,parameter_set)
-      runJags <- Hddm_runJAGS(getData=getData, n.chains = n.chains, settings = settings)
-      estimates <- runJags$estimates
-      error <- getError(estimates, parameter_set)
-return(list("values" = list("trueValues" = parameter_set, "estValues" = estimates, "error" = error),
-            "rhats"  = runJags$rhats))
-}
-
-
-Hddm_simStudy <- function(nSim, nParticipants, nTrials, n.chains = 4,
-                          Show=FALSE, forceSim = FALSE){
-    outputFile <- nameOutput(nTrials, nParticipants)
-    runSim <- TRUE
-    
-    design.parameters <- Hddm_Parameter_Set(nParticipants,nTrials)
-    parameter_set <- design.parameters$parameter_set
-    nPar <- sum(lapply(parameter_set, length) > 1)
-    no.Rhats  <- (nParticipants*nPar)+(length(parameter_set)-nPar)+1
-    
-    if((!forceSim)&(file.exists(outputFile))){runSim <- FALSE}
-    if(runSim){
-      # Empty arrays to store hierarchical and individual parameters
-      # Pages = Parameter | Rows = Point values | Cols = True/Estimated/Error
-      sim_means <- array(NA, dim=c(nSim,3,nPar))
-      sim_indiv <- array(NA, dim=c(nSim*nParticipants,3,nPar))
-      sim_rhats <- array(NA, dim=c(nSim,no.Rhats))
-      indiv_init = 1
-      for(k in 1:nSim){
-          set.seed(k)
-          cat("Iteration", k, "of", nSim,"\n")
-          tryCatch({
-            runSim <- Hddm_runSim(nParticipants = nParticipants, nTrials = nTrials, Show = FALSE)
-            sim <- runSim$values
-            rhats <- runSim$rhats
-            sim_rhats[k,]   <- runSim$rhats
-            sim_means[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
-            sim_means[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
-            sim_means[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)
-            Last = nParticipants*k
-            sim_indiv[indiv_init:Last,,1] = c(sim$trueValues$drift, sim$estValues$drift, sim$error$drift)
-            sim_indiv[indiv_init:Last,,2] = c(sim$trueValues$bound, sim$estValues$bound, sim$error$bound)
-            sim_indiv[indiv_init:Last,,3] = c(sim$trueValues$nondt, sim$estValues$nondt, sim$error$nondt)
-            indiv_init = Last + 1        
-            }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-      }
-      sim_means <- sim_means[which(!is.na(sim_means[,1,1])),,]
-      sim_indiv <- sim_indiv[which(!is.na(sim_indiv[,1,1])),,]
-      dimnames(sim_means) <- list(NULL, c("true","est","error"), c("drift_mean","bound_mean","nondt_mean"))
-      dimnames(sim_indiv) <- list(NULL, c("true","est","error"), c("drift","bound","nondt"))
-      colnames(sim_rhats) <- names(rhats)
-      simOutput = list("sim_means" = sim_means, "sim_indiv" = sim_indiv, "sim_rhats" = sim_rhats)
-      save(simOutput,file=outputFile)
-    }else{    load(outputFile)     }
-    return(simOutput)
-}
+```{r, file="./code/scripts/HDDM_setup.R"}
 ```
 
-\clearpage
+2. `HDDM_runJAGS`: 
+
+```{r, echo=FALSE}
+source("./code/scripts/HDDM_runJAGS.R")
+```
+
+```{r, file="./code/scripts/HDDM_runJAGS.R"}
+```
+
+3. `HDDM_runSims`:
+
+```{r, echo=FALSE}
+source("./code/scripts/HDDM_runSims.R")
+```
+
+
+```{r, file="./code/scripts/HDDM_runSims.R"}
+```
+
 
 
 \begin{align*}
@@ -388,7 +175,6 @@ cat(readLines('./EZHBDDM.bug'), sep = '\n')
 ```
 
 # Run simple example
-
 
 ```{r}
 sim <- Hddm_runSim(nParticipants = 100, nTrials = 200)
