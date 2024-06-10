@@ -1,4 +1,4 @@
-HDDM_setup <-function(nParticipants, nTrials, Show=TRUE, priors=NA, nDatasets=1){
+HDDM_setup <-function(nParticipants, nTrials, nDatasets=1, priors=NA, Show=TRUE){
     ############################################################################
     # Part 1: Parameter set up
     ############################################################################
