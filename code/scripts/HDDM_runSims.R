@@ -1,4 +1,5 @@
-HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors=NA, n.chains = 4, Show=TRUE, forceSim = FALSE){
+HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA,
+                         n.chains = 4, Show=TRUE, forceSim = FALSE){
     suppressMessages(library(R2jags))
     suppressMessages(library(rstan))
     outputFile <- nameOutput(nTrials, nParticipants, nDatasets)
@@ -16,30 +17,32 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors=NA, n.ch
                     }
     
     if(forceSim|needToRepeat|(!doneBefore)){
-            design <- HDDM_setup(nParticipants,nTrials,nDatasets, priors=NA, Show=Show)
-            parameter_set <- design$parameter_set
+            design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
             jagsInits    <- default_inits(n.chains, nParticipants)  
             
-            nParams <- sum(lengths(parameter_set))
+            nParams <- sum(lengths(design$parameter_set))
             MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
+            MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
             ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
             MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
-            
             showChains <- rep(FALSE,nDatasets)
             if(Show){showChains[sample(nDatasets,1)] <- TRUE}
             for(k in 1:nDatasets){
                 set.seed(k)
-                cat("Fitting JAGS model - Dataset", k, "of", nDatasets,"\n")
-                runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,k], design$settings, 
+                cat("Dataset", k, "of", nDatasets,"\n")
+                if(k>2){
+                   design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
+                }
+                runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,1], design$settings, 
                                         design$jagsData, design$jagsParameters, jagsInits, 
                                         n.chains, modelFile="./EZHBDDM.bug", Show = showChains[k])  
-                estimates <- runJags$estimates
-                credIntervals <- runJags$credInterval
                 MatRhats[k,] <- runJags$rhats
-                c <- 0
+                c <- 0; d <- 0
                 for(j in 1:length(runJags$estimates)){
                    m <- length(runJags$estimates[[j]])
+                   w <- length(design$parameter_set[[j]])
                    MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[j]]
+                   MatTrueVal[k,(d+1):(d+w)]   <- design$parameter_set[[j]]
                    if(is.vector(runJags$credInterval[[j]])){
                          ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1]
                          ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2]
@@ -47,27 +50,36 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors=NA, n.ch
                          ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1,]
                          ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2,]
                    }
-                   c <- c+m
+                   c <- c+m; d <- d+w
                 }
             }
             
             paramNames <- NA
+            paramNames2 <- NA
             for(j in 1:length(runJags$estimates)){
                   if(is.vector(runJags$credInterval[[j]])){
                      paramNames <- c(paramNames, names(runJags$credInterval[j]))
                   }else{
                      paramNames <- c(paramNames, colnames(runJags$credInterval[[j]]))
                   }
+                  if(length(design$parameter_set[[j]])==1){
+                    paramNames2 <- c(paramNames2, names(design$parameter_set[j]))
+                  }else{
+                    labels <- paste(names(design$parameter_set[j]), "[",1:length(design$parameter_set[[j]]),"]",sep="")
+                    paramNames2 <- c(paramNames2, labels)
+                  }
             }
             paramNames <- paramNames[-1]
+            paramNames2 <- paramNames2[-1]
             colnames(MatEstimates) <- paramNames
             colnames(ArrayCredInt) <- paramNames
+            colnames(MatTrueVal)   <- paramNames2
             colnames(MatRhats) <- names(runJags$rhats)
             
             if(Show){check_Rhat(MatRhats)}
             
             output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "credIntervals" = ArrayCredInt,
-                           "trueValues" = parameter_set, "priors" = design$priors, "n.chains" = n.chains)
+                           "trueValues" = MatTrueVal, "priors" = design$priors, "n.chains" = n.chains)
             save(output, file=outputFile)
             return(output)
     }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")  
