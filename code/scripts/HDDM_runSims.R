@@ -1,85 +1,76 @@
-nParticipants <- 10
-nTrials <- 300
-nDatasets <- 10
-x <- HDDM_setup(nParticipants,nTrials,nDatasets)
-n.chains <- 4
-Show <- TRUE
-modelFile="./EZHBDDM.bug"
-# A function to run JAGS model
-summaryData_page <- x$sumData[,,1]
-settings <- x$settings
-jagsData <- x$jagsData
-jagsParameters <- x$jagsParameters
-jagsInits <- x$jagsInits
-y <- HDDM_runJAGS(summaryData_page, settings, jagsData, jagsParameters, jagsInits)
-
-
-
-HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, n.chains = 4, Show=TRUE, forceSim = FALSE){
-  outputFile <- nameOutput(nTrials, nParticipants, nDatasets)
-  
-  suppressMessages(library(R2jags))
-  suppressMessages(library(rstan))
-  jagsInits    <- default_inits(n.chains, nParticipants)
-
-  design <- HDDM_setup(nParticipants,nTrials,nDatasets, priors=NA, Show=Show)
-  paramNames <- design$jagsParameters
-  nParams <- sum(lengths(design$parameter_set))
-  
-  estimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
-  credIntervals <- array(NA, dim=c(nDatasets,nParams,2))
-  for(k in 1:nDatasets){
-      set.seed(k)
-      cat("Iteration", k, "of", nDatasets,"\n")
-      runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,k], design$settings, 
-                              design$jagsData, design$jagsParameters, design$jagsInits, 
-                              n.chains, modelFile="./EZHBDDM.bug", Show)  
-      estimates <- runJags$estimates
-  }
-  
-  return(list("values" = list("trueValues" = parameter_set, "estValues" = estimates, "error" = error),
-              "rhats"  = runJags$rhats))
-}
-
-
-
-  runSim <- TRUE
-  
-  design.parameters <- Hddm_Parameter_Set(nParticipants,nTrials)
-  parameter_set <- design.parameters$parameter_set
-  nPar <- sum(lapply(parameter_set, length) > 1)
-  no.Rhats  <- (nParticipants*nPar)+(length(parameter_set)-nPar)+1
-  
-  if((!forceSim)&(file.exists(outputFile))){runSim <- FALSE}
-  if(runSim){
-    # Empty arrays to store hierarchical and individual parameters
-    # Pages = Parameter | Rows = Point values | Cols = True/Estimated/Error
-    indiv_init = 1
-    for(k in 1:nSim){
-      set.seed(k)
-      cat("Iteration", k, "of", nSim,"\n")
-      tryCatch({
-        runSim <- Hddm_runSim(nParticipants = nParticipants, nTrials = nTrials, Show = FALSE)
-        sim <- runSim$values
-        rhats <- runSim$rhats
-        sim_rhats[k,]   <- runSim$rhats
-        sim_means[k,,1] <- c(sim$trueValues$drift_mean, sim$estValues$drift_mean, sim$error$drift_mean)
-        sim_means[k,,2] <- c(sim$trueValues$bound_mean, sim$estValues$bound_mean, sim$error$bound_mean)
-        sim_means[k,,3] <- c(sim$trueValues$nondt_mean, sim$estValues$nondt_mean, sim$error$nondt_mean)
-        Last = nParticipants*k
-        sim_indiv[indiv_init:Last,,1] = c(sim$trueValues$drift, sim$estValues$drift, sim$error$drift)
-        sim_indiv[indiv_init:Last,,2] = c(sim$trueValues$bound, sim$estValues$bound, sim$error$bound)
-        sim_indiv[indiv_init:Last,,3] = c(sim$trueValues$nondt, sim$estValues$nondt, sim$error$nondt)
-        indiv_init = Last + 1        
-      }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors=NA, n.chains = 4, Show=TRUE, forceSim = FALSE){
+    suppressMessages(library(R2jags))
+    suppressMessages(library(rstan))
+    outputFile <- nameOutput(nTrials, nParticipants, nDatasets)
+    
+    if(file.exists(outputFile)){   doneBefore <- TRUE     }else{
+                                   doneBefore <- FALSE    }
+    if(!doneBefore){  needToRepeat <- NA                  }else{
+                      if(is.na(priors)){ myPriors <- default_priors(FALSE) }else{myPriors <- priors}
+                      myNChains <- n.chains
+                      load(outputFile)                    
+                      checkPriors <- sum(output$priors != myPriors, na.rm = TRUE)
+                      checkNChains <- sum(output$n.chains != myNChains, na.rm = TRUE)
+                      if(sum(checkPriors,checkNChains)>0){   needToRepeat <- TRUE     }else{
+                                                             needToRepeat <- FALSE    }
+                    }
+    
+    if(forceSim|needToRepeat|(!doneBefore)){
+            design <- HDDM_setup(nParticipants,nTrials,nDatasets, priors=NA, Show=Show)
+            parameter_set <- design$parameter_set
+            jagsInits    <- default_inits(n.chains, nParticipants)  
+            
+            nParams <- sum(lengths(parameter_set))
+            MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
+            ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
+            MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
+            
+            showChains <- rep(FALSE,nDatasets)
+            if(Show){showChains[sample(nDatasets,1)] <- TRUE}
+            for(k in 1:nDatasets){
+                set.seed(k)
+                cat("Fitting JAGS model - Dataset", k, "of", nDatasets,"\n")
+                runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,k], design$settings, 
+                                        design$jagsData, design$jagsParameters, jagsInits, 
+                                        n.chains, modelFile="./EZHBDDM.bug", Show = showChains[k])  
+                estimates <- runJags$estimates
+                credIntervals <- runJags$credInterval
+                MatRhats[k,] <- runJags$rhats
+                c <- 0
+                for(j in 1:length(runJags$estimates)){
+                   m <- length(runJags$estimates[[j]])
+                   MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[j]]
+                   if(is.vector(runJags$credInterval[[j]])){
+                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1]
+                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2]
+                   }else{
+                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1,]
+                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2,]
+                   }
+                   c <- c+m
+                }
+            }
+            
+            paramNames <- NA
+            for(j in 1:length(runJags$estimates)){
+                  if(is.vector(runJags$credInterval[[j]])){
+                     paramNames <- c(paramNames, names(runJags$credInterval[j]))
+                  }else{
+                     paramNames <- c(paramNames, colnames(runJags$credInterval[[j]]))
+                  }
+            }
+            paramNames <- paramNames[-1]
+            colnames(MatEstimates) <- paramNames
+            colnames(ArrayCredInt) <- paramNames
+            colnames(MatRhats) <- names(runJags$rhats)
+            
+            if(Show){check_Rhat(MatRhats)}
+            
+            output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "credIntervals" = ArrayCredInt,
+                           "trueValues" = parameter_set, "priors" = design$priors, "n.chains" = n.chains)
+            save(output, file=outputFile)
+            return(output)
+    }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")  
+            return(output)
     }
-    sim_means <- sim_means[which(!is.na(sim_means[,1,1])),,]
-    sim_indiv <- sim_indiv[which(!is.na(sim_indiv[,1,1])),,]
-    dimnames(sim_means) <- list(NULL, c("true","est","error"), c("drift_mean","bound_mean","nondt_mean"))
-    dimnames(sim_indiv) <- list(NULL, c("true","est","error"), c("drift","bound","nondt"))
-    colnames(sim_rhats) <- names(rhats)
-    simOutput = list("sim_means" = sim_means, "sim_indiv" = sim_indiv, "sim_rhats" = sim_rhats)
-    save(simOutput,file=outputFile)
-  }else{    load(outputFile)     }
-  return(simOutput)
 }
