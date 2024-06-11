@@ -31,6 +31,5 @@ HDDM_setup <-function(nParticipants, nTrials, nDatasets=1, priors=NA, Show=TRUE)
           }
     }
     return(list("settings" = settings, "parameter_set" = parameter_set, "priors" = priors,
-                "rawData" = rawData, "sumData" = summData, 
-                "jagsData" = jagsData, "jagsParameters" = jagsParameters))
+                "rawData" = rawData, "sumData" = summData))
 }
