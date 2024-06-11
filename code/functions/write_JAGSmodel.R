@@ -46,9 +46,9 @@ write_JAGSmodel <- function(prior, modelFile = "EZHBDDM.bug"){
                   MRT[p] = MDT[p] + nondt[p]
 
                   # Loss functions using MRT, PRT, and Pc
-                  meanRT[p]  ~ dnorm(MRT[p], PRT[p] * correct[p])
-                  varRT[p]   ~ dnorm(1/PRT[p], 0.5 * correct[p] * PRT[p] * PRT[p])
                   correct[p] ~ dbin(Pc[p], nTrialsPerPerson)
+                  meanRT[p]  ~ dnorm(MRT[p], PRT[p] * nTrialsPerPerson[p])
+                  varRT[p]   ~ dnorm(1/PRT[p], 0.5*(nTrialsPerPerson[p]-1) * PRT[p] * PRT[p])
               }
       }"
   content <- c(content.init, content.end)
