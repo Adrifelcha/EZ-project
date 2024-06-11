@@ -27,12 +27,17 @@ HDDM_setup <-function(nParticipants, nTrials, nDatasets=1, priors=NA, Show=TRUE)
           for(i in 2:nDatasets){
               rawData[,,i] = sample_data(settings,parameter_set)
               summData[,,i] = as.matrix(getStatistics(rawData[,,i]))
+              cat("Generating dataset", i, "of", nDatasets,"\n")
           }
     }
+    ############################################################################
+    # Part 3: General JAGS setup
+    ############################################################################
+    write_JAGSmodel(settings$prior)
     jagsData = data_toJAGS()
     jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                     "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
-    return(list("settings" = settings, "parameter_set" = parameter_set,
+    return(list("settings" = settings, "parameter_set" = parameter_set, "priors" = priors,
                 "rawData" = rawData, "sumData" = summData, 
-                "jagsData" = jagsData, "jagsParameters" = jagsParameters, "jagsInits" = jagsInits))
+                "jagsData" = jagsData, "jagsParameters" = jagsParameters))
 }
