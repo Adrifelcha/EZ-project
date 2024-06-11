@@ -124,12 +124,10 @@ axis(1,c(0.7,1.9),c("Incorrect","Correct"))
 ## Plotting functions
 
 ```{r, echo=FALSE}
-source("./code/functions/plot_recoveryPlot.R")
-source("./code/functions/plot_multipleRecoveryPlots.R")
+source("./code/functions/plot_recovery.R")
 ```
 
-1. `plot_recoveryPlot()`:
-2. `plot_multipleRecoveryPlots()`:
+1. `plot_recovery()`:
 
 # Scripts
 
@@ -177,23 +175,13 @@ cat(readLines('./EZHBDDM.bug'), sep = '\n')
 # Run simple example
 
 ```{r}
-sim <- Hddm_runSim(nParticipants = 100, nTrials = 200)
+sim <- HDDM_runSims(nParticipants = 100, nTrials = 200, nDatasets = 1)
 ```
 
-\vspace{-0.5in}
-
-```{r, echo=FALSE, fig.height=3, fig.align='center'}
-par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2))
-recoveryPlot(sim$values$trueValues$drift,sim$values$estValues$drift, "Individual drift")
-recoveryPlot(sim$values$trueValues$bound,sim$values$estValues$bound, "Individual bound")
-recoveryPlot(sim$values$trueValues$nondt,sim$values$estValues$nondt, "Individual nondt")
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(sim)
 ```
 
-
-
-\clearpage
-
-\vspace{5in}
 
 # Full smulation studies (200 repetitions)
 
@@ -202,26 +190,25 @@ recoveryPlot(sim$values$trueValues$nondt,sim$values$estValues$nondt, "Individual
 ## 150 trials
 
 ```{r}
-nSim <- 200
+nDatasets <- 200
 
 nT <- 150
 nP1 <- 10
 nP2 <- 80
 nP3 <- 200
-nP4 <- 500
 ```
 
 ```{r, results='hide',message=FALSE}
-simStudy1 <- Hddm_simStudy(nSim = nSim, nParticipants = nP1, nTrials = nT)
-#simStudy2 <- Hddm_simStudy(nSim = nSim, nParticipants = nP2, nTrials = nT)
-# simStudy3 <- Hddm_simStudy(nSim = nSim, nParticipants = nP3, nTrials = nT)
-# simStudy4 <- Hddm_simStudy(nSim = nSim, nParticipants = nP4, nTrials = nT)
+simStudy1 <- HDDM_runSims(nParticipants = nP1, nTrials = nT, nDatasets = nDatasets, Show=TRUE)
+simStudy2 <- HDDM_runSims(nParticipants = nP2, nTrials = nT, nDatasets = nDatasets, Show=TRUE)
+simStudy3 <- HDDM_runSims(nParticipants = nP3, nTrials = nT, nDatasets = nDatasets, Show=TRUE)
 ```
 
 ```{r}
-
+plot_recovery(simStudy1)
+plot_recovery(simStudy2)
+plot_recovery(simStudy3)
 ```
-\vspace{.75in}
 
 ## 150 participants
 
@@ -236,14 +223,54 @@ nT4 <- 500
 ```
 
 ```{r, results='hide',message=FALSE}
-# simStudy5 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT1)
-# simStudy6 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT2)
-# simStudy7 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT3)
-# #simStudy8 <- Hddm_simStudy(nSim = nSim, nParticipants = nP, nTrials = nT4)
+simStudy5 <- HDDM_runSims(nParticipants = nP, nTrials = nT1, nDatasets = nSim, Show=TRUE)
+simStudy6 <- HDDM_runSims(nParticipants = nP, nTrials = nT2, nDatasets = nSim, Show=TRUE)
+simStudy7 <- HDDM_runSims(nParticipants = nP, nTrials = nT3, nDatasets = nSim, Show=TRUE)
+simStudy8 <- HDDM_runSims(nParticipants = nP, nTrials = nT4, nDatasets = nSim, Show=TRUE)
 ```
 
 
-\clearpage
+```{r}
+nSim <- 200
+  
+nT1 <- 20 
+nT2 <- 40
+nT3 <- 80
+nT4 <- 160
+nT5 <- 320
+```
+
+```{r}
+ss11 <- HDDM_runSims(nParticipants = nT1, nTrials = nT1, nDatasets = nSim, Show=TRUE)
+ss12 <- HDDM_runSims(nParticipants = nT1, nTrials = nT2, nDatasets = nSim, Show=TRUE)
+ss13 <- HDDM_runSims(nParticipants = nT1, nTrials = nT3, nDatasets = nSim, Show=TRUE)
+ss14 <- HDDM_runSims(nParticipants = nT1, nTrials = nT4, nDatasets = nSim, Show=TRUE)
+ss15 <- HDDM_runSims(nParticipants = nT1, nTrials = nT5, nDatasets = nSim, Show=TRUE)
+
+ss21 <- Hddm_simStudy(nSim = nSim, nParticipants = nT2, nTrials = nT1)
+ss22 <- Hddm_simStudy(nSim = nSim, nParticipants = nT2, nTrials = nT2)
+ss23 <- Hddm_simStudy(nSim = nSim, nParticipants = nT2, nTrials = nT3)
+ss24 <- Hddm_simStudy(nSim = nSim, nParticipants = nT2, nTrials = nT4)
+ss25<- Hddm_simStudy(nSim = nSim, nParticipants = nT2, nTrials = nT5)
+
+ss31 <- Hddm_simStudy(nSim = nSim, nParticipants = nT3, nTrials = nT1)
+ss32 <- Hddm_simStudy(nSim = nSim, nParticipants = nT3, nTrials = nT2)
+ss33 <- Hddm_simStudy(nSim = nSim, nParticipants = nT3, nTrials = nT3)
+ss34 <- Hddm_simStudy(nSim = nSim, nParticipants = nT3, nTrials = nT4)
+ss35 <- Hddm_simStudy(nSim = nSim, nParticipants = nT3, nTrials = nT5)
+
+ss41 <- Hddm_simStudy(nSim = nSim, nParticipants = nT4, nTrials = nT1)
+ss42 <- Hddm_simStudy(nSim = nSim, nParticipants = nT4, nTrials = nT2)
+ss43 <- Hddm_simStudy(nSim = nSim, nParticipants = nT4, nTrials = nT3)
+ss44 <- Hddm_simStudy(nSim = nSim, nParticipants = nT4, nTrials = nT4)
+ss45 <- Hddm_simStudy(nSim = nSim, nParticipants = nT4, nTrials = nT5)
+
+ss51 <- Hddm_simStudy(nSim = nSim, nParticipants = nT5, nTrials = nT1)
+ss52 <- Hddm_simStudy(nSim = nSim, nParticipants = nT5, nTrials = nT2)
+ss53 <- Hddm_simStudy(nSim = nSim, nParticipants = nT5, nTrials = nT3)
+ss54 <- Hddm_simStudy(nSim = nSim, nParticipants = nT5, nTrials = nT4)
+ss55 <- Hddm_simStudy(nSim = nSim, nParticipants = nT5, nTrials = nT5)
+```
 
 ```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
 showRecovery(simStudy1, nP1, nT)
