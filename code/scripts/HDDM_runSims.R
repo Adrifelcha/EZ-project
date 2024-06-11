@@ -14,10 +14,14 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                       checkNChains <- sum(output$n.chains != myNChains, na.rm = TRUE)
                       if(sum(checkPriors,checkNChains)>0){   needToRepeat <- TRUE     }else{
                                                              needToRepeat <- FALSE    }
-                    }
-    
+    }
+
     if(forceSim|needToRepeat|(!doneBefore)){
             design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
+            write_JAGSmodel(myPriors)
+            jagsData = data_toJAGS()
+            jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
+                                "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
             jagsInits    <- default_inits(n.chains, nParticipants)  
             
             nParams <- sum(lengths(design$parameter_set))
