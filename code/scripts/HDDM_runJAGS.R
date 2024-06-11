@@ -21,7 +21,6 @@ HDDM_runJAGS <- function(summaryData_page, settings, jagsData, jagsParameters, j
   rhats <- apply(object,3,Rhat)
   if(Show){  
     plot_Chain(samples)   
-    check_Rhat(rhats)
   }
   
   estimates <- list()
