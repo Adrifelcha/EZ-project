@@ -1,14 +1,14 @@
-HDDM_setup <-function(nParticipants, nTrials, nDatasets=1, modelType=NA, priors=NA, Show=TRUE){
+HDDM_setup <-function(nParticipants, nTrials, nDatasets=1, modelType=NA, criterion=NA, priors=NA, Show=TRUE){
     ############################################################################
     # Part 1: Parameter set up
     ############################################################################
     # Set up PRIORS
-    if(is.na(priors)){     priors <- default_priors(Show, modelType)}
+    if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType)     }
     # Identify and (optionally) print the design settings to screen
-    settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= priors)
+    settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= priors, "criterion" = criterion)
     if(Show){  show_design(settings)  }
     # Sample "true parameters" for the simulation using the priors
-    parameter_set <- sample_parameters(settings, Show)
+    parameter_set <- sample_parameters(settings, modelType, Show)
     
     ############################################################################
     # Part 2: Prepare data
