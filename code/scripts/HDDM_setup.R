@@ -6,6 +6,11 @@ HDDM_setup <-function(nParticipants, nTrials, nDatasets=1, modelType=NA, criteri
     if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType)     }
     # Identify and (optionally) print the design settings to screen
     settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= priors, "criterion" = criterion)
+    if(!(modelType=="hierarchical"|is.na(modelType))){   
+        X <- 0:(settings$nPart-1)                      # Default predictor       
+        if(modelType=="ttest"){   X <- X %% 2    }     # Dummy predictor
+        settings <- c(settings, "X" = X)
+    }
     if(Show){  show_design(settings)  }
     # Sample "true parameters" for the simulation using the priors
     parameter_set <- sample_parameters(settings, modelType, Show)
