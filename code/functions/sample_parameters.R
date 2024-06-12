@@ -14,20 +14,18 @@ sample_parameters <- function(settings, modelType, Show=TRUE){
   parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean, "nondt_mean" = nondt_mean, 
                         "bound_sdev" = bound_sdev, "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
                         "bound" = bound,   "drift" = drift,   "nondt" = nondt)
-  # Check modelType to determine the need for a predictor and coefficient
+  # Check modelType to determine the need for a coefficient
   if(!(modelType=="hierarchical"|is.na(modelType))){   
-           X <- 0:(settings$nPart-1)                      # Default predictor       
-           if(modelType=="ttest"){   X <- X %% 2    }     # Dummy predictor
            # Sample and add coefficient to the parameter_set
            betaweight <- runif(1, prior$betaweight_lower, prior$betaweight_upper)
-           parameter_set <- c(parameter_set, list("betaweight" = betaweight, "X" = X))
+           parameter_set <- c(parameter_set, list("betaweight" = betaweight))
            # Identify criterion (i.e., parameter of interest)
            if(is.na(settings$criterion)){  settings$criterion <- "drift"  }
            crit <- settings$criterion
            # Use coefficient to generate individual true parameters for the criterion
-           if(crit=="bound"){  parameter_set$bound <- rnorm(settings$nPart,bound_mean+betaweight*X, bound_sdev)  }
-           if(crit=="drift"){  parameter_set$drift <- rnorm(settings$nPart,drift_mean+betaweight*X, drift_sdev)  }
-           if(crit=="nondt"){  parameter_set$nondt <- rnorm(settings$nPart,nondt_mean+betaweight*X, nondt_sdev)  }
+           if(crit=="bound"){  parameter_set$bound <- rnorm(settings$nPart,bound_mean+betaweight*settings$X, bound_sdev)  }
+           if(crit=="drift"){  parameter_set$drift <- rnorm(settings$nPart,drift_mean+betaweight*settings$X, drift_sdev)  }
+           if(crit=="nondt"){  parameter_set$nondt <- rnorm(settings$nPart,nondt_mean+betaweight*settings$X, nondt_sdev)  }
      }
   if(Show){   show_parameters(parameter_set)    }
   return(parameter_set)
