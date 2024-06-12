@@ -27,7 +27,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
             if(modelType=="metaregression"){  jagsParameters <- c(jagsParameters, "betaweight")  }
       
-            design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
+            design <- HDDM_setup(nParticipants, nTrials, nDatasets=1, modelType, priors=NA, Show=FALSE)
             settings <- design$settings
             write_JAGSmodel(myPriors)
             jagsData = data_toJAGS()
