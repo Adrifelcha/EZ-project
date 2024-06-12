@@ -39,7 +39,15 @@ MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
 PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
 \end{align*}
 
-# Main functions
+## Model Types included in this template
+
+1. `hierarchical`
+
+2. `metaregression`
+
+3 .`ttest`
+
+# Custom functions
 
 ## Simulation setup functions
 
@@ -172,204 +180,67 @@ source("./code/scripts/HDDM_runSims.R")
 cat(readLines('./EZHBDDM.bug'), sep = '\n')
 ```
 
-# Run simple example
+# Run individual examples - Hierarchical model
 
 ```{r}
-sim <- HDDM_runSims(nParticipants = 100, nTrials = 200, nDatasets = 1)
+simH <- HDDM_runSims(nParticipants = 100, nTrials = 200, nDatasets = 1, modelType = "hierarchical")
+simM <- HDDM_runSims(nParticipants = 100, nTrials = 200, nDatasets = 1, modelType = "metaregression")
 ```
 
 ```{r, echo=FALSE, fig.height=4, fig.align='center'}
 plot_recovery(sim)
 ```
 
+## 300 trials - 30 participants
 
-# Full smulation studies (200 repetitions)
-
-\vspace{.75in}
-
-## 150 trials
-
-```{r}
+```{r, results='hide',message=FALSE, eval=FALSE}
 nDatasets <- 200
-
-nT <- 150
-nP1 <- 10
-nP2 <- 80
-nP3 <- 200
+simStudy1 <- HDDM_runSims(nParticipants = 30, nTrials = 300, nDatasets = nDatasets, Show=TRUE)
 ```
 
 ```{r, results='hide',message=FALSE, eval=FALSE}
-simStudy1 <- HDDM_runSims(nParticipants = nP1, nTrials = nT, nDatasets = nDatasets, Show=TRUE)
-simStudy2 <- HDDM_runSims(nParticipants = nP2, nTrials = nT, nDatasets = nDatasets, Show=TRUE)
-simStudy3 <- HDDM_runSims(nParticipants = nP3, nTrials = nT, nDatasets = nDatasets, Show=TRUE)
-```
-
-```{r}
 plot_recovery(simStudy1)
-plot_recovery(simStudy2)
-plot_recovery(simStudy3)
 ```
 
-## 150 participants
+## 30 trials - 300 participants
 
-```{r}
-nDatasets <- 200
-
-nP <- 150
-nT1 <- 10
-nT2 <- 80
-nT3 <- 200
-nT4 <- 500
+```{r, results='hide',message=FALSE, eval=FALSE}
+simStudy2 <- HDDM_runSims(nParticipants = 300, nTrials = 30, nDatasets = nDatasets, Show=TRUE)
 ```
 
 ```{r, results='hide',message=FALSE, eval=FALSE}
-simStudy5 <- HDDM_runSims(nParticipants = nP, nTrials = nT1, nDatasets = nSim, Show=TRUE)
-simStudy6 <- HDDM_runSims(nParticipants = nP, nTrials = nT2, nDatasets = nSim, Show=TRUE)
-simStudy7 <- HDDM_runSims(nParticipants = nP, nTrials = nT3, nDatasets = nSim, Show=TRUE)
-simStudy8 <- HDDM_runSims(nParticipants = nP, nTrials = nT4, nDatasets = nSim, Show=TRUE)
+plot_recovery(simStudy2)
 ```
 
+
+# Run individual examples - Metaregression model
 
 ```{r}
+sim <- HDDM_runSims(nParticipants = 100, nTrials = 200, nDatasets = 1, modelType = "metaregression")
+```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(sim)
+```
+
+## 300 trials - 30 participants
+
+```{r, results='hide',message=FALSE, eval=FALSE}
 nDatasets <- 200
-  
-level1 <- 20 
-level2 <- 40
-level3 <- 80
-level4 <- 160
-level5 <- 320
+simStudy1 <- HDDM_runSims(nParticipants = 30, nTrials = 300, nDatasets = nDatasets, Show=TRUE)
 ```
 
-```{r, eval=FALSE}
-ss11 <- HDDM_runSims(nParticipants = level1, nTrials = level1, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss12 <- HDDM_runSims(nParticipants = level1, nTrials = level2, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss13 <- HDDM_runSims(nParticipants = level1, nTrials = level3, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss14 <- HDDM_runSims(nParticipants = level1, nTrials = level4, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss15 <- HDDM_runSims(nParticipants = level1, nTrials = level5, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-
-ss21 <- HDDM_runSims(nParticipants = level2, nTrials = level1, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss22 <- HDDM_runSims(nParticipants = level2, nTrials = level2, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss23 <- HDDM_runSims(nParticipants = level2, nTrials = level3, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss24 <- HDDM_runSims(nParticipants = level2, nTrials = level4, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss25 <- HDDM_runSims(nParticipants = level2, nTrials = level5, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-
-ss31 <- HDDM_runSims(nParticipants = level3, nTrials = level1, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss32 <- HDDM_runSims(nParticipants = level3, nTrials = level2, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss33 <- HDDM_runSims(nParticipants = level3, nTrials = level3, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss34 <- HDDM_runSims(nParticipants = level3, nTrials = level4, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss35 <- HDDM_runSims(nParticipants = level3, nTrials = level5, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-
-ss41 <- HDDM_runSims(nParticipants = level4, nTrials = level1, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss42 <- HDDM_runSims(nParticipants = level4, nTrials = level2, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss43 <- HDDM_runSims(nParticipants = level4, nTrials = level3, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss44 <- HDDM_runSims(nParticipants = level4, nTrials = level4, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss45 <- HDDM_runSims(nParticipants = level4, nTrials = level5, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-
-ss51 <- HDDM_runSims(nParticipants = level5, nTrials = level1, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss52 <- HDDM_runSims(nParticipants = level5, nTrials = level2, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss53 <- HDDM_runSims(nParticipants = level5, nTrials = level3, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss54 <- HDDM_runSims(nParticipants = level5, nTrials = level4, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
-ss55 <- HDDM_runSims(nParticipants = level5, nTrials = level5, nDatasets = nDatasets, Show=TRUE, forceSim = TRUE)
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simStudy1)
 ```
 
-```{r, message=FALSE, results='hide', echo=FALSE, fig.align='center'}
-plot_recovery(ss11)
-plot_recovery(ss12)
-plot_recovery(ss13)
-plot_recovery(ss14)
-plot_recovery(ss15)
+## 30 trials - 300 participants
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+simStudy2 <- HDDM_runSims(nParticipants = 300, nTrials = 30, nDatasets = nDatasets, Show=TRUE)
 ```
 
-# Meta Regression
-
--------------------
-
-\begin{align*}
-\mathbf{Y}_{ik} &\sim \mbox{DDM}(\delta_{i}, \eta_i, \tau_{i}) \\
-\textcolor{red}{\delta_i &\sim \mbox{N}(\beta_0 + \beta_1x_i, \sigma_\delta)\\}
-\eta_i &\sim \mbox{N}(\mu_\eta, \sigma_\eta)\\
-\tau_i &\sim \mbox{N}(\mu_\tau, \sigma_\tau)
-\end{align*}
-
-# Function tunning
-
-The code for the auxiliary functions listed below is hidden from this pdf file (but can be checked on the .Rmd). 
-
-1. `getCovariates`: A function to obtain a list of random covariates (i.e. real numbers vs indicator variables)
-2. `default_priors2`: A function to load and print default prior values. 
-3. `sample_parameters`: A function to sample true parameter values from the priors specified. 
-4. `write_JAGSmodel`: A function to write the JAGS model using the prior values.
-5. `data_toJAGS`: A function to create a list with all the data objects to be passed to JAGS.
-6. `default_inits`:  A function to create an object containing initial values for the drift.
-7. `extractSamples`: A function to extract all samples associated with a `parameter.name`
-8. `plot.Chain`: A function to plot the merging chains for hierarchical parameters
-9. `getError`: A function to compute the difference between the true value and estimate retrieved for every parameter.
-10. `nameOutput` : A function to generate an appropriate output name based on the number of trials and participants
-
-
-```{r, echo=FALSE}
-# A function to obtain a list of random covariates (i.e., real numbers or indicator variables)
-getCovariates<- function(n, mean, sd, n.indexes=NA){
-    if(is.na(n.indexes)){   # Covariate is a real number
-          x <- rnorm(n,mean, sd)
-    }else{     # Covariate is an indicative variable
-          if(n.indexes==2){
-                x <- rbinom(n,1,0.5)
-          }else{
-                p <- rep(1/n.indexes,n.indexes) 
-                y <- rmultinom(n,1,p)
-                x <- rep(0,n)
-                for(i in 1:n.indexes){
-                    x[y[i,]==1] <- i
-                }
-          }
-    }
-  return(x)
-}
- 
-# A function to load and print default prior values
-default_priors2 <- function(Show=TRUE){
-     prior <- default_priors(Show=FALSE)   # Load regular priors
-     prior$drift_mean_mean <- NULL       # Remove drift hierarchical distribution
-     prior$drift_mean_sdev <- NULL
-     prior$drift_intercept_mean <- 1.50  # Add a prior for the intercept and coefficients
-     prior$drift_intercept_sdev <- 0.20
-     prior$drift_coefficient_mean <- 0.00
-     prior$drift_coefficient_sdev <- 0.50
-     if(Show){
-           show_priors(prior)
-     }
-   return(prior)
-}
-
-# A function to sample true parameter values from the priors specified
-sample_parameters2 <- function(x, settings, parameter_set, Show=TRUE){
-    prior <- settings$prior
-    drift_B0 <- rnorm(1,prior$drift_intercept_mean,prior$drift_intercept_sdev)
-    drift_B1 <- rnorm(1,prior$drift_coefficient_mean,prior$drift_coefficient_sdev)
-    drift_mean <- drift_B0+(drift_B1*x)
-    parameter_set$drift_intercept <- drift_B0
-    parameter_set$drift_coefficient <- drift_B1
-    parameter_set$drift_mean <- drift_mean
-    parameter_set$drift <- rnorm(settings$nPart,drift_mean, drift_sdev)
-    if(Show){     show_parameters(parameter_set)      }
-  return(parameter_set)
-}
-
-
-# A function to create a list with all the data objects in the JAGS model
-data_toJAGS <- function(){
-    passData <- list("nParticipants", "nTrialsPerPerson",
-                     "meanRT", "varRT", "correct")
-    return(passData)
-}
-
-default_inits <- function(n.chains,nParticipants){
-  myinits <- rep(list(list()), n.chains)
-  for(i in 1:n.chains){
-      myinits[[i]] <- list(drift = rnorm(nParticipants,0,0.1))
-  }
-  return(myinits)
-}
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simStudy2)
 ```
 
