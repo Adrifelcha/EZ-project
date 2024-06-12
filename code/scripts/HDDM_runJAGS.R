@@ -1,14 +1,14 @@
-HDDM_runJAGS <- function(summaryData_page, settings, jagsData, jagsParameters, jagsInits, 
+HDDM_runJAGS <- function(summaryData, settings, jagsData, jagsParameters, jagsInits, 
                          n.chains=4, modelType=NA, Show = TRUE){
   if(is.na(modelType)|modelType=="hierarchical"){
      modelFile="./EZHBDDM.bug"
   }
   
   # Prepare data
-  sub     <- summaryData_page[,"sub"]
-  correct <- summaryData_page[,"sum_correct"]
-  varRT   <- summaryData_page[,"varRT"]
-  meanRT  <- summaryData_page[,"meanRT"]
+  sub     <- summaryData[,"sub"]
+  correct <- summaryData[,"sum_correct"]
+  varRT   <- summaryData[,"varRT"]
+  meanRT  <- summaryData[,"meanRT"]
   nTrialsPerPerson <- settings$nTrials
   nParticipants    <- settings$nPart
   # Run model and get samples
