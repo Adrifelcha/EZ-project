@@ -168,6 +168,7 @@ source("./code/scripts/HDDM_runSims.R")
 ```
 
 
+# JAGS models
 
 \begin{align*}
 \mathbf{Y}_{ik} &\sim \mbox{DDM}(\nu_i, \alpha_{i}, \tau_{i}) \\
