@@ -1,5 +1,5 @@
 HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA,
-                         criterion = NA, n.chains = 4, Show=TRUE, forceSim = FALSE){
+                         criterion = "NA", n.chains = 4, Show=TRUE, forceSim = FALSE){
     suppressMessages(library(R2jags))
     suppressMessages(library(rstan))
     if(is.na(modelType)){    modelType = "hierarchical"
@@ -32,9 +32,10 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= priors, 
                              "criterion" = criterion, "modelType" = modelType)
             if(!(modelType=="hierarchical"|is.na(modelType))){   
-              X <- 0:(settings$nPart-1)                      # Default predictor       
-              if(modelType=="ttest"){   X <- X %% 2    }     # Dummy predictor
-              settings <- c(settings, list("X" = X))
+                if(is.na(settings$criterion)){    settings$criterion <- "drift"   }
+                X <- 0:(settings$nPart-1)                      # Default predictor       
+                if(modelType=="ttest"){   X <- X %% 2    }     # Dummy predictor
+                settings <- c(settings, list("X" = X))
             }
             if(Show){  show_design(settings)  }
             # Define parameters to be tracked on JAGS, according to the modelType
@@ -42,7 +43,13 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
             if(modelType=="metaregression"){  jagsParameters <- c(jagsParameters, "betaweight")  }
             # Write pertinent JAGS model
-            write_JAGSmodel(settings)
+            if(modelType=="hierarchical"){  modelFile <- "./EZHBDDM.bug"  
+            }else{
+                  if(settings$criterion=="bound"){ modelFile <- "./EZHBDDM_BetaBound.bug"  }else{
+                  if(settings$criterion=="nondt"){ modelFile <- "./EZHBDDM_BetaNondt.bug"  }else{  
+                                                   modelFile <- "./EZHBDDM_BetaDrift.bug"  }
+            }}
+            write_JAGSmodel(settings, modelFile)
             # Data to be passed to JAGS
             jagsData = data_toJAGS(modelType)
             # init values
