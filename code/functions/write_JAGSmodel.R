@@ -3,27 +3,22 @@
 #####################################################################
 
 # A function to write the JAGS model using the prior values
-write_JAGSmodel <- function(prior, modelFile = "EZHBDDM.bug"){
+write_JAGSmodel <- function(settings){
+  prior  <- settings$prior
+  crit   <- settings$criterion
+  if(is.na(crit)){ crit <- "drift"}
   opening <- "model{"
-  prior.bound_m <- paste("          bound_mean ~ dnorm(", prior$bound_mean_mean,",pow(",prior$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
-  prior.nondt_m <- paste("          nondt_mean ~ dnorm(", prior$nondt_mean_mean,",pow(",prior$nondt_mean_sdev,",-2))T(0.05,1.00)", sep="")
+  prior.bound_m  <- paste("          bound_mean ~ dnorm(", prior$bound_mean_mean,",pow(",prior$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
+  prior.nondt_m  <- paste("          nondt_mean ~ dnorm(", prior$nondt_mean_mean,",pow(",prior$nondt_mean_sdev,",-2))T(0.05,)", sep="")
+  prior.drift_m  <- paste("          drift_mean ~ dnorm(", prior$drift_mean_mean,",pow(",prior$drift_mean_sdev,",-2))T(-3.00,3.00)", sep="")
   prior.bound_sd <- paste("          bound_sdev ~ dunif(", prior$bound_sdev_lower,",",prior$bound_sdev_upper,")", sep="")
   prior.nondt_sd <- paste("          nondt_sdev ~ dunif(", prior$nondt_sdev_lower,",",prior$nondt_sdev_upper,")", sep="")
   prior.drift_sd <- paste("          drift_sdev ~ dunif(", prior$drift_sdev_lower,",",prior$drift_sdev_upper,")", sep="")
-  priors <- c(prior.bound_m, prior.nondt_m, prior.bound_sd, prior.nondt_sd, prior.drift_sd)
-  if(!is.null(prior$drift_mean_mean)){
-    prior.drift_m <- paste("          drift_mean ~ dnorm(", prior$drift_mean_mean,",pow(",prior$drift_mean_sdev,",-2))T(-3.00,3.00)", sep="")
-    priors <- c(priors, prior.drift_m)
+  priors <- c(prior.bound_m, prior.nondt_m, prior.drift_m, prior.bound_sd, prior.nondt_sd, prior.drift_sd)
+  if(settings$modelType != "hierarchical"){
+      prior.beta <- paste("          betaweight ~ dunif(", prior$betaweight_lower,",",prior$betaweight_upper,")", sep="")
+      priors <- c(priors, prior.beta)
   }
-  if(!is.null(prior$drift_intercept_mean)){
-    prior.drift_i <- paste("          drift_intrcpt ~ dnorm(", prior$drift_intercept_mean,",pow(",prior$drift_intercept_sdev,",-2))T(-3.00,3.00)", sep="")
-    priors <- c(priors, prior.drift_i)
-  }
-  if(!is.null(prior$drift_coefficient_mean)){
-    prior.drift_c <- paste("          drift_coeff ~ dnorm(", prior$drift_coefficient_mean,",pow(",prior$drift_coefficient_sdev,",-2))T(-3.00,3.00)", sep="")
-    priors <- c(priors, prior.drift_c)
-  }
-  
   content.init <-"
               # Sampling model
               for (p in 1:nParticipants){
@@ -53,6 +48,12 @@ write_JAGSmodel <- function(prior, modelFile = "EZHBDDM.bug"){
       }"
   content <- c(content.init, content.end)
   
+  if(modelType=="hierarchical"){  modelFile <- "./EZHBDDM.bug"  }else{
+     if(crit=="bound"){ modelFile <- "./EZHBDDM_BetaBound.bug"  }else{
+     if(crit=="nondt"){ modelFile <- "./EZHBDDM_BetaNondt.bug"  }else{  
+                        modelFile <- "./EZHBDDM_BetaDrift.bug"
+     }}
+  }
   final_file <- file(modelFile)
   writeLines(c(opening,priors,content), final_file)
   close(final_file)
