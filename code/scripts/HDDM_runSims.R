@@ -2,26 +2,35 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                          n.chains = 4, Show=TRUE, forceSim = FALSE){
     suppressMessages(library(R2jags))
     suppressMessages(library(rstan))
-    outputFile <- nameOutput(nTrials, nParticipants, nDatasets)
-    
-    if(file.exists(outputFile)){   doneBefore <- TRUE     }else{
-                                   doneBefore <- FALSE    }
-    if(!doneBefore){  needToRepeat <- NA                  }else{
-                      if(is.na(priors)){ myPriors <- default_priors(FALSE) }else{myPriors <- priors}
-                      myNChains <- n.chains
-                      load(outputFile)                    
-                      checkPriors <- sum(output$priors != myPriors, na.rm = TRUE)
-                      checkNChains <- sum(output$n.chains != myNChains, na.rm = TRUE)
-                      if(sum(checkPriors,checkNChains)>0){   needToRepeat <- TRUE     }else{
-                                                             needToRepeat <- FALSE    }
+    if(is.na(modelType)){    modelType = "hierarchical"
+    }else{  valid.models <- c("hierarchical", "metaregression", "ttest") 
+            if(!(modelType %in% valid.models)){
+               stop("Please specify a valid modelType: 'hierarchical' (default), 'metaregression' 'ttest'")
+            }
     }
-
-    if(forceSim|needToRepeat|(!doneBefore)){
-            design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
-            write_JAGSmodel(myPriors)
-            jagsData = data_toJAGS()
+    outputFile <- nameOutput(nTrials, nParticipants, nDatasets, modelType)
+    
+    if(!forceSim){
+          if(file.exists(outputFile)){
+              if(is.na(priors)){  myPriors <- default_priors(Show = FALSE, modelType)
+                          }else{  myPriors <- priors}
+              myNChains <- n.chains
+              load(outputFile)                    
+              checkPriors <- sum(output$priors != myPriors, na.rm = TRUE)
+              checkNChains <- sum(output$n.chains != myNChains, na.rm = TRUE)
+              needToRun <- sum(checkPriors,checkNChains)>0
+          }else{  needToRun <- TRUE  }
+    }else{  needToRun <- TRUE  }
+    
+    if(needToRun){
             jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
+            if(modelType=="metaregression"){  jagsParameters <- c(jagsParameters, "betaweight")  }
+      
+            design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
+            settings <- design$settings
+            write_JAGSmodel(myPriors)
+            jagsData = data_toJAGS()
             jagsInits    <- default_inits(n.chains, nParticipants)  
             
             nParams <- sum(lengths(design$parameter_set))
@@ -37,9 +46,9 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                 if(k>2){
                    design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
                 }
-                runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,1], design$settings, 
-                                        design$jagsData, design$jagsParameters, jagsInits, 
-                                        n.chains, modelFile="./EZHBDDM.bug", Show = showChains[k])  
+                runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,1], settings, 
+                                        jagsData, jagsParameters, jagsInits, 
+                                        n.chains, Show = showChains[k])  
                 MatRhats[k,] <- runJags$rhats
                 c <- 0; d <- 0
                 for(j in 1:length(runJags$estimates)){
