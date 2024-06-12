@@ -1,5 +1,5 @@
 HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA,
-                         n.chains = 4, Show=TRUE, forceSim = FALSE){
+                         criterion = NA, n.chains = 4, Show=TRUE, forceSim = FALSE){
     suppressMessages(library(R2jags))
     suppressMessages(library(rstan))
     if(is.na(modelType)){    modelType = "hierarchical"
@@ -12,28 +12,44 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
     
     if(!forceSim){
           if(file.exists(outputFile)){
-              if(is.na(priors)){  myPriors <- default_priors(Show = FALSE, modelType)
-                          }else{  myPriors <- priors}
+              if(sum(is.na(priors))>0){  myPriors <- default_priors(Show = FALSE, modelType)
+                                 }else{  myPriors <- priors}
               myNChains <- n.chains
               load(outputFile)                    
-              checkPriors <- sum(output$priors != myPriors, na.rm = TRUE)
+              checkPriors <- sum(output$settings$prior != myPriors, na.rm = TRUE)
               checkNChains <- sum(output$n.chains != myNChains, na.rm = TRUE)
               needToRun <- sum(checkPriors,checkNChains)>0
           }else{  needToRun <- TRUE  }
     }else{  needToRun <- TRUE  }
     
     if(needToRun){
+            ############################
+            #    Variable Set - up
+            ############################
+            # Load priors
+            if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType)     }
+            # Define the design settings according to modelType and (optionally) print to screen
+            settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= priors, 
+                             "criterion" = criterion, "modelType" = modelType)
+            if(!(modelType=="hierarchical"|is.na(modelType))){   
+              X <- 0:(settings$nPart-1)                      # Default predictor       
+              if(modelType=="ttest"){   X <- X %% 2    }     # Dummy predictor
+              settings <- c(settings, list("X" = X))
+            }
+            if(Show){  show_design(settings)  }
+            # Define parameters to be tracked on JAGS, according to the modelType
             jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
             if(modelType=="metaregression"){  jagsParameters <- c(jagsParameters, "betaweight")  }
-      
-            design <- HDDM_setup(nParticipants, nTrials, nDatasets=1, modelType, priors=priors, Show=FALSE)
-            settings <- design$settings
-            write_JAGSmodel(settings$priors)
+            # Write pertinent JAGS model
+            write_JAGSmodel(settings$prior)
+            # Data to be passed to JAGS
             jagsData = data_toJAGS(modelType)
+            # init values
             jagsInits    <- default_inits(n.chains, nParticipants)  
-            
-            nParams <- sum(lengths(design$parameter_set))
+            # Count number of parameters (i.e. we always assume individual parameters)
+            nParams <- (length(jagsParameters)-3) + (nParticipants*3)
+            if(!modelType=="hierarchical"){nParams = nParams +1} # Add betaweight
             MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
             MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
             ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
@@ -42,13 +58,11 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             if(Show){showChains[sample(nDatasets,1)] <- TRUE}
             for(k in 1:nDatasets){
                 set.seed(k)
-                cat("Dataset", k, "of", nDatasets,"\n")
-                if(k>2){
-                   design <- HDDM_setup(nParticipants,nTrials,nDatasets=1, priors=NA, Show=FALSE)
-                }
-                runJags <- HDDM_runJAGS(summaryData_page = design$sumData[,,1], settings, 
+                cat("============>> Dataset", k, "of", nDatasets,"\n")
+                design <- HDDM_setup(settings, modelType, Show=FALSE)
+                runJags <- HDDM_runJAGS(summaryData = design$sumData, settings, 
                                         jagsData, jagsParameters, jagsInits, 
-                                        n.chains, Show = showChains[k])  
+                                        n.chains, modelType, Show = showChains[k])  
                 MatRhats[k,] <- runJags$rhats
                 c <- 0; d <- 0
                 for(j in 1:length(runJags$estimates)){
@@ -92,7 +106,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             if(Show){check_Rhat(MatRhats)}
             
             output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "credIntervals" = ArrayCredInt,
-                           "trueValues" = MatTrueVal, "priors" = design$priors, "n.chains" = n.chains)
+                           "trueValues" = MatTrueVal, "settings" = settings, "n.chains" = n.chains)
             save(output, file=outputFile)
             return(output)
     }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")  
