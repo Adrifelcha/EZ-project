@@ -3,10 +3,9 @@
 #####################################################################
 
 # A function to write the JAGS model using the prior values
-write_JAGSmodel <- function(settings){
+write_JAGSmodel <- function(settings, modelFile){
   prior  <- settings$prior
   crit   <- settings$criterion
-  if(is.na(crit)){ crit <- "drift"}
   opening <- "model{"
   prior.bound_m  <- paste("          bound_mean ~ dnorm(", prior$bound_mean_mean,",pow(",prior$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
   prior.nondt_m  <- paste("          nondt_mean ~ dnorm(", prior$nondt_mean_mean,",pow(",prior$nondt_mean_sdev,",-2))T(0.05,)", sep="")
@@ -47,13 +46,6 @@ write_JAGSmodel <- function(settings){
               }
       }"
   content <- c(content.init, content.end)
-  
-  if(modelType=="hierarchical"){  modelFile <- "./EZHBDDM.bug"  }else{
-     if(crit=="bound"){ modelFile <- "./EZHBDDM_BetaBound.bug"  }else{
-     if(crit=="nondt"){ modelFile <- "./EZHBDDM_BetaNondt.bug"  }else{  
-                        modelFile <- "./EZHBDDM_BetaDrift.bug"
-     }}
-  }
   final_file <- file(modelFile)
   writeLines(c(opening,priors,content), final_file)
   close(final_file)
