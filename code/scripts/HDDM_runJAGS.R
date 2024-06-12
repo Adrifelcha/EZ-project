@@ -1,5 +1,9 @@
 HDDM_runJAGS <- function(summaryData_page, settings, jagsData, jagsParameters, jagsInits, 
-                         n.chains=4, modelFile="./EZHBDDM.bug", Show = TRUE){
+                         n.chains=4, modelType=NA, Show = TRUE){
+  if(is.na(modelType)|modelType=="hierarchical"){
+     modelFile="./EZHBDDM.bug"
+  }
+  
   # Prepare data
   sub     <- summaryData_page[,"sub"]
   correct <- summaryData_page[,"sum_correct"]
@@ -12,8 +16,8 @@ HDDM_runJAGS <- function(summaryData_page, settings, jagsData, jagsParameters, j
                                    parameters.to.save=jagsParameters, 
                                    model=modelFile, 
                                    n.chains=n.chains, 
-                                   n.iter=4000, 
-                                   n.burnin=200, 
+                                   n.iter=500, 
+                                   n.burnin=100, 
                                    n.thin=1, 
                                    DIC=T, 
                                    inits=jagsInits))
