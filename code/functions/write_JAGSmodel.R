@@ -17,21 +17,38 @@ write_JAGSmodel <- function(settings, modelFile){
   if(settings$modelType != "hierarchical"){
       prior.beta <- paste("          betaweight ~ dunif(", prior$betaweight_lower,",",prior$betaweight_upper,")", sep="")
       priors <- c(priors, prior.beta)
+      if(settings$criterion=="drift"){
+          content.init <-"
+                  # Sampling model
+                  for (p in 1:nParticipants){
+                      drift[p] ~ dnorm(drift_mean + betaweight*X[p], pow(drift_sdev, -2))T(-3.00,3.00)
+                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
+                      nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)"    
+      }else{if(settings$criterion=="bound"){
+          content.init <-"
+                  # Sampling model
+                  for (p in 1:nParticipants){
+                      bound[p] ~ dnorm(bound_mean + betaweight*X[p], pow(bound_sdev, -2))T(0.10,3.00)
+                      nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)
+                      drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)"  
+      }else{
+          content.init <-"
+                  # Sampling model
+                  for (p in 1:nParticipants){
+                      nondt[p] ~ dnorm(nondt_mean + betaweight*X[p], pow(nondt_sdev, -2))T(0.05,)
+                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
+                      drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)"  
+      }}
+   }else{
+      content.init <-"
+                # Sampling model
+                for (p in 1:nParticipants){
+                    bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
+                    nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)
+                    drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)"  
   }
-  content.init <-"
-              # Sampling model
-              for (p in 1:nParticipants){
-                  bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
-                  nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,1.00)"
-  if(!is.null(prior$drift_intercept_mean)){
-    content.mid <- "                  drift_mean = drift_intrcpt"
-    if(!is.null(prior$drift_coefficient_mean)){
-      content.mid <- paste(content.mid," + (drift_coeff * x[p])", sep="") 
-    }
-    content.init <- c(content.init,content.mid)
-  }
-  content.end <- "                  drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)
-      
+  
+  content.end <- "
                   # Forward equations from EZ Diffusion
                   ey[p]  = exp(-bound[p] * drift[p])
                   Pc[p]  = 1 / (1 + ey[p])
