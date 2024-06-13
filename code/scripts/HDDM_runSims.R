@@ -41,7 +41,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "criterion" = criterion, 
                              "modelType" = modelType, "nDatasets" = nDatasets)
             # If the model includes an effect (betaweight)
-            if(!(modelType=="hierarchical"|is.na(modelType))){   
+            if(modelType!="hierarchical"){   
                 # Make sure we have a valid "criterion" (default to 'drift')
                 if(is.na(settings$criterion)){    settings$criterion <- "drift"   }
                 X <- 0:settings$nPart   # Default predictor       
@@ -70,7 +70,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             # Data to be passed to JAGS
             jagsData = data_toJAGS(modelType)
             # init values
-            jagsInits    <- default_inits(n.chains, nParticipants)  
+            jagsInits <- default_inits(n.chains, nParticipants)  
             # ~~~~~~~~~~~~~~~~ Storing objects
             # Count number of parameters (i.e. we always assume individual parameters)
             nParams <- (length(jagsParameters)-3) + (nParticipants*3)
