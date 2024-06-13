@@ -1,15 +1,22 @@
 HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA,
-                         criterion = "NA", n.chains = 4, Show=TRUE, forceSim = FALSE){
+                         criterion = NA, n.chains = 4, Show=TRUE, forceSim = FALSE){
+    #################################
+    # Initial checks
+    #################################
+    # Load necessary R libraries
     suppressMessages(library(R2jags))
     suppressMessages(library(rstan))
+    # Make sure modelType is valid
     if(is.na(modelType)){    modelType = "hierarchical"
     }else{  valid.models <- c("hierarchical", "metaregression", "ttest") 
             if(!(modelType %in% valid.models)){
                stop("Please specify a valid modelType: 'hierarchical' (default), 'metaregression' 'ttest'")
             }
     }
+    # Identify output File
     outputFile <- nameOutput(nTrials, nParticipants, nDatasets, modelType)
     
+    # Check if we needToRun simulations again (overruled by 'forceSim')
     if(!forceSim){
           if(file.exists(outputFile)){
               if(sum(is.na(priors))>0){  myPriors <- default_priors(Show = FALSE, modelType)
@@ -22,22 +29,32 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
           }else{  needToRun <- TRUE  }
     }else{  needToRun <- TRUE  }
     
+    ###################################
+    # Run simulation study (if needed)
+    ###################################
     if(needToRun){
-            ############################
-            #    Variable Set - up
-            ############################
-            # Load priors
-            if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType)     }
+            ######################
+            #      SET UP        #
+            ######################
+            # ~~~~~~~~~~~~~~~~ Settings
             # Define the design settings according to modelType and (optionally) print to screen
-            settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "prior"= priors, 
-                             "criterion" = criterion, "modelType" = modelType)
+            settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "criterion" = criterion, 
+                             "modelType" = modelType, "nDatasets" = nDatasets)
+            # If the model includes an effect (betaweight)
             if(!(modelType=="hierarchical"|is.na(modelType))){   
+                # Make sure we have a valid "criterion" (default to 'drift')
                 if(is.na(settings$criterion)){    settings$criterion <- "drift"   }
-                X <- 0:(settings$nPart-1)                      # Default predictor       
-                if(modelType=="ttest"){   X <- X %% 2    }     # Dummy predictor
+                X <- 0:settings$nPart   # Default predictor       
+                if(modelType=="ttest"){   X <- X %% 2    # Dummy predictor
+                                 }else{   X <- X/settings$nPart          }        
                 settings <- c(settings, list("X" = X))
             }
             if(Show){  show_design(settings)  }
+            # Load default priors if needed and add to settings
+            if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType)    }else{
+                            if(Show){    show_priors(priors)}                         }
+            settings <- c(settings, list("prior" = priors))
+            # ~~~~~~~~~~~~~~~~ JAGS variables
             # Define parameters to be tracked on JAGS, according to the modelType
             jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
@@ -54,22 +71,26 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             jagsData = data_toJAGS(modelType)
             # init values
             jagsInits    <- default_inits(n.chains, nParticipants)  
+            # ~~~~~~~~~~~~~~~~ Storing objects
             # Count number of parameters (i.e. we always assume individual parameters)
             nParams <- (length(jagsParameters)-3) + (nParticipants*3)
-            if(!modelType=="hierarchical"){nParams = nParams +1} # Add betaweight
             MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
             MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
             ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
             MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
+            # ~~~~~~~~~~~~~~~~~~ Only Show output for a random iteration
             showChains <- rep(FALSE,nDatasets)
             if(Show){showChains[sample(nDatasets,1)] <- TRUE}
+            ######################
+            #   Run iterations   #
+            ######################
             for(k in 1:nDatasets){
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
                 design <- HDDM_setup(settings, modelType, Show=FALSE)
                 runJags <- HDDM_runJAGS(summaryData = design$sumData, settings, 
                                         jagsData, jagsParameters, jagsInits, 
-                                        n.chains, modelType, Show = showChains[k])  
+                                        n.chains, modelFile, Show = showChains[k])  
                 MatRhats[k,] <- runJags$rhats
                 c <- 0; d <- 0
                 for(j in 1:length(runJags$estimates)){
