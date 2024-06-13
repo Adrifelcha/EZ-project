@@ -1,9 +1,5 @@
 HDDM_runJAGS <- function(summaryData, settings, jagsData, jagsParameters, jagsInits, 
-                         n.chains=4, modelType=NA, Show = TRUE){
-  if(is.na(modelType)|modelType=="hierarchical"){
-     modelFile="./EZHBDDM.bug"
-  }
-  
+                         n.chains=4, modelFile="./EZHBDDM.bug", Show = TRUE){
   # Prepare data
   sub     <- summaryData[,"sub"]
   correct <- summaryData[,"sum_correct"]
