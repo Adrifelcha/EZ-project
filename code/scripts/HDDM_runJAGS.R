@@ -7,6 +7,7 @@ HDDM_runJAGS <- function(summaryData, settings, jagsData, jagsParameters, jagsIn
   meanRT  <- summaryData[,"meanRT"]
   nTrialsPerPerson <- settings$nTrials
   nParticipants    <- settings$nPart
+  if(!is.null(settings$X)){ X <- settings$X}
   # Run model and get samples
   suppressMessages(samples <- jags(data=jagsData, 
                                    parameters.to.save=jagsParameters, 
