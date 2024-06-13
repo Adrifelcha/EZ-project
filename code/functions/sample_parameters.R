@@ -21,11 +21,9 @@ sample_parameters <- function(settings, modelType, Show=TRUE){
          parameter_set <- c(parameter_set, list("betaweight" = betaweight))
          # Identify criterion (i.e., parameter of interest)
          if(is.na(settings$criterion)){  settings$criterion <- "drift"  }
-         crit <- settings$criterion
-         # Use coefficient to generate individual true parameters for the criterion
-         if(crit=="bound"){  parameter_set$bound <- rnorm(settings$nPart,bound_mean+(betaweight*settings$X), bound_sdev)  }
-         if(crit=="drift"){  parameter_set$drift <- rnorm(settings$nPart,drift_mean+(betaweight*settings$X), drift_sdev)  }
-         if(crit=="nondt"){  parameter_set$nondt <- rnorm(settings$nPart,nondt_mean+(betaweight*settings$X), nondt_sdev)  }
+         if(settings$criterion=="bound"){  parameter_set$bound <- rnorm(settings$nPart,bound_mean+(betaweight*settings$X), bound_sdev)  }
+         if(settings$criterion=="drift"){  parameter_set$drift <- rnorm(settings$nPart,drift_mean+(betaweight*settings$X), drift_sdev)  }
+         if(settings$criterion=="nondt"){  parameter_set$nondt <- rnorm(settings$nPart,nondt_mean+(betaweight*settings$X), nondt_sdev)  }
      }
   if(Show){   show_parameters(parameter_set)    }
   return(parameter_set)
