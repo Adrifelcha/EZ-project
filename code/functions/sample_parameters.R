@@ -16,16 +16,16 @@ sample_parameters <- function(settings, modelType, Show=TRUE){
                         "bound" = bound,   "drift" = drift,   "nondt" = nondt)
   # Check modelType to determine the need for a coefficient
   if(!(modelType=="hierarchical"|is.na(modelType))){   
-           # Sample and add coefficient to the parameter_set
-           betaweight <- runif(1, prior$betaweight_lower, prior$betaweight_upper)
-           parameter_set <- c(parameter_set, list("betaweight" = betaweight))
-           # Identify criterion (i.e., parameter of interest)
-           if(is.na(settings$criterion)){  settings$criterion <- "drift"  }
-           crit <- settings$criterion
-           # Use coefficient to generate individual true parameters for the criterion
-           if(crit=="bound"){  parameter_set$bound <- rnorm(settings$nPart,bound_mean+betaweight*settings$X, bound_sdev)  }
-           if(crit=="drift"){  parameter_set$drift <- rnorm(settings$nPart,drift_mean+betaweight*settings$X, drift_sdev)  }
-           if(crit=="nondt"){  parameter_set$nondt <- rnorm(settings$nPart,nondt_mean+betaweight*settings$X, nondt_sdev)  }
+         # Sample and add coefficient to the parameter_set
+         betaweight <- runif(1, prior$betaweight_lower, prior$betaweight_upper)
+         parameter_set <- c(parameter_set, list("betaweight" = betaweight))
+         # Identify criterion (i.e., parameter of interest)
+         if(is.na(settings$criterion)){  settings$criterion <- "drift"  }
+         crit <- settings$criterion
+         # Use coefficient to generate individual true parameters for the criterion
+         if(crit=="bound"){  parameter_set$bound <- rnorm(settings$nPart,bound_mean+(betaweight*settings$X), bound_sdev)  }
+         if(crit=="drift"){  parameter_set$drift <- rnorm(settings$nPart,drift_mean+(betaweight*settings$X), drift_sdev)  }
+         if(crit=="nondt"){  parameter_set$nondt <- rnorm(settings$nPart,nondt_mean+(betaweight*settings$X), nondt_sdev)  }
      }
   if(Show){   show_parameters(parameter_set)    }
   return(parameter_set)
