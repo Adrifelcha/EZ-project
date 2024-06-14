@@ -53,14 +53,15 @@ nDatasets <- 100
 
 # Hierarchical model
 
-```{r, echo=FALSE}
-suppressMessages(setwd("./simulations/simple_examples/"))
-simH <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
-                     nDatasets = nDatasets, modelType = "hierarchical")
-```
-
 ```{r, eval=FALSE}
 simH <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "hierarchical")
+```
+
+```{r, echo=FALSE}
+suppressWarnings(setwd("./simulations/simple_examples/"))
+simH <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
+                     nDatasets = nDatasets, modelType = "hierarchical")
+check_Rhat(simH$rhats)
 ```
 
 ```{r, echo=FALSE, fig.height=4, fig.align='center'}
@@ -69,14 +70,15 @@ plot_recovery(simH)
 
 # Metaregression model
 
+```{r, eval=FALSE}
+simM <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "metaregression")
+```
+
 ```{r, echo=FALSE}
 setwd("./simulations/simple_examples/")
 simM <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
                      nDatasets = nDatasets, modelType = "metaregression")
-```
-
-```{r, eval=FALSE}
-simM <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "metaregression")
+check_Rhat(simM$rhats)
 ```
 
 ```{r, echo=FALSE, fig.height=4, fig.align='center'}
@@ -85,14 +87,15 @@ plot_recovery(simM)
 
 # T-test model
 
+```{r, eval=FALSE}
+simT <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "ttest")
+```
+
 ```{r, echo=FALSE}
 setwd("./simulations/simple_examples/")
 simT <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
                      nDatasets = nDatasets, modelType = "ttest")
-```
-
-```{r, eval=FALSE}
-simT <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "ttest")
+check_Rhat(simT$rhats)
 ```
 
 ```{r, results='hide',message=FALSE, eval=FALSE}
