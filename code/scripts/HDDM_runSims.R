@@ -1,5 +1,5 @@
 HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA,
-                         criterion = NA, n.chains = 4, Show=TRUE, forceSim = FALSE){
+                         criterion = NA, n.chains = 4, Show=TRUE, forceSim = FALSE, fromPrior=TRUE){
     #################################
     # Initial checks
     #################################
@@ -58,7 +58,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             # Define parameters to be tracked on JAGS, according to the modelType
             jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift")
-            if(modelType=="metaregression"){  jagsParameters <- c(jagsParameters, "betaweight")  }
+            if(modelType!="hierarchical"){  jagsParameters <- c(jagsParameters, "betaweight")  }
             # Write pertinent JAGS model
             if(modelType=="hierarchical"){  modelFile <- "./EZHBDDM.bug"  
             }else{
@@ -87,7 +87,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             for(k in 1:nDatasets){
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
-                design <- HDDM_setup(settings, modelType, Show=FALSE)
+                design <- HDDM_setup(settings, modelType, fromPrior, Show=FALSE)
                 runJags <- HDDM_runJAGS(summaryData = design$sumData, settings, 
                                         jagsData, jagsParameters, jagsInits, 
                                         n.chains, modelFile, Show = showChains[k])  
