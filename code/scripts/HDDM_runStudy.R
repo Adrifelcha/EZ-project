@@ -1,5 +1,5 @@
-HDDM_runStudy <- function(participant_levels, trial_levels, criterion_levels = c("drift", "nondt", "bound"), 
-                          design_levels = c("hierarchical","ttest","metaregression"), nDatasets = 1000, 
+HDDM_runFullSeed <- function(seed, participant_levels, trial_levels, criterion_levels = c("drift", "nondt", "bound"), 
+                          design_levels = c("hierarchical","ttest","metaregression"), 
                           priors = NA, n.chains = 2, Show=TRUE, forceSim = FALSE, fromPrior=TRUE){
   # Load necessary R libraries
   suppressMessages(library(R2jags))
@@ -39,40 +39,29 @@ HDDM_runStudy <- function(participant_levels, trial_levels, criterion_levels = c
       }
   }
   
-  
-  start <- 1
-  for(iter in start:nDatasets){
-      cat("Running seed", iter, "of", nDatasets)
-      set.seed(iter)
-      
-      for(p in participant_levels){
-          X <- cbind(rep(NA,p),(0:(p-1))/p,(0:(p-1))%%2)
-          colnames(X) <- valid.models
-        
-        
-          for(d in design_levels){
-              
-              for(t in trial_levels){
-                
-                if(d=="hierarchical"){
-                  design <- HDDM_setup(priors[[d]], p, t, d, X[,d], criterion = NA, fromPrior, Show = FALSE)
-                  runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], jagsData[[d]], 
-                                          jagsParameters[[d]], jagsInits,  n.chains, modelFile[d,1], Show = FALSE)  
-                }else{
-                      for(c in criterion_levels){
-                          design <- HDDM_setup(priors[[d]], p, t, d, X[,d], c, fromPrior, Show = FALSE)
-                          runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], jagsData[[d]], 
-                                                  jagsParameters[[d]], jagsInits,  n.chains, modelFile[d,c], Show = FALSE)  
-                      }
-                }
-                
+  for(p in participant_levels){
+      X <- cbind(rep(NA,p),(0:(p-1))/p,(0:(p-1))%%2)
+      colnames(X) <- valid.models
+    
+      for(d in design_levels){
+          
+          for(t in trial_levels){
+            
+              if(d=="hierarchical"){
+                design <- HDDM_setup(priors[[d]], p, t, d, X[,d], criterion = NA, fromPrior, Show = FALSE)
+                runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], jagsData[[d]], 
+                                        jagsParameters[[d]], jagsInits,  n.chains, modelFile[d,1], Show = FALSE)  
+              }else{
+                    for(c in criterion_levels){
+                        design <- HDDM_setup(priors[[d]], p, t, d, X[,d], c, fromPrior, Show = FALSE)
+                        runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], jagsData[[d]], 
+                                                jagsParameters[[d]], jagsInits,  n.chains, modelFile[d,c], Show = FALSE)  
+                    }
               }
           }
       }
-  
-    save(output, file="seed1.RData")  
   }
-  
+    save(output, file="seed1.RData")  
 }
   
   
