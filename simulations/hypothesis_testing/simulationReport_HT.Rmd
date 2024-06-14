@@ -1,0 +1,259 @@
+---
+title: "EZBHDDM: Short exercise on hypothesis testing"
+author: "Adriana F. Chávez De la Peña"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: true
+    cards: false
+    highlight: tango
+    fig_width: 12 
+    fig_height: 8 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rmdformats)
+```
+
+# Introduction
+
+\begin{align*}
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
+\end{align*}
+
+## The EZBHDDM
+
+\begin{align*}
+Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
+\dot{T} &\sim \mbox{Binomial}(PC,N)\\
+\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
+\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+## Model Types included in this template
+
+1. `hierarchical`
+
+2. `metaregression`
+
+3 .`ttest`
+
+# Custom functions
+
+## Simulation setup functions
+
+```{r, echo=FALSE}
+source("./code/functions/namingFunctions.R")
+source("./code/functions/show_priors.R")
+source("./code/functions/show_parameters.R")
+source("./code/functions/show_design.R")
+source("./code/functions/default_priors.R")
+source("./code/functions/sample_parameters.R")
+```
+
+1. `default_priors()`: A function to load default prior values.
+2. `sample_parameters()`: A function to sample true parameter values from the priors specified.
+
+## Functions to interact with JAGS
+
+```{r, echo=FALSE}
+source("./code/functions/write_JAGSmodel.R")
+source("./code/functions/data_toJAGS.R")
+source("./code/functions/default_inits.R")
+source("./code/functions/extractSamples.R")
+source("./code/functions/getDifferences_TRUEvsEST.R")
+source("./code/functions/check_Rhat.R")
+source("./code/functions/plot_Chain.R")
+```
+
+1. `write_JAGSmodel()`: A function to write the JAGS model using the prior values.
+2. `data_toJAGS()`: A function to create a list with all the data objects to be passed to JAGS.
+3. `default_inits()`:  A function to create an object containing initial values for the drift.
+4. `extractSamples()`: A function to extract all samples associated with a `parameter.name`
+5. `getDifferences_TRUEvsEST()`: A function to compute the difference between the true value and estimate retrieved for every parameter.
+6. `check_Rhat()`: A function to check the Rhats for a simulation
+7. `plot_Chain()`: A function to plot the merging chains for hierarchical parameters
+
+
+## Data managment functions
+
+1. `generate_trial()`:
+2. `generate_dataset()`:
+
+```{r, echo=FALSE}
+source("./code/functions/generate_trial.R")
+source("./code/functions/generate_dataset.R")
+source("./code/functions/sample_data.R")
+source("./code/functions/getStatistics.R")
+```
+
+```{r example-parameters}
+data <- generate_dataset(a=1.5, v=0, t=0.3, n=1000)
+```
+
+```{r example-plot, echo=FALSE, fig.height=5}
+par(mfrow = c(1, 3), mar =c(5.1,2,4.1,2), bty = "o")
+
+rt <- data$RT
+accuracy <- data$accuracy
+
+hist(rt[accuracy==1], ann=F, axes=F, breaks=50, col="lightgreen", border=NA)
+mtext("Distribution of Reaction Times", 3, cex=0.65, line=0.5)
+mtext("Reaction Time", 1, cex=0.6, line=2)
+mtext("Count", 2, cex=0.6, line=1)
+legend("topright", col="lightgreen", "Correct", pch=15, cex=0.7, bty="n")
+axis(1,c(0:5),line=-0.7)
+
+hist(rt[accuracy==0], ann=F, axes=F, breaks=50, col="indianred1", border=NA)
+mtext("Distribution of Reaction Times", 3, cex=0.65, line=0.5)
+mtext("Reaction Time", 1, cex=0.6, line=2)
+mtext("Count", 2, cex=0.6, line=1)
+legend("topright", col="indianred1", "Incorrect", pch=15, cex=0.7, bty="n")
+axis(1,c(0:5),line=-0.7)
+
+barplot(c(sum(1-accuracy),sum(accuracy)), ann=F, axes=F, col=c("red3","springgreen3"))
+mtext("Accuracy Histogram", 3, cex=0.65, line=0.5)
+mtext("Count", 2, cex=0.6, line=1)
+axis(1,c(0.7,1.9),c("Incorrect","Correct"))
+```
+
+3. `sample_data()`:
+4. `getStatistics()`:
+
+## Plotting functions
+
+```{r, echo=FALSE}
+source("./code/functions/plot_recovery.R")
+```
+
+1. `plot_recovery()`:
+
+# Scripts
+
+1. `Hddm_setup`: 
+
+```{r, echo=FALSE}
+source("./code/scripts/HDDM_setup.R")
+```
+
+```{r, file="./code/scripts/HDDM_setup.R"}
+```
+
+2. `HDDM_runJAGS`: 
+
+```{r, echo=FALSE}
+source("./code/scripts/HDDM_runJAGS.R")
+```
+
+```{r, file="./code/scripts/HDDM_runJAGS.R"}
+```
+
+3. `HDDM_runSims`:
+
+```{r, echo=FALSE}
+source("./code/scripts/HDDM_runSims.R")
+```
+
+
+```{r, file="./code/scripts/HDDM_runSims.R"}
+```
+
+
+# Hierarchical model
+
+```{r}
+simH <- HDDM_runSims(nParticipants = 50, nTrials = 300, nDatasets = 1, modelType = "hierarchical", forceSim = TRUE)
+```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(simH)
+```
+
+## 300 trials - 30 participants - 100 iter
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+simStudyH1 <- HDDM_runSims(nParticipants = 30, nTrials = 300, nDatasets = 100, modelType = "hierarchical", Show=TRUE)
+```
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simStudyH1)
+```
+
+## 30 trials - 300 participants - 100 iter
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+simStudyH2 <- HDDM_runSims(nParticipants = 300, nTrials = 30, nDatasets = 100, modelType = "hierarchical", Show=TRUE)
+```
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simStudyH2)
+```
+
+# Metaregression model
+
+```{r}
+simM <- HDDM_runSims(nParticipants = 50, nTrials = 300, nDatasets = 1, modelType = "metaregression", forceSim = TRUE)
+```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(simM)
+```
+
+## 300 trials - 30 participants - 100 iter
+
+```{r}
+simStudyM1 <- HDDM_runSims(nParticipants = 30, nTrials = 300, nDatasets = 100, modelType = "metaregression", Show=TRUE)
+```
+
+```{r, results='hide',message=FALSE}
+plot_recovery(simStudyM1)
+```
+
+## 30 trials - 300 participants - 100 iter
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+simStudyM2 <- HDDM_runSims(nParticipants = 300, nTrials = 30, nDatasets = 100, modelType = "metaregression",  Show=TRUE)
+```
+
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simStudyM2)
+```
+
+# T-test model
+
+```{r}
+simT <- HDDM_runSims(nParticipants = 100, nTrials = 200, nDatasets = 1, modelType = "ttest", forceSim = TRUE)
+```
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simT)
+```
+
+## 300 trials - 30 participants - 100 iter
+
+```{r, results='hide',message=FALSE}
+simStudyT1 <- HDDM_runSims(nParticipants = 30, nTrials = 300, nDatasets = 100, modelType = "ttest", Show=TRUE)
+```
+
+```{r, results='hide',message=FALSE}
+plot_recovery(simStudyT1)
+```
+
+## 30 trials - 300 participants - 100 iter
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+simStudyT2 <- HDDM_runSims(nParticipants = 300, nTrials = 30, nDatasets = 100, modelType = "ttest", Show=TRUE)
+```
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simStudyT2)
+```
