@@ -7,11 +7,24 @@ plot_recovery <- function(simOutput){
   indiv_Tru  <- simOutput$trueValues[,findIndiv_Tru]
   parnt_Tru  <- simOutput$trueValues[,-findIndiv_Tru]
   if(!singleRun){
-    idParPar <- unique(sub("\\[.*", "", colnames(parnt_Est)))
-    nParPar  <- length(idParPar)
-    par(mfrow = c(2, nParPar/2))
     colorPar <- c("#AB1914", "#42AB14", "#F8B51A", "#44E5A3", 
                   "#4483E5", "#9044E5", "#E544BE", "#0144A4")
+    findParents_Est <- which(grepl("\\_",colnames(parnt_Est)))
+    findParents_Tru <- which(grepl("\\_",colnames(parnt_Tru)))
+    parBeta_Est <- parnt_Est[,-findParents_Est]
+    parBeta_Tru <- parnt_Tru[,-findParents_Tru]
+    par(mfrow = c(1,1))
+        plot.range <- c(min(parBeta_Tru,parBeta_Est),max(parBeta_Tru,parBeta_Est))
+        plot(parBeta_Tru,parBeta_Est, ann=F, col=colorPar[length(colorPar)], pch=16,
+             xlim=plot.range, ylim=plot.range)
+        abline(0,1, lty=2)
+        mtext("Simulated values", 1, line=2.1, cex=0.7)
+        mtext(colnames(parnt_Est)[-findParents_Est], 3, line=0.5, cex=1, f=2)
+    parnt_Est <- parnt_Est[,findParents_Est]
+    parnt_Tru <- parnt_Tru[,findParents_Tru]
+    idParPar <- colnames(parnt_Est)
+    nParPar  <- length(idParPar)
+    par(mfrow = c(2, nParPar/2))
     for(p in 1:nParPar){
         x.true <- parnt_Tru[,which(grepl(idParPar[p],colnames(parnt_Tru)))]
         y.esti <- parnt_Est[,which(grepl(idParPar[p],colnames(parnt_Est)))]
