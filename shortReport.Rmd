@@ -1,0 +1,101 @@
+---
+title: "EZBHDDM: Short report"
+author: "Adriana F. Chávez De la Peña"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: true
+    cards: false
+    highlight: tango
+    fig_width: 12 
+    fig_height: 8 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rmdformats)
+```
+
+# Introduction
+
+\begin{align*}
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
+\end{align*}
+
+## The EZBHDDM
+
+\begin{align*}
+Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
+\dot{T} &\sim \mbox{Binomial}(PC,N)\\
+\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
+\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+# General setup
+
+```{r}
+for(archive in dir("./code/functions/")){    source(paste("./code/functions/",archive,sep=""))     }
+for(archive in dir("./code/scripts/")){      source(paste("./code/scripts/",archive,sep=""))       }
+```
+
+```{r}
+nParticipants <- 30
+nTrials <- 300
+nDatasets <- 100
+```
+
+# Hierarchical model
+
+```{r, echo=FALSE}
+suppressMessages(setwd("./simulations/simple_examples/"))
+simH <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
+                     nDatasets = nDatasets, modelType = "hierarchical")
+```
+
+```{r, eval=FALSE}
+simH <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "hierarchical")
+```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(simH)
+```
+
+# Metaregression model
+
+```{r, echo=FALSE}
+setwd("./simulations/simple_examples/")
+simM <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
+                     nDatasets = nDatasets, modelType = "metaregression")
+```
+
+```{r, eval=FALSE}
+simM <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "metaregression")
+```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(simM)
+```
+
+# T-test model
+
+```{r, echo=FALSE}
+setwd("./simulations/simple_examples/")
+simT <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, 
+                     nDatasets = nDatasets, modelType = "ttest")
+```
+
+```{r, eval=FALSE}
+simT <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "ttest")
+```
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simT)
+```
+
