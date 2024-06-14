@@ -38,17 +38,17 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             ######################
             # ~~~~~~~~~~~~~~~~ Settings
             # Define the design settings according to modelType and (optionally) print to screen
-            settings <- list("nPart"= nParticipants, "nTrials"= nTrials, "criterion" = criterion, 
+            settings <- list("nPart"= nParticipants, "nTrials"= nTrials,
                              "modelType" = modelType, "nDatasets" = nDatasets)
             # If the model includes an effect (betaweight)
             if(modelType!="hierarchical"){   
                 # Make sure we have a valid "criterion" (default to 'drift')
-                if(is.na(settings$criterion)){    settings$criterion <- "drift"   }
+                if(is.na(criterion)){    criterion <- "drift"   }
                 X <- 0:settings$nPart   # Default predictor       
                 if(modelType=="ttest"){   X <- X %% 2    # Dummy predictor
                                  }else{   X <- X/settings$nPart          }        
-                settings <- c(settings, list("X" = X))
-            }
+                settings <- c(settings, list("X" = X, "criterion" = criterion))
+            }else{    X <- NA    }
             if(Show){  show_design(settings)  }
             # Load default priors if needed and add to settings
             if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType)    }else{
@@ -62,11 +62,11 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             # Write pertinent JAGS model
             if(modelType=="hierarchical"){  modelFile <- "./EZHBDDM.bug"  
             }else{
-                  if(settings$criterion=="bound"){ modelFile <- "./EZHBDDM_BetaBound.bug"  }else{
-                  if(settings$criterion=="nondt"){ modelFile <- "./EZHBDDM_BetaNondt.bug"  }else{  
+                  if(criterion=="bound"){ modelFile <- "./EZHBDDM_BetaBound.bug"  }else{
+                  if(criterion=="nondt"){ modelFile <- "./EZHBDDM_BetaNondt.bug"  }else{  
                                                    modelFile <- "./EZHBDDM_BetaDrift.bug"  }
             }}
-            write_JAGSmodel(settings, modelFile)
+            write_JAGSmodel(priors, modelType, criterion, modelFile)
             # Data to be passed to JAGS
             jagsData = data_toJAGS(modelType)
             # init values
@@ -87,8 +87,8 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             for(k in 1:nDatasets){
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
-                design <- HDDM_setup(settings, modelType, fromPrior, Show=FALSE)
-                runJags <- HDDM_runJAGS(summaryData = design$sumData, settings, 
+                design <- HDDM_setup(priors, nPart, nTrials, modelType, X, criterion, fromPrior, Show=FALSE)
+                runJags <- HDDM_runJAGS(summaryData = design$sumData, nTrials, X, 
                                         jagsData, jagsParameters, jagsInits, 
                                         n.chains, modelFile, Show = showChains[k])  
                 MatRhats[k,] <- runJags$rhats
