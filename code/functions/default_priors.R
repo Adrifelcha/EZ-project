@@ -5,7 +5,7 @@ default_priors <- function(Show=TRUE, modelType=NA){
                       "bound_sdev_lower" = 0.10, "bound_sdev_upper" = 0.40,
                       "drift_sdev_lower" = 0.20, "drift_sdev_upper" = 0.40,
                       "nondt_sdev_lower" = 0.05, "nondt_sdev_upper" = 0.25)
-  if((!is.na(modelType))&modelType=="metaregression"){
+  if(modelType!="hierarchical"){
             prior$betaweight_lower = 0.00
             prior$betaweight_upper = 1.00
   }
