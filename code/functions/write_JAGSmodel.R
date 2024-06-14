@@ -2,29 +2,27 @@
 # Functions to automatically write desired JAGS models
 #####################################################################
 
-# A function to write the JAGS model using the prior values
-write_JAGSmodel <- function(settings, modelFile){
-  prior  <- settings$prior
-  crit   <- settings$criterion
+# A function to write the JAGS model using the priors values
+write_JAGSmodel <- function(priors, modelType, criterion, modelFile){
   opening <- "model{"
-  prior.bound_m  <- paste("          bound_mean ~ dnorm(", prior$bound_mean_mean,",pow(",prior$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
-  prior.nondt_m  <- paste("          nondt_mean ~ dnorm(", prior$nondt_mean_mean,",pow(",prior$nondt_mean_sdev,",-2))T(0.05,)", sep="")
-  prior.drift_m  <- paste("          drift_mean ~ dnorm(", prior$drift_mean_mean,",pow(",prior$drift_mean_sdev,",-2))T(-3.00,3.00)", sep="")
-  prior.bound_sd <- paste("          bound_sdev ~ dunif(", prior$bound_sdev_lower,",",prior$bound_sdev_upper,")", sep="")
-  prior.nondt_sd <- paste("          nondt_sdev ~ dunif(", prior$nondt_sdev_lower,",",prior$nondt_sdev_upper,")", sep="")
-  prior.drift_sd <- paste("          drift_sdev ~ dunif(", prior$drift_sdev_lower,",",prior$drift_sdev_upper,")", sep="")
-  priors <- c(prior.bound_m, prior.nondt_m, prior.drift_m, prior.bound_sd, prior.nondt_sd, prior.drift_sd)
-  if(settings$modelType != "hierarchical"){
-      prior.beta <- paste("          betaweight ~ dunif(", prior$betaweight_lower,",",prior$betaweight_upper,")", sep="")
-      priors <- c(priors, prior.beta)
-      if(settings$criterion=="drift"){
+  priors.bound_m  <- paste("          bound_mean ~ dnorm(", priors$bound_mean_mean,",pow(",priors$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
+  priors.nondt_m  <- paste("          nondt_mean ~ dnorm(", priors$nondt_mean_mean,",pow(",priors$nondt_mean_sdev,",-2))T(0.05,)", sep="")
+  priors.drift_m  <- paste("          drift_mean ~ dnorm(", priors$drift_mean_mean,",pow(",priors$drift_mean_sdev,",-2))T(-3.00,3.00)", sep="")
+  priors.bound_sd <- paste("          bound_sdev ~ dunif(", priors$bound_sdev_lower,",",priors$bound_sdev_upper,")", sep="")
+  priors.nondt_sd <- paste("          nondt_sdev ~ dunif(", priors$nondt_sdev_lower,",",priors$nondt_sdev_upper,")", sep="")
+  priors.drift_sd <- paste("          drift_sdev ~ dunif(", priors$drift_sdev_lower,",",priors$drift_sdev_upper,")", sep="")
+  priorss <- c(priors.bound_m, priors.nondt_m, priors.drift_m, priors.bound_sd, priors.nondt_sd, priors.drift_sd)
+  if(modelType != "hierarchical"){
+      priors.beta <- paste("          betaweight ~ dunif(", priors$betaweight_lower,",",priors$betaweight_upper,")", sep="")
+      priorss <- c(priorss, priors.beta)
+      if(criterion=="drift"){
           content.init <-"
                   # Sampling model
                   for (p in 1:nParticipants){
                       drift[p] ~ dnorm(drift_mean + betaweight*X[p], pow(drift_sdev, -2))T(-3.00,3.00)
                       bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
                       nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)"    
-      }else{if(settings$criterion=="bound"){
+      }else{if(criterion=="bound"){
           content.init <-"
                   # Sampling model
                   for (p in 1:nParticipants){
@@ -64,6 +62,6 @@ write_JAGSmodel <- function(settings, modelFile){
       }"
   content <- c(content.init, content.end)
   final_file <- file(modelFile)
-  writeLines(c(opening,priors,content), final_file)
+  writeLines(c(opening,priorss,content), final_file)
   close(final_file)
 }

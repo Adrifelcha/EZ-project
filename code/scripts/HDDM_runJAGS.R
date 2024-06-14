@@ -1,13 +1,12 @@
-HDDM_runJAGS <- function(summaryData, settings, jagsData, jagsParameters, jagsInits, 
+HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jagsInits, 
                          n.chains=4, modelFile="./EZHBDDM.bug", Show = TRUE){
   # Prepare data
   sub     <- summaryData[,"sub"]
   correct <- summaryData[,"sum_correct"]
   varRT   <- summaryData[,"varRT"]
   meanRT  <- summaryData[,"meanRT"]
-  nTrialsPerPerson <- settings$nTrials
-  nParticipants    <- settings$nPart
-  if(!is.null(settings$X)){ X <- settings$X}
+  nTrialsPerPerson <- nTrials
+  nParticipants    <- nrow(summaryData)
   # Run model and get samples
   suppressMessages(samples <- jags(data=jagsData, 
                                    parameters.to.save=jagsParameters, 
