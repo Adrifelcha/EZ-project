@@ -27,22 +27,26 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
   }
   
   estimates <- list()
+  error <- list
   credInterval <- list()
   for(i in 1:length(jagsParameters)){
       posteriorParameters <- extractSamples(jagsParameters[i], samples)
          if(length(dim(posteriorParameters))==3){
             meanPost    <- apply(posteriorParameters,3,mean)
+            sdPost      <- apply(posteriorParameters,3,sd)
             percentiles <- apply(posteriorParameters,3, quantile, probs=c(0.025,0.975))
          }else{
             meanPost    <- mean(posteriorParameters)
+            sdPost      <- sd(posteriorParameters)
             percentiles <- quantile(posteriorParameters,probs = c(0.025,0.975))
          }
-     estimates   <- c(estimates, list(meanPost))
+     estimates    <- c(estimates, list(meanPost))
+     error        <- c(error, list(sdPost))
      credInterval <- c(credInterval, list(percentiles))
   }
   names(estimates)   <- jagsParameters
   names(credInterval) <- jagsParameters
   
-  return(list("estimates" = estimates, "credInterval" = credInterval,
+  return(list("estimates" = estimates, "sd" = error, "credInterval" = credInterval,
               "rhats" = rhats, "clock" = clock))
 }
