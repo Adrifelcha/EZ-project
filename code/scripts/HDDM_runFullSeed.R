@@ -45,74 +45,8 @@ HDDM_runFullSeed <- function(seed, settings){
   }
   ########## Print a file to indicate the end of a the seed ###############
   write('Seed has ended running', paste(settings$output.folder,"seed-",seed,"_end.txt",sep=""))
+  output <- list("hierarchical" = out_H,"betaEffect" = out_Beta)
   save(output, file=paste(settings$output.folder,"seed-",seed,".RData",sep=""))  
   return(output)
 }
   
-  
-#   ###################################
-#   # Run simulation study (if needed)
-#   ###################################
-#   if(needToRun){
-#           # ~~~~~~~~~~~~~~~~ Storing objects
-#           # Count number of parameters (i.e. we always assume individual parameters)
-#           nParams <- (length(settings$jagsParameters)-3) + (nParticipants*3)
-#           MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
-#           MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
-#           ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
-#           MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
-#           ######################
-#           #   Run iterations   #
-#           ######################
-#           for(k in 1:nDatasets){
-#              
-#               MatRhats[k,] <- runJags$rhats
-#               c <- 0; d <- 0
-#               for(j in 1:length(runJags$estimates)){
-#                  m <- length(runJags$estimates[[j]])
-#                  w <- length(design$parameter_set[[j]])
-#                  MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[j]]
-#                  MatTrueVal[k,(d+1):(d+w)]   <- design$parameter_set[[j]]
-#                  if(is.vector(runJags$credInterval[[j]])){
-#                        ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1]
-#                        ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2]
-#                  }else{
-#                        ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1,]
-#                        ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2,]
-#                  }
-#                  c <- c+m; d <- d+w
-#               }
-#           }
-#           
-#           paramNames <- NA
-#           paramNames2 <- NA
-#           for(j in 1:length(runJags$estimates)){
-#                 if(is.vector(runJags$credInterval[[j]])){
-#                    paramNames <- c(paramNames, names(runJags$credInterval[j]))
-#                 }else{
-#                    paramNames <- c(paramNames, colnames(runJags$credInterval[[j]]))
-#                 }
-#                 if(length(design$parameter_set[[j]])==1){
-#                   paramNames2 <- c(paramNames2, names(design$parameter_set[j]))
-#                 }else{
-#                   labels <- paste(names(design$parameter_set[j]), "[",1:length(design$parameter_set[[j]]),"]",sep="")
-#                   paramNames2 <- c(paramNames2, labels)
-#                 }
-#           }
-#           paramNames <- paramNames[-1]
-#           paramNames2 <- paramNames2[-1]
-#           colnames(MatEstimates) <- paramNames
-#           colnames(ArrayCredInt) <- paramNames
-#           colnames(MatTrueVal)   <- paramNames2
-#           colnames(MatRhats) <- names(runJags$rhats)
-#           
-#           if(Show){check_Rhat(MatRhats)}
-#           
-#           output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "credIntervals" = ArrayCredInt,
-#                          "trueValues" = MatTrueVal, "settings" = settings, "settings$n.chains" = settings$n.chains)
-#           save(output, file=outputFile)
-#           return(output)
-#   }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")  
-#           return(output)
-#   }
-# }
