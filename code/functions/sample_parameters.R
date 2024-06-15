@@ -11,8 +11,8 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion, fromPrior=
         bound_mean <- runif(1,1,2)
         drift_mean <- runif(1,-1.5,1.5)
         nondt_mean <- runif(1,0.1,0.5)
-        nondt_sdev <- runif(1,0.015,0.2)
-        bound_sdev <- runif(1,0.1,0.3)  
+        nondt_sdev <- runif(1,0.05,0.25)
+        bound_sdev <- runif(1,0.1,0.35)  
   }
   drift_sdev <- runif(1,priors$drift_sdev_lower,priors$drift_sdev_upper)
   bound <- rnorm(nPart,bound_mean, bound_sdev)
