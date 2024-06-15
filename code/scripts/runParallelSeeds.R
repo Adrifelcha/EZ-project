@@ -20,8 +20,8 @@ modelFile <- matrix(c(rep("./EZHBDDM.bug" ,3),
                     byrow = TRUE, ncol = 3)
 ########| Create a "settings" object that specifies all relevant aspects of the simulation study
 #################| Fixed variables
-settings <- list("fromPrior" = fromPrior,  # This logical variable should be defined before running this script
-                 "output.folder" = output.folder, # Before running this script, indicate where to store samples
+settings <- list("fromPrior" = FALSE,  # This logical variable should be defined before running this script
+                 "output.folder" = "../../simulations/params_from_uniforms/", # Before running this script, indicate where to store samples
                  "participant_levels" = c(20,40,80,160,320),
                  "trial_levels" = c(20,40,80,160,320),
                  "nDatasets" = 1000,
@@ -57,7 +57,7 @@ for(model in settings$design_levels){
 }
 
 x <- HDDM_runFullSeed(1,settings)
-x <- load("../../simulations/generative_priors/seed-1.RData")
+# x <- load("../../simulations/generative_priors/seed-1.RData")
 
 ################################################################
 # Define simulation functions
