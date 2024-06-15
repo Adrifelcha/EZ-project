@@ -9,9 +9,9 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion, fromPrior=
         bound_sdev <- runif(1,priors$bound_sdev_lower,priors$bound_sdev_upper)  
   }else{
         bound_mean <- runif(1,1,2)
-        drift_mean <- runif(1,-3,3)
-        nondt_mean <- runif(1,0.15,0.3)
-        nondt_sdev <- runif(1,0.015,0.04)
+        drift_mean <- runif(1,-1.5,1.5)
+        nondt_mean <- runif(1,0.1,0.5)
+        nondt_sdev <- runif(1,0.015,0.2)
         bound_sdev <- runif(1,0.1,0.3)  
   }
   drift_sdev <- runif(1,priors$drift_sdev_lower,priors$drift_sdev_upper)
