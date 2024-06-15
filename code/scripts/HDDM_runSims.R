@@ -44,9 +44,9 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             if(modelType!="hierarchical"){   
                 # Make sure we have a valid "criterion" (default to 'drift')
                 if(is.na(criterion)){    criterion <- "drift"   }
-                X <- 0:settings$nPart   # Default predictor       
+                X <- 0:nParticipants   # Default predictor       
                 if(modelType=="ttest"){   X <- X %% 2    # Dummy predictor
-                                 }else{   X <- X/settings$nPart          }        
+                                 }else{   X <- X/nParticipants          }        
                 settings <- c(settings, list("X" = X, "criterion" = criterion))
             }else{    X <- NA    }
             if(Show){  show_design(settings)  }
@@ -87,7 +87,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             for(k in 1:nDatasets){
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
-                design <- HDDM_setup(priors, nPart, nTrials, modelType, X, criterion, fromPrior, Show=FALSE)
+                design <- HDDM_setup(priors, nParticipants, nTrials, modelType, X, criterion, fromPrior, Show=FALSE)
                 runJags <- HDDM_runJAGS(summaryData = design$sumData, nTrials, X, 
                                         jagsData, jagsParameters, jagsInits, 
                                         n.chains, modelFile, Show = showChains[k])  
