@@ -8,6 +8,7 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
   nTrialsPerPerson <- nTrials
   nParticipants    <- nrow(summaryData)
   # Run model and get samples
+  tic <- clock::date_now(zone="UTC")
   suppressMessages(samples <- jags(data=jagsData, 
                                    parameters.to.save=jagsParameters, 
                                    model=modelFile, 
@@ -17,6 +18,8 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
                                    n.thin=1, 
                                    DIC=T, 
                                    inits=jagsInits))
+  toc <- clock::date_now(zone="UTC")
+  clock <- as.numeric(toc-tic, units="secs")  # Record time
   object <- samples$BUGSoutput$sims.array
   rhats <- apply(object,3,Rhat)
   if(Show){  
@@ -41,5 +44,5 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
   names(credInterval) <- jagsParameters
   
   return(list("estimates" = estimates, "credInterval" = credInterval,
-              "rhats" = rhats))
+              "rhats" = rhats, "clock" = clock))
 }
