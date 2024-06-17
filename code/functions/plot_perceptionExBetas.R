@@ -1,0 +1,17 @@
+topY <- max(density(beta4)[2]$y)*1.05
+hist(beta4, freq = FALSE, breaks = 50, col=density.color, border = density.color, ann=F, axes = F,xaxs = "i", yaxs = "i", xlim=c(0,1.6), ylim = c(0,topY))
+lines(density(beta4), lwd=4, col=line.color)
+mtext("Density",side=2,line=2.15)
+mtext("Beta-4",side=1,line=2)
+axis(1,seq(0,1.6,0.4),seq(0,1.6,0.4))
+axis(2,seq(0,2,0.5),seq(0,2,0.5),las=2)
+mtext("Main effect", f=2, cex=1.7)
+abline(v=0,lty=2)
+
+hist(beta3, freq = FALSE, breaks = 50, col=density.color, border = density.color, ann=F, axes = F, xaxs = "i", yaxs = "i", ylim=c(0,topY))
+lines(density(beta3), lwd=4, col=line.color)
+axis(1,seq(0,1.6,0.4),seq(0,1.6,0.4))
+mtext("Beta-3",side=1,line=2)
+mtext("Effect on slope", f=2, cex=1.7)
+abline(v=0,lty=2)
+mtext("Effect of instruction on the drift rate",3,outer=TRUE, f=2, line=-1.5, cex=1.8)
