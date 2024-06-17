@@ -1,6 +1,6 @@
 # A function to sample true parameter values from the priors specified
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-sample_parameters <- function(priors, nPart, modelType, X, criterion, fromPrior=TRUE, Show=TRUE){
+sample_parameters <- function(priors, nPart, modelType, X, criterion, fixedBeta = NA, fromPrior=TRUE, Show=TRUE){
   if(fromPrior){
         bound_mean <- rnorm(1,priors$bound_mean_mean,priors$bound_mean_sdev)
         drift_mean <- rnorm(1,priors$drift_mean_mean,priors$drift_mean_sdev)
@@ -23,16 +23,23 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion, fromPrior=
                         "bound" = bound,   "drift" = drift,   "nondt" = nondt)
   # Check modelType to determine the need for a coefficient
   if(!(modelType=="hierarchical"|is.na(modelType))){   
-    # Sample and add coefficient to the parameter_set
-    betaweight <- runif(1, priors$betaweight_lower, priors$betaweight_upper)
+    
+        if(!is.na(fixedBeta)){
+          parameter_set$drift_mean <- c(0, fixedBeta)
+          parameter_set$drift_sdev <- 0.25
+          drift <- rnorm(nPart*2, parameter_set$drift_mean, parameter_set$drift_sdev)
+        }else{
+            # Sample and add coefficient to the parameter_set
+            betaweight <- runif(1, priors$betaweight_lower, priors$betaweight_upper)
+            # Identify criterion (i.e., parameter of interest)
+            if(is.na(criterion)){  criterion <- "drift"  }
+            if(criterion=="bound"){  parameter_set$bound <- rnorm(nPart,bound_mean+(betaweight*X), bound_sdev)  }
+            if(criterion=="drift"){  parameter_set$drift <- rnorm(nPart,drift_mean+(betaweight*X), drift_sdev)  }
+            if(criterion=="nondt"){  parameter_set$nondt <- rnorm(nPart,nondt_mean+(betaweight*X), nondt_sdev)  }
+        }
+    
     parameter_set <- c(parameter_set, list("betaweight" = betaweight))
-    # Identify criterion (i.e., parameter of interest)
-    if(is.na(criterion)){  criterion <- "drift"  }
-    if(criterion=="bound"){  parameter_set$bound <- rnorm(nPart,bound_mean+(betaweight*X), bound_sdev)  }
-    if(criterion=="drift"){  parameter_set$drift <- rnorm(nPart,drift_mean+(betaweight*X), drift_sdev)  }
-    if(criterion=="nondt"){  parameter_set$nondt <- rnorm(nPart,nondt_mean+(betaweight*X), nondt_sdev)  }
   }
-  
   
   if(Show){   show_parameters(parameter_set)    }
   return(parameter_set)
