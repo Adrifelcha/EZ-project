@@ -1,5 +1,5 @@
 HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, beta.effect = 0, 
-                         priors = NA, n.chains = 4,  Show=TRUE, forceSim = FALSE, fromPrior=TRUE){
+                         priors = NA, n.chains = 4,  Show=TRUE, forceSim = FALSE, fromPrior=FALSE){
     #################################
     # Initial checks
     #################################
@@ -7,7 +7,8 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
     suppressMessages(library(R2jags))
     suppressMessages(library(rstan))
     # Identify output File
-    outputFile <- paste("./sim_P",nParticipants,"T",nTrials,"D",nDatasets,
+    
+     <- paste("./sim_P",nParticipants,"condT",nTrialsPerCondition,"D",nDatasets,
                         "_FixedEffect.RData", sep="")
     
     # Check if we needToRun simulations again (overruled by 'forceSim')
@@ -33,28 +34,30 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
             # ~~~~~~~~~~~~~~~~ Settings
             # Define the design settings according to modelType and (optionally) print to screen
             settings <- list("nPart"= nParticipants, "nTrialsPerCondition"= nTrialsPerCondition,
-                             "effect" = beta.effect, "nDatasets" = nDatasets)
+                             "effect" = beta.effect, "nDatasets" = nDatasets, "modelType" = "ttest",
+                             "criterion" = "drift")
             if(Show){  show_design(settings)  }
-            # If the model includes an effect (betaweight)
-            X <- rep(c(1,0),nParticipants)
+            
             # Load default priors if needed and add to settings
             if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType="ttest")    }else{
                             if(Show){    show_priors(priors)}                         }
             settings <- c(settings, list("prior" = priors))
             # ~~~~~~~~~~~~~~~~ JAGS variables
             # Define parameters to be tracked on JAGS, according to the modelType
-            jagsParameters <- c("bound_mean", "drift_mean", "drift_cond", "nondt_mean", "bound", "nondt",
+            jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift", "betaweight")
             # Write pertinent JAGS model
             modelFile <- "./FixedEffect.bug"  
             writefixEffJAGSmodel(priors, beta.effect)
             # Data to be passed to JAGS
-            jagsData = data_toJAGS(modelType="ttest")
+            X <- rep(c(1,0),nParticipants)
+            P <- rep(1:nParticipants, each=2)
+            jagsData = c(data_toJAGS(modelType="ttest"), list("P"))
             # init values
             jagsInits <- default_inits(n.chains, nParticipants*2)  
             # ~~~~~~~~~~~~~~~~ Storing objects
             # Count number of parameters (i.e. we always assume individual parameters)
-            nParams <- (length(jagsParameters)-3) + (nParticipants*3)
+            nParams <- (length(jagsParameters)-4) + (nParticipants*3) + 2
             MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
             MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
             ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
@@ -68,7 +71,12 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
             for(k in 1:nDatasets){
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
-                design <- HDDM_setup(priors, nParticipants, nTrials, modelType, X, criterion, fromPrior, Show=FALSE)
+                # Sample "true parameters" for the simulation using the priors
+                parameter_set <- sample_parameters(priors = priors, nPart = nParticipants, modelType = "ttest", 
+                                                   X = X, fixedBeta = beta.effect, fromPrior = fromPrior, Show=FALSE)
+                # Generate data
+                rawData = sample_data(nPart, nTrials, parameter_set)
+                summData = getStatistics(rawData) 
                 runJags <- HDDM_runJAGS(summaryData = design$sumData, nTrials, X, 
                                         jagsData, jagsParameters, jagsInits, 
                                         n.chains, modelFile, Show = showChains[k])  
