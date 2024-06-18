@@ -215,7 +215,7 @@ makeLines <- function(posterior_object){
 ###################################################################
 # Figure 1: Beta posteriors
 ###################################################################
-png(file = "../../figures/percEx_betas.png", width = 30, height = 20) # Width and height of the plot in inches
+png(file = "../../figures/percEx_betas.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
 par(mfrow = c(1,2), mai=c(1.1,0.6,1,0), oma= c(0,0,0,0))
 line.color    <- "#DC9303"
 density.color <- "#F3EAD8"
@@ -246,7 +246,7 @@ errors_spd <- cbind(c(lower_percentiles[33:48],NA, lower_percentiles[49:64]),
                     c(upper_percentiles[33:48],NA, upper_percentiles[49:64]))
 errors <- rbind(errors_acc,c(NA,NA),errors_spd)
 #### Make plot
-png(file = "../../figures/percEx_driftPreds.png", width = 7, height = 5) # Width and height of the plot in inches
+png(file = "../../figures/percEx_driftPreds.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
 plot(full_x,fit_line, type="l", lwd=4, col=predicted.color, ann=F, axes=F,
      ylab="Drift rate", ylim=c(0,6),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
 # Gray background
@@ -288,7 +288,7 @@ data.color  <- "black"
 point.size <- 0.9
 error.color <- "#E69FF8"
 pred.color <- "#BE07C1"
-png(file = "../../figures/percEx_accPostPred.png", width = 7, height = 5) # Width and height of the plot in inches
+png(file = "../../figures/percEx_accPostPred.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
     plot(full_x,est.accRate.Full, col="white", ann=F, axes=F, 
          ylim=c(0.45,1.05),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
     polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
@@ -332,7 +332,7 @@ par(pty="m", mfrow = c(1,1), mai=c(1.1,0.6,0.5,0), oma= c(0,0,0,0))
 error.color <- "#6DFA9C"
 pred.color <- "#00A437"
 point.size <- 0.9
-png(file = "../../figures/percEx_meanRTpostPred.png", width = 7, height = 5) # Width and height of the plot in inches
+png(file = "../../figures/percEx_meanRTpostPred.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
     plot(full_x,est.rtMean.Full, col="white", ann=F, axes=F, ylim=c(0.2,1), 
          xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
     polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
@@ -362,7 +362,7 @@ dev.off()
 ###################################################################
 # Figure 4b: Posterior predictive check on the Mean RT (log scale)
 ###################################################################
-png(file = "../../figures/percEx_meanRTpostPred_log.png", width = 7, height = 5) # Width and height of the plot in inches
+png(file = "../../figures/percEx_meanRTpostPred_log.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
 est.rtMean.log <- log(est.rtMean.Full)
 logmeanRT <- log(meanRT)
 plot(full_x,est.rtMean.log, col="white", ann=F, axes=F, ylim=c(-1.25,0), 
@@ -412,7 +412,7 @@ err.rtVar.spd  <- c(pp.perc.rtVar[1,33:48], pp.perc.rtVar[2,48:33],
 par(pty="m", mfrow = c(1,1), mai=c(1.1,0.6,0.5,0), oma= c(0,0,0,0))
 error.color <- "#8CE0FF"
 pred.color <- "#095B79"
-png(file = "../../figures/percEx_varRTpostPred.png", width = 7, height = 5) # Width and height of the plot in inches
+png(file = "../../figures/percEx_varRTpostPred.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
     plot(full_x,est.rtVar.Full, col="white", ann=F, axes=F, ylim=c(0,0.4),
          xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
     polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
@@ -442,7 +442,7 @@ dev.off()
 #######################################################################
 # Figure 5b: Posterior predictive check on the Variance RT (log scale)
 #######################################################################
-png(file = "../../figures/percEx_varRTpostPred_log.png", width = 7, height = 5) # Width and height of the plot in inches
+png(file = "../../figures/percEx_varRTpostPred_log.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
 plot(full_x,log(est.rtVar.Full), col="white", ann=F, axes=F, ylim=c(-7.1,-0.8),
      xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
 polygon(c(-3.5,3.5,3.5,-3.5),c(-7.1,-7.1,-0.8,-0.8),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
