@@ -1,7 +1,6 @@
 HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jagsInits, 
                          n.chains=4, modelFile="./EZHBDDM.bug", Show = TRUE){
   # Prepare data
-  sub     <- summaryData[,"sub"]
   correct <- summaryData[,"sum_correct"]
   varRT   <- summaryData[,"varRT"]
   meanRT  <- summaryData[,"meanRT"]
