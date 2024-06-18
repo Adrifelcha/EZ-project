@@ -34,6 +34,7 @@ There are 66 cells in the design with two main factors:
 ```{r, message=FALSE}
 # Load necessary libraries/packages
 library(R2jags)
+seed <- 15
 ```
 
 # Loading and cleaning the data
@@ -225,21 +226,26 @@ data_toJAGS <- list("nTrials"  =  df$nTrials,
                     "correct"  =  df$sum_accuracy,
                     "Xi"   =  df$Xi, "Xs"   =  df$Xs)
 
-# Prepare initial values
-myinits <- rep(list(list()), n.chains)
-for(i in 1:n.chains){
-    myinits[[i]] <- list(drift = rnorm(length(data_toJAGS$nTrials),0,0.1))
-}
-
 # Specify parameters to keep track of
 parameters <- c('beta3', 'beta4', 'drift', 'drift_pred',
                 "Pc_pred", "MRT_pred", "PRT_pred", "Pc", "PRT", "MRT")
 ```
 
+```{r}
+set.seed(seed)
+
+# Prepare initial values
+myinits <- rep(list(list()), n.chains)
+for(i in 1:n.chains){
+    myinits[[i]] <- list(drift = rnorm(length(data_toJAGS$nTrials),0,0.1))
+}
+```
+
 ### Run JAGS
 
 ```{r}
-set.seed(127)
+set.seed(seed)
+
 samples <- jags(data=data_toJAGS,
                 parameters.to.save=parameters,
                 model="./model_perception.bug",
@@ -274,6 +280,8 @@ MRT  <- samples$BUGSoutput$sims.list$MRT
 ### Obtain posterior predicted summary statistics
 
 ```{r}
+set.seed(seed)
+
 # Number of trials per condition
 nTrials <- df$nTrials
 # Number of posterior samples
@@ -309,6 +317,7 @@ mtext("Density",side=2,line=2.15)
 mtext("Beta 3",side=1,line=2)
 box(col="black")
 ```
+
 
 ## Instruction main effect on drift rate
 
