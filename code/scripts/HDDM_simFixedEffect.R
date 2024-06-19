@@ -8,7 +8,7 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
     suppressMessages(library(rstan))
     # Identify output File
     
-     <- paste("./sim_P",nParticipants,"condT",nTrialsPerCondition,"D",nDatasets,
+    outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
                         "_FixedEffect.RData", sep="")
     
     # Check if we needToRun simulations again (overruled by 'forceSim')
@@ -53,12 +53,17 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
             X <- rep(c(1,0),nParticipants)
             P <- rep(1:nParticipants, each=2)
             jagsData = c(data_toJAGS(modelType="ttest"), list("P"))
+            jagsData[[2]] <- "nTrialsPerCondition"
             # init values
-            jagsInits <- default_inits(n.chains, nParticipants*2)  
+            jagsInits <- rep(list(list()), n.chains)
+            for(i in 1:n.chains){
+              jagsInits[[i]] <- list(drift = matrix(rnorm(nParticipants*2,0,1),ncol=2))
+            }
             # ~~~~~~~~~~~~~~~~ Storing objects
             # Count number of parameters (i.e. we always assume individual parameters)
-            nParams <- (length(jagsParameters)-4) + (nParticipants*3) + 2
+            nParams <- (length(jagsParameters)-3) + (nParticipants*4)
             MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
+            MatErrors    <- matrix(NA, nrow=nDatasets, ncol=nParams)
             MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
             ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
             MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
@@ -74,29 +79,57 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
                 # Sample "true parameters" for the simulation using the priors
                 parameter_set <- sample_parameters(priors = priors, nPart = nParticipants, modelType = "ttest", 
                                                    X = X, fixedBeta = beta.effect, fromPrior = fromPrior, Show=FALSE)
-                # Generate data
-                rawData = sample_data(nPart, nTrials, parameter_set)
-                summData = getStatistics(rawData) 
-                runJags <- HDDM_runJAGS(summaryData = design$sumData, nTrials, X, 
-                                        jagsData, jagsParameters, jagsInits, 
-                                        n.chains, modelFile, Show = showChains[k])  
-                MatRhats[k,] <- runJags$rhats
+                # Generate and prepare data
+                rawData = sample_data(nParticipants, nTrials = NA, parameter_set, nTrialsPerCondition)
+                summData = getStatistics(rawData)
+                correct <- summData[,"sum_correct"]
+                varRT   <- summData[,"varRT"]
+                meanRT  <- summData[,"meanRT"]
+                
+                # Run JAGS model and get samples
+                tic <- clock::date_now(zone="UTC")
+                suppressMessages(samples <- jags(data=jagsData, 
+                                                 parameters.to.save=jagsParameters, 
+                                                 model=modelFile, 
+                                                 n.chains=n.chains, 
+                                                 n.iter=500, 
+                                                 n.burnin=100, 
+                                                 n.thin=1, 
+                                                 DIC=T, 
+                                                 inits=jagsInits))
+                toc <- clock::date_now(zone="UTC")
+                if(showChains[k]){  plot_Chain(samples) }
+                clock <- as.numeric(toc-tic, units="secs")  # Record time
+                object <- samples$BUGSoutput$sims.array
+                
+                
+                MatRhats[k,] <- apply(object,3,Rhat)
+                
+                MatTrueVal
+                
                 c <- 0; d <- 0
-                for(j in 1:length(runJags$estimates)){
-                   m <- length(runJags$estimates[[j]])
-                   w <- length(design$parameter_set[[j]])
-                   MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[j]]
-                   MatTrueVal[k,(d+1):(d+w)]   <- design$parameter_set[[j]]
-                   if(is.vector(runJags$credInterval[[j]])){
-                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1]
-                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2]
-                   }else{
-                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1,]
-                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2,]
-                   }
-                   c <- c+m; d <- d+w
+                for(i in jagsParameters){
+                  posteriorParameters <- extractSamples(i, samples)
+                  if(length(dim(posteriorParameters))==3){
+                    m <- dim(posteriorParameters)[3]
+                    MatEstimates[k,(c+1):(c+m)]   <- apply(posteriorParameters,3,mean)
+                    MatErrors[k,(c+1):(c+m)]      <- apply(posteriorParameters,3,sd)
+                    ArrayCredInt[k,(c+1):(c+m),1] <- apply(posteriorParameters,3, quantile, probs=0.025)
+                    ArrayCredInt[k,(c+1):(c+m),2] <- apply(posteriorParameters,3, quantile, probs=0.975)
+                  }else{
+                    m <- 1
+                    MatEstimates[k,c+1]    <- mean(posteriorParameters)
+                    MatErrors[k,c+1]       <- sd(posteriorParameters)
+                    ArrayCredInt[k,c+1,1:2]   <- quantile(posteriorParameters,probs = c(0.025,0.975))
+                  }
+                  w <- length(parameter_set[[i]])
+                  MatTrueVal[k,(d+1):(d+w)]   <- parameter_set[[i]]
+                  c <- c+m; d <- d+w
                 }
             }
+            # Name storing variables
+            colnames(MatRhats) <- names(apply(object,3,Rhat))
+            
             
             paramNames <- NA
             paramNames2 <- NA
@@ -118,7 +151,7 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
             colnames(MatEstimates) <- paramNames
             colnames(ArrayCredInt) <- paramNames
             colnames(MatTrueVal)   <- paramNames2
-            colnames(MatRhats) <- names(runJags$rhats)
+            
             
             if(Show){check_Rhat(MatRhats)}
             
