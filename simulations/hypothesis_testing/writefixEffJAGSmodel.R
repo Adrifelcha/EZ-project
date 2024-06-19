@@ -15,23 +15,28 @@ writefixEffJAGSmodel <- function(priors, beta.effect){
   priorss <- c(priors.bound_m, priors.bound_sd, priors.nondt_m, priors.nondt_sd, priors.drift_m, priors.drift_sd, priors.beta)
   
   content.init <-"
-                  for (k in 1:length(meanRT)) {
-                  bound[P[k]] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
-                  nondt[P[k]] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)
-                  drift[P[k],(X[k]+1)] ~ dnorm(drift_mean+betaweight*X[k], pow(drift_sdev, -2))T(-3.00,3.00)"
+  
+                  for(p in 1:nParticipants) {
+                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
+                      nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)
+                      for(j in 1:2){
+                          drift[p,j] ~ dnorm(drift_mean+betaweight*j-1, pow(drift_sdev, -2))T(-3.00,3.00)
+                      }
+                  }"
 
   content.end <- "
-                  # Forward equations from EZ Diffusion
+              # Forward equations from EZ Diffusion
+              for (k in 1:length(meanRT)) {
                   ey[k]  = exp(-bound[P[k]] * drift[P[k],(X[k]+1)])
-                  Pc[k]  = 1 / (1 + ey[p])
-                  PRT[k] = 2 * pow(drift[P[k],(X[k]+1)], 3) / bound[P[k]] * pow(ey[p] + 1, 2) / (2 * -bound[P[k]] * drift[P[k],(X[k]+1)] * ey[p] - ey[p]*ey[p] + 1)
-                  MDT[k] = (bound[P[k]] / (2 * drift[P[k],(X[k]+1)])) * (1 - ey[p]) / (1 + ey[p])
-                  MRT[k] = MDT[p] + nondt[P[k]]
+                  Pc[k]  = 1 / (1 + ey[k])
+                  PRT[k] = 2 * pow(drift[P[k],(X[k]+1)], 3) / bound[P[k]] * pow(ey[k] + 1, 2) / (2 * -bound[P[k]] * drift[P[k],(X[k]+1)] * ey[k] - ey[k]*ey[k] + 1)
+                  MDT[k] = (bound[P[k]] / (2 * drift[P[k],(X[k]+1)])) * (1 - ey[k]) / (1 + ey[k])
+                  MRT[k] = MDT[k] + nondt[P[k]]
 
                   # Loss functions using MRT, PRT, and Pc
-                  correct[k] ~ dbin(Pc[k], nTrialsPerPerson)
-                  meanRT[k]  ~ dnorm(MRT[k], PRT[k] * nTrialsPerPerson)
-                  varRT[k]   ~ dnorm(1/PRT[k], 0.5*(nTrialsPerPerson-1) * PRT[k] * PRT[k])
+                  correct[k] ~ dbin(Pc[k], nTrialsPerCondition)
+                  meanRT[k]  ~ dnorm(MRT[k], PRT[k] * nTrialsPerCondition)
+                  varRT[k]   ~ dnorm(1/PRT[k], 0.5*(nTrialsPerCondition-1) * PRT[k] * PRT[k])
               }
       }"
   content <- c(content.init, content.end)
