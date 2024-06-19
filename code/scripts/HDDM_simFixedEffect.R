@@ -1,4 +1,4 @@
-HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, beta.effect = 0, 
+HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, beta.effect = 0, 
                          priors = NA, n.chains = 4,  Show=TRUE, forceSim = FALSE, fromPrior=FALSE){
     #################################
     # Initial checks
@@ -48,7 +48,7 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift", "betaweight")
             # Write pertinent JAGS model
             modelFile <- "./FixedEffect.bug"  
-            writefixEffJAGSmodel(priors, beta.effect)
+            writefixEffJAGSmodel(priors, beta.effect, modelFile)
             # Data to be passed to JAGS
             X <- rep(c(1,0),nParticipants)
             P <- rep(1:nParticipants, each=2)
@@ -70,9 +70,9 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
             # ~~~~~~~~~~~~~~~~~~ Only Show output for a random iteration
             showChains <- rep(FALSE,nDatasets)
             if(Show){showChains[sample(nDatasets,1)] <- TRUE}
-            ######################
-            #   Run iterations   #
-            ######################
+            #####################
+            #   Run datasets    #
+            #####################
             for(k in 1:nDatasets){
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
@@ -102,61 +102,49 @@ HDDM_runSims <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, bet
                 clock <- as.numeric(toc-tic, units="secs")  # Record time
                 object <- samples$BUGSoutput$sims.array
                 
-                
-                MatRhats[k,] <- apply(object,3,Rhat)
-                
-                MatTrueVal
-                
                 c <- 0; d <- 0
                 for(i in jagsParameters){
-                  posteriorParameters <- extractSamples(i, samples)
-                  if(length(dim(posteriorParameters))==3){
-                    m <- dim(posteriorParameters)[3]
-                    MatEstimates[k,(c+1):(c+m)]   <- apply(posteriorParameters,3,mean)
-                    MatErrors[k,(c+1):(c+m)]      <- apply(posteriorParameters,3,sd)
-                    ArrayCredInt[k,(c+1):(c+m),1] <- apply(posteriorParameters,3, quantile, probs=0.025)
-                    ArrayCredInt[k,(c+1):(c+m),2] <- apply(posteriorParameters,3, quantile, probs=0.975)
-                  }else{
-                    m <- 1
-                    MatEstimates[k,c+1]    <- mean(posteriorParameters)
-                    MatErrors[k,c+1]       <- sd(posteriorParameters)
-                    ArrayCredInt[k,c+1,1:2]   <- quantile(posteriorParameters,probs = c(0.025,0.975))
-                  }
-                  w <- length(parameter_set[[i]])
-                  MatTrueVal[k,(d+1):(d+w)]   <- parameter_set[[i]]
-                  c <- c+m; d <- d+w
+                    posteriorParameters <- extractSamples(i, samples)
+                    if(length(dim(posteriorParameters))==3){
+                        m <- dim(posteriorParameters)[3]
+                        MatEstimates[k,(c+1):(c+m)]   <- apply(posteriorParameters,3,mean)
+                        MatErrors[k,(c+1):(c+m)]      <- apply(posteriorParameters,3,sd)
+                        ArrayCredInt[k,(c+1):(c+m),1] <- apply(posteriorParameters,3, quantile, probs=0.025)
+                        ArrayCredInt[k,(c+1):(c+m),2] <- apply(posteriorParameters,3, quantile, probs=0.975)
+                    }else{
+                        m <- 1
+                        MatEstimates[k,c+1]    <- mean(posteriorParameters)
+                        MatErrors[k,c+1]       <- sd(posteriorParameters)
+                        ArrayCredInt[k,c+1,1:2]   <- quantile(posteriorParameters,probs = c(0.025,0.975))
+                    }
+                    w <- length(parameter_set[[i]])
+                    MatTrueVal[k,(d+1):(d+w)]   <- parameter_set[[i]]
+                    c <- c+m; d <- d+w
+                }
+                MatRhats[k,] <- apply(object,3,Rhat)
+            }
+            
+            # Naming values retrieved
+            paramNames <- c()
+            for(i in jagsParameters){
+                posteriorParameters <- extractSamples(i, samples)
+                if(length(dim(posteriorParameters))==3){
+                   paramNames <- c(paramNames,dimnames(posteriorParameters)[[3]])
+                }else{
+                   paramNames <- c(paramNames, i)
                 }
             }
-            # Name storing variables
-            colnames(MatRhats) <- names(apply(object,3,Rhat))
-            
-            
-            paramNames <- NA
-            paramNames2 <- NA
-            for(j in 1:length(runJags$estimates)){
-                  if(is.vector(runJags$credInterval[[j]])){
-                     paramNames <- c(paramNames, names(runJags$credInterval[j]))
-                  }else{
-                     paramNames <- c(paramNames, colnames(runJags$credInterval[[j]]))
-                  }
-                  if(length(design$parameter_set[[j]])==1){
-                    paramNames2 <- c(paramNames2, names(design$parameter_set[j]))
-                  }else{
-                    labels <- paste(names(design$parameter_set[j]), "[",1:length(design$parameter_set[[j]]),"]",sep="")
-                    paramNames2 <- c(paramNames2, labels)
-                  }
-            }
-            paramNames <- paramNames[-1]
-            paramNames2 <- paramNames2[-1]
             colnames(MatEstimates) <- paramNames
+            colnames(MatErrors) <- paramNames
             colnames(ArrayCredInt) <- paramNames
-            colnames(MatTrueVal)   <- paramNames2
-            
+            colnames(MatTrueVal)   <- paramNames
+            colnames(MatRhats) <- names(apply(object,3,Rhat))
             
             if(Show){check_Rhat(MatRhats)}
             
-            output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "credIntervals" = ArrayCredInt,
-                           "trueValues" = MatTrueVal, "settings" = settings, "n.chains" = n.chains)
+            output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "variance" = MatErrors, 
+                           "credIntervals" = ArrayCredInt, "trueValues" = MatTrueVal, "settings" = settings, 
+                           "n.chains" = n.chains)
             save(output, file=outputFile)
             return(output)
     }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")  
