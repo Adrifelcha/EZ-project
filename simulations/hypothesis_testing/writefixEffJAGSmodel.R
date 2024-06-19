@@ -3,7 +3,7 @@
 #####################################################################
 
 # A function to write the JAGS model using the priors values
-writefixEffJAGSmodel <- function(priors, beta.effect){
+writefixEffJAGSmodel <- function(priors, beta.effect, modelFile){
   opening <- "model{"
   priors.bound_m  <- paste("          bound_mean ~ dnorm(", priors$bound_mean_mean,",pow(",priors$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
   priors.nondt_m  <- paste("          nondt_mean ~ dnorm(", priors$nondt_mean_mean,",pow(",priors$nondt_mean_sdev,",-2))T(0.05,)", sep="")
