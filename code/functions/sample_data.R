@@ -21,10 +21,10 @@ sample_data <- function(nPart, nTrials = NA, parameter_set, nTrialsPerCondition 
         nObs <- nPart*nTrialsPerCondition*2
         data <- matrix(NA,ncol=4,nrow=nObs)
         data[,1] <- rep(1:nPart, each=(nTrialsPerCondition*2))
-        data[,2] <- rep(1:0,nPart)
+        data[,2] <- rep(c(1,0),nPart)
         j = 1
         for(i in 1:nPart){      # Get data for every Participant
-            for(k in 1:0){
+            for(k in c(1,0)){
                 this.cell <- which(data[,1]==i&data[,2]==k)
                 accuracy = 0
                 while(sum(accuracy)==0){
