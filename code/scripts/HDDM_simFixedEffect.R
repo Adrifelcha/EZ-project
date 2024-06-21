@@ -1,5 +1,5 @@
 HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, beta.effect = 0, 
-                         priors = NA, n.chains = 4,  Show=TRUE, forceSim = FALSE, fromPrior=FALSE){
+                         priors = NA, n.chains = 4,  Show=TRUE, forceSim = FALSE, fromPrior=FALSE, label=NA){
     #################################
     # Initial checks
     #################################
@@ -8,8 +8,13 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
     suppressMessages(library(rstan))
     # Identify output File
     
-    outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
-                        "_FixedEffect.RData", sep="")
+    if(is.na(label)){
+          outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
+                              "_FixedEffect",label,".RData", sep="")
+    }else{
+          outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
+                              "_FixedEffect.RData", sep="")
+    }
     
     # Check if we needToRun simulations again (overruled by 'forceSim')
     if(!forceSim){
@@ -56,8 +61,11 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
             jagsData[[2]] <- "nTrialsPerCondition"
             # init values
             jagsInits <- rep(list(list()), n.chains)
+            # for(i in 1:n.chains){
+            #   jagsInits[[i]] <- list(drift = matrix(rnorm(nParticipants*2,0,1),ncol=2))
+            # }
             for(i in 1:n.chains){
-              jagsInits[[i]] <- list(drift = matrix(rnorm(nParticipants*2,0,1),ncol=2))
+              jagsInits[[i]] <- list(drift = matrix(rep(rnorm(nParticipants,0,1),2),ncol=2, byrow = FALSE))
             }
             # ~~~~~~~~~~~~~~~~ Storing objects
             # Count number of parameters (i.e. we always assume individual parameters)
@@ -78,7 +86,9 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
                 # Sample "true parameters" for the simulation using the priors
                 parameter_set <- sample_parameters(priors = priors, nPart = nParticipants, modelType = "ttest", 
-                                                   X = X, fixedBeta = beta.effect, fromPrior = fromPrior, Show=FALSE)
+                                                   X = X, criterion = NA, fromPrior = fromPrior, Show=FALSE, 
+                                                   fixedBeta = beta.effect)
+                
                 # Generate and prepare data
                 rawData = sample_data(nParticipants, nTrials = NA, parameter_set, nTrialsPerCondition)
                 summData = getStatistics(rawData)
