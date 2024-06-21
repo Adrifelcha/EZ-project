@@ -189,8 +189,8 @@ x_values <- unique(df$Xs)
 fit_x <- c(x_values[1:16],NA,x_values[17:32])
 full_x <- c(fit_x,NA,fit_x+6.8)
 # Define background colors for the "Accuracy" and "Speed" conditions
-acc.bckg <- "#FCF2FF"
-spd.bckg <- "#F5FAF9"
+acc.bckg <- "#F4E4FC"
+spd.bckg <- "#E4EFE1"
 ### Concatenate values by instruction and add a "jump" between pixel condition
 makeLines <- function(posterior_object){
   x <- posterior_object
@@ -250,8 +250,8 @@ png(file = "../../figures/percEx_driftPreds.png", width = 7, height = 5, units="
 plot(full_x,fit_line, type="l", lwd=4, col=predicted.color, ann=F, axes=F,
      ylab="Drift rate", ylim=c(0,6),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
 # Gray background
-polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
-polygon(c(3.5,10.3,10.3,3.5),c(0,0,6,6),col = spd.bckg, border = "gray98", lwd = 3, lty = "solid")
+polygon(c(-3.5,3.4,3.4,-3.5),c(0,0,6,6),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
+polygon(c(3.4,10.3,10.3,3.4),c(0,0,6,6),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
 polygon(c(-0.04,0.04,0.04,-0.04),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
 polygon(c(6.76,6.84,6.84,6.76),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
 lines(full_x,fit_line,lwd=4,col=predicted.color)
@@ -291,8 +291,8 @@ pred.color <- "#BE07C1"
 png(file = "../../figures/percEx_accPostPred.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
     plot(full_x,est.accRate.Full, col="white", ann=F, axes=F, 
          ylim=c(0.45,1.05),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
-    polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
-    polygon(c(3.5,10.3,10.3,3.5),c(0,0,6,6),col = spd.bckg, border = "gray98", lwd = 3, lty = "solid")
+    polygon(c(-3.5,3.4,3.4,-3.5),c(0,0,6,6),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
+    polygon(c(3.4,10.3,10.3,3.4),c(0,0,6,6),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
     polygon(c(-0.04,0.04,0.04,-0.04),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
     polygon(c(6.76,6.84,6.84,6.76),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
     polygon(c(full_x[1:16],full_x[16:1]),err.accRate.acc[1:32],col = error.color, border = NA, lwd = 3, lty = "solid")
@@ -335,8 +335,8 @@ point.size <- 0.9
 png(file = "../../figures/percEx_meanRTpostPred.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
     plot(full_x,est.rtMean.Full, col="white", ann=F, axes=F, ylim=c(0.2,1), 
          xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
-    polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
-    polygon(c(3.5,10.3,10.3,3.5),c(0,0,6,6),col = spd.bckg, border = "gray98", lwd = 3, lty = "solid")
+    polygon(c(-3.5,3.4,3.4,-3.5),c(0,0,6,6),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
+    polygon(c(3.4,10.3,10.3,3.4),c(0,0,6,6),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
     polygon(c(-0.04,0.04,0.04,-0.04),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
     polygon(c(6.76,6.84,6.84,6.76),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
     polygon(c(full_x[1:16],full_x[16:1]),err.rtMean.acc[1:32],col = error.color,
@@ -367,8 +367,8 @@ est.rtMean.log <- log(est.rtMean.Full)
 logmeanRT <- log(meanRT)
 plot(full_x,est.rtMean.log, col="white", ann=F, axes=F, ylim=c(-1.25,0), 
      xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
-polygon(c(-3.5,3.5,3.5,-3.5),c(-1.25,-1.25,0,0),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
-polygon(c(3.5,10.3,10.3,3.5),c(-1.25,-1.25,0,0),col = spd.bckg, border = "gray98", lwd = 3, lty = "solid")
+polygon(c(-3.5,3.4,3.4,-3.5),c(0,0,6,6),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
+polygon(c(3.4,10.3,10.3,3.4),c(0,0,6,6),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
 polygon(c(-0.04,0.04,0.04,-0.04),c(-1.25,-1.25,0,0),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
 polygon(c(6.76,6.84,6.84,6.76),c(-1.25,-1.25,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
 polygon(c(full_x[1:16],full_x[16:1]),log(err.rtMean.acc[1:32]),col = error.color,
@@ -415,8 +415,8 @@ pred.color <- "#095B79"
 png(file = "../../figures/percEx_varRTpostPred.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
     plot(full_x,est.rtVar.Full, col="white", ann=F, axes=F, ylim=c(0,0.4),
          xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
-    polygon(c(-3.5,3.5,3.5,-3.5),c(0,0,6,6),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
-    polygon(c(3.5,10.3,10.3,3.5),c(0,0,6,6),col = spd.bckg, border = "gray98", lwd = 3, lty = "solid")
+    polygon(c(-3.5,3.4,3.4,-3.5),c(0,0,6,6),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
+    polygon(c(3.4,10.3,10.3,3.4),c(0,0,6,6),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
     polygon(c(-0.04,0.04,0.04,-0.04),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
     polygon(c(6.76,6.84,6.84,6.76),c(0,0,6,6),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
     polygon(c(full_x[1:16],full_x[16:1]),err.rtVar.acc[1:32],col = error.color,
@@ -445,8 +445,8 @@ dev.off()
 png(file = "../../figures/percEx_varRTpostPred_log.png", width = 7, height = 5, units="in",res=1200) # Width and height of the plot in inches
 plot(full_x,log(est.rtVar.Full), col="white", ann=F, axes=F, ylim=c(-7.1,-0.8),
      xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
-polygon(c(-3.5,3.5,3.5,-3.5),c(-7.1,-7.1,-0.8,-0.8),col = acc.bckg, border = "gray98", lwd = 3, lty = "solid")
-polygon(c(3.5,10.3,10.3,3.5),c(-7.1,-7.1,-0.8,-0.8),col = spd.bckg, border = "gray98", lwd = 3, lty = "solid")
+polygon(c(-3.5,3.4,3.4,-3.5),c(-7.1,-7.1,-0.8,-0.8),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
+polygon(c(3.4,10.3,10.3,3.4),c(-7.1,-7.1,-0.8,-0.8),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
 polygon(c(-0.04,0.04,0.04,-0.04),c(-7.1,-7.1,-0.8,-0.8),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
 polygon(c(6.76,6.84,6.84,6.76),c(-7.1,-7.1,-0.8,-0.8),col = "gray85", border = "gray85", lwd = 3, lty = "solid")
 polygon(c(full_x[1:16],full_x[16:1]),log(err.rtVar.acc[1:32]),col = error.color,
