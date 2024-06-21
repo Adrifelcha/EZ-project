@@ -26,7 +26,7 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion=NA, fromPri
         if(!is.na(fixedBeta)){
           betaweight <- fixedBeta
           parameter_set$drift_sdev <- 0.25
-          parameter_set$drift <- rnorm(nParticipants*2,drift_mean+betaweight*X, 0.25)
+          parameter_set$drift <- rnorm(nPart*2,drift_mean+betaweight*X, 0.25)
         }else{
             # Sample and add coefficient to the parameter_set
             betaweight <- runif(1, priors$betaweight_lower, priors$betaweight_upper)
