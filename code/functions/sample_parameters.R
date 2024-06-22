@@ -29,7 +29,7 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion=NA, fromPri
           parameter_set$drift <- rnorm(nPart*2,drift_mean+betaweight*X, 0.25)
         }else{
             # Sample and add coefficient to the parameter_set
-            betaweight <- runif(1, priors$betaweight_lower, priors$betaweight_upper)
+            betaweight <- runif(1, -1, 1)
             # Identify criterion (i.e., parameter of interest)
             if(is.na(criterion)){  criterion <- "drift"  }
             if(criterion=="bound"){  parameter_set$bound <- rnorm(nPart,bound_mean+(betaweight*X), bound_sdev)  }
