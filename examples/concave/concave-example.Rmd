@@ -285,31 +285,31 @@ box(col="black")
 ```
 
 
-## Effect of a Qualitative change
+## Effect of a Quantitative change
 
 ```{r, fig.align='center'}
-line.mu  <- "#DC9F12"
-curve.mu <- "#F2D79A"
-hist(gamma[,1], freq = FALSE, breaks = 50, col=curve.mu, border = curve.mu, ann=F, axes = T)
-lines(density(gamma[,1]), lwd=4, col=line.mu)
-legend("topleft",c("Histogram","KDE"),col=c(curve.mu,line.mu),lwd=4, cex=1.1, bty = "n")
-mtext("Baseline drift rate: Qualitative change in convexity", cex=1.2, f=2, side=3, line=0.8)
+line.gamma1  <- "#82AABB"
+curve.gamma1 <- "#B5CAD3"
+hist(gamma[,1], freq = FALSE, breaks = 50, col=curve.gamma1, border = curve.gamma1, ann=F, axes = T)
+lines(density(gamma[,1]), lwd=4, col=line.gamma1)
+legend("topleft",c("Histogram","KDE"),col=c(curve.gamma1,line.gamma1),lwd=4, cex=1.1, bty = "n")
+mtext("Main effect of a Quantitative change", cex=1.2, f=2, side=3, line=0.8)
 mtext("Density",side=2,line=2.15)
-mtext("drift_mu - Baseline drift rate",side=1,line=2)
+mtext("Gamma 1",side=1,line=2)
 box(col="black")
 ```
 
-## Effect of a change on Concavity
+## Effect of a change in Concavity
 
 ```{r, fig.align='center'}
-line.mu  <- "#DC9F12"
-curve.mu <- "#F2D79A"
-hist(gamma[,2], freq = FALSE, breaks = 50, col=curve.mu, border = curve.mu, ann=F, axes = T)
-lines(density(gamma[,2]), lwd=4, col=line.mu)
-legend("topleft",c("Histogram","KDE"),col=c(curve.mu,line.mu),lwd=4, cex=1.1, bty = "n")
-mtext("Baseline drift rate: Qualitative change in convexity", cex=1.2, f=2, side=3, line=0.8)
+line.gamma2  <- "#6E8CBF"
+curve.gamma2 <- "#B5C0D3"
+hist(gamma[,2], freq = FALSE, breaks = 50, col=curve.gamma2, border = curve.gamma2, ann=F, axes = T)
+lines(density(gamma[,2]), lwd=4, col=line.gamma2)
+legend("topleft",c("Histogram","KDE"),col=c(curve.gamma2,line.gamma2),lwd=4, cex=1.1, bty = "n")
+mtext("Main effect of a change in Concavity", cex=1.2, f=2, side=3, line=0.8)
 mtext("Density",side=2,line=2.15)
-mtext("drift_mu - Baseline drift rate",side=1,line=2)
+mtext("Gamma 2",side=1,line=2)
 box(col="black")
 ```
 
