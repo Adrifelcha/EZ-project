@@ -5,19 +5,20 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion=NA, fromPri
         bound_mean <- rnorm(1,priors$bound_mean_mean,priors$bound_mean_sdev)
         drift_mean <- rnorm(1,priors$drift_mean_mean,priors$drift_mean_sdev)
         nondt_mean <- rnorm(1,priors$nondt_mean_mean,priors$nondt_mean_sdev)
-        nondt_sdev <- runif(1,priors$nondt_sdev_lower,priors$nondt_sdev_upper)
-        bound_sdev <- runif(1,priors$bound_sdev_lower,priors$bound_sdev_upper)  
+        bound_sdev <- runif(1,priors$bound_sdev_lower*1.15,priors$bound_sdev_upper*0.85)  
   }else{
-        bound_mean <- runif(1,1,2)
-        drift_mean <- runif(1,-1.5,1.5)
-        nondt_mean <- runif(1,0.1,0.5)
-        nondt_sdev <- runif(1,0.05,0.25)
-        bound_sdev <- runif(1,0.1,0.35)  
+        # Hierarchical mean values are sampled from a uniform defined because...
+        bound_mean <- runif(1,1.1,1.9)   # ...95% density of the default prior falls here
+        drift_mean <- runif(1,-1,1)      # ...95% density of the default prior falls here
+        nondt_mean <- runif(1,0.18,0.41) # ...95% density of the default prior falls here
+        # Hierarchical standard deviations are sampled from arbitrary uniforms
+        bound_sdev <- runif(1,0.12,0.3)  
   }
-  drift_sdev <- runif(1,priors$drift_sdev_lower,priors$drift_sdev_upper)
-  bound <- rnorm(nPart,bound_mean, bound_sdev)
+  nondt_sdev <- runif(1,priors$nondt_sdev_lower*2,priors$nondt_sdev_upper*0.85)
+  drift_sdev <- runif(1,priors$drift_sdev_lower*1.1,priors$drift_sdev_upper*0.9)
+  bound <- abs(rnorm(nPart,bound_mean, bound_sdev)) # Extra-precaution / shouldn't be needed often
   drift <- rnorm(nPart,drift_mean, drift_sdev)
-  nondt <- abs(rnorm(nPart,nondt_mean, nondt_sdev))
+  nondt <- abs(rnorm(nPart,nondt_mean, nondt_sdev)) # Precaution
   parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean, "nondt_mean" = nondt_mean, 
                         "bound_sdev" = bound_sdev, "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
                         "bound" = bound,   "drift" = drift,   "nondt" = nondt)
