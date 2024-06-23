@@ -1,7 +1,12 @@
-HDDM_runFullSeed <- function(seed, settings){
+HDDM_runFullSeed <- function(seed, settings,forceRun){
   set.seed(seed)
   suppressMessages(library(R2jags))
   suppressMessages(library(rstan))
+  
+  fileName <- paste(settings$output.folder,"seed-",seed,".RData",sep="")
+  if(file.exists(fileName)&!forceRun){
+     stop("Seed already run")
+  }
   
   ########## Print a file to indicate the start of a new seed ###############
   write('Seed has been initiated', paste(settings$output.folder,"seed-",seed,"_start.txt",sep=""))
@@ -46,7 +51,7 @@ HDDM_runFullSeed <- function(seed, settings){
   ########## Print a file to indicate the end of a the seed ###############
   write('Seed has ended running', paste(settings$output.folder,"seed-",seed,"_end.txt",sep=""))
   output <- list("hierarchical" = out_H,"betaEffect" = out_Beta)
-  save(output, file=paste(settings$output.folder,"seed-",seed,".RData",sep=""))  
+  save(output, file=fileName)  
   return(output)
 }
   
