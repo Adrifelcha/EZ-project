@@ -8,7 +8,7 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
     suppressMessages(library(rstan))
     # Identify output File
     
-    if(is.na(label)){
+    if(!is.na(label)){
           outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
                               "_FixedEffect",label,".RData", sep="")
     }else{
