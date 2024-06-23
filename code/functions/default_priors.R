@@ -6,8 +6,8 @@ default_priors <- function(Show=TRUE, modelType=NA){
                       "drift_sdev_lower" = 0.20, "drift_sdev_upper" = 0.40,
                       "nondt_sdev_lower" = 0.025, "nondt_sdev_upper" = 0.25)
   if(modelType!="hierarchical"){
-            prior$betaweight_lower = -2.00
-            prior$betaweight_upper = 2.00
+            prior$betaweight_mean = 0
+            prior$betaweight_sdev = 1
   }
   if(Show){       show_priors(prior)           }
   return(prior)
