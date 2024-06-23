@@ -47,11 +47,13 @@ for(archive in dir("./code/scripts/")){      source(paste("./code/scripts/",arch
 
 ```{r}
 nParticipants <- 30
-nTrials <- 300
-nDatasets <- 50
+nTrials <- 200
+nDatasets <- 1000
 ```
 
-# Hierarchical model
+# Generating parameter values from priors
+
+### Hierarchical model
 
 ```{r, eval=FALSE}
 simH <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "hierarchical")
@@ -68,7 +70,7 @@ check_Rhat(simH$rhats)
 plot_recovery(simH)
 ```
 
-# Metaregression model
+### Metaregression model
 
 ```{r, eval=FALSE}
 simM <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "metaregression")
@@ -85,7 +87,7 @@ check_Rhat(simM$rhats)
 plot_recovery(simM)
 ```
 
-# T-test model
+### T-test model
 
 ```{r, eval=FALSE}
 simT <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "ttest")
@@ -102,51 +104,62 @@ check_Rhat(simT$rhats)
 plot_recovery(simT)
 ```
 
-```{r}
-show_priors(priors)
+
+
+
+
+# Generating parameter values from uniform distributions
+
+### Hierarchical model
+
+```{r, eval=FALSE}
+simH2 <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "hierarchical", fromPrior = FALSE)
 ```
-
-
-```{r}
-par(mfrow = c(3,2), mai=c(0,0,0,0))
-b <- seq(0.1,3,0.01)
-plot(b,dnorm(b,1.5,0.2))
-plot(b,dnorm(b,1,0.1))
-plot(b,dnorm(b,1,0.3))
-plot(b,dnorm(b,2,0.1))
-plot(b,dnorm(b,2,0.3))
-
-par(mfrow = c(3,2), mai=c(0,0,0,0))
-d <- seq(-3,3,0.01)
-plot(d,dnorm(d,0,0.5))
-plot(d,dnorm(d,-1.5,0.2))
-plot(d,dnorm(d,-1.5,0.4))
-plot(d,dnorm(d,1.5,0.2))
-plot(d,dnorm(d,1.5,0.4))
-
-par(mfrow = c(3,2), mai=c(0,0,0,0))
-n <- seq(0.05,2,0.01)
-plot(n, dnorm(n,0.3,0.06))
-plot(n, dnorm(n,0.1,0.05))
-plot(n, dnorm(n,0.5,0.05))
-plot(n, dnorm(n,0.1,0.25))
-plot(n, dnorm(n,0.5,0.25))
-abline(v=0.1)
-
-plot(seq(0.05,2,0.01), 
-     dnorm(seq(0.05,2,0.01),0.1,0.1))
-```
-
 
 ```{r, echo=FALSE}
-for(archive in dir("./code/functions/")){   source(paste("./code/functions/",archive,sep=""))     }
-setwd("./simulations/simple_examples/")
-start <- Sys.time()
-simM <- HDDM_runSims(nParticipants = 30, nTrials = 300, 
-                     nDatasets = 100, modelType = "ttest", fromPrior = FALSE, forceSim = TRUE)
-end <- Sys.time()
-check_Rhat(simM$rhats)
-
-end-start
-plot_recovery(simM)
+suppressWarnings(setwd("./simulations/simple_examples/"))
+simH2 <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, fromPrior = FALSE, 
+                     nDatasets = nDatasets, modelType = "hierarchical")
+check_Rhat(simH2$rhats)
 ```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(simH2)
+```
+
+### Metaregression model
+
+```{r, eval=FALSE}
+simM2 <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "metaregression",  fromPrior = FALSE)
+```
+
+```{r, echo=FALSE}
+setwd("./simulations/simple_examples/")
+simM2 <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, fromPrior = FALSE,
+                     nDatasets = nDatasets, modelType = "metaregression")
+check_Rhat(simM$rhats)
+```
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+plot_recovery(simM2)
+```
+
+### T-test model
+
+```{r, eval=FALSE}
+simT2 <- HDDM_runSims(nParticipants, nTrials, nDatasets, modelType = "ttest", fromPrior = FALSE)
+```
+
+```{r, echo=FALSE}
+setwd("./simulations/simple_examples/")
+simT2 <- HDDM_runSims(nParticipants = nParticipants, nTrials = nTrials, fromPrior = FALSE,
+                     nDatasets = nDatasets, modelType = "ttest")
+check_Rhat(simT2$rhats)
+```
+
+```{r, results='hide',message=FALSE, eval=FALSE}
+plot_recovery(simT)
+```
+
+
+
