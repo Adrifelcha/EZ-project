@@ -61,12 +61,10 @@ source("./writefixEffJAGSmodel.R")
 
 
 ```{r}
-x <- HDDM_simFixedEffect(nParticipants = 50, nTrialsPerCondition = 200, nDatasets = 50, beta.effect = 0.5, 
+betaDiff <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.5, 
                          priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = TRUE)
 
-plot(density(x$estimates[,"betaweight"]))
-
-y <- HDDM_simFixedEffect(nParticipants = 50, nTrialsPerCondition = 200, nDatasets = 50, beta.effect = 0, 
+y <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0, 
                          priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = TRUE, label= "Null")
 ```
 
