@@ -65,7 +65,7 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
             #   jagsInits[[i]] <- list(drift = matrix(rnorm(nParticipants*2,0,1),ncol=2))
             # }
             for(i in 1:n.chains){
-              jagsInits[[i]] <- list(drift = matrix(rep(rnorm(nParticipants,0,1),2),ncol=2, byrow = FALSE))
+              jagsInits[[i]] <- list(drift = matrix(rep(rnorm(nParticipants,0,0.25),2),ncol=2, byrow = FALSE))
             }
             # ~~~~~~~~~~~~~~~~ Storing objects
             # Count number of parameters (i.e. we always assume individual parameters)
