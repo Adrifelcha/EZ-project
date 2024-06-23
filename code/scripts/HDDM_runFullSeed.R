@@ -25,9 +25,10 @@ HDDM_runFullSeed <- function(seed, settings,forceRun){
               if(d!="hierarchical"){
                 for(c in settings$criterion_levels){
                   design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE)
-                  runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], settings$jagsData[[d]], 
+                  t <- try(runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], settings$jagsData[[d]], 
                                           settings$jagsParameters[[d]], settings$jagsInits[[as.character(p)]],
-                                          settings$n.chains, settings$modelFile[d,c], Show = FALSE)
+                                          settings$n.chains, settings$modelFile[d,c], Show = FALSE))
+                  if (inherits(t, "try-error")){ next }
                   out_Beta <- rbind(out_Beta,list(seed = seed, p = p, t = t, d = d, c = c, rhats = runJags$rhats,
                                                   true.values    = design$parameter_set, mean.estimates = runJags$estimates,
                                                   std.estimates  = runJags$estimates, elapsed.time   = runJags$clock))
@@ -36,9 +37,10 @@ HDDM_runFullSeed <- function(seed, settings,forceRun){
                 }
               }else{
                 design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], criterion = NA, settings$fromPrior, Show = FALSE)
-                runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], settings$jagsData[[d]], 
+                t <- try(runJags <- HDDM_runJAGS(summaryData = design$sumData, t, X[,d], settings$jagsData[[d]], 
                                         settings$jagsParameters[[d]], settings$jagsInits[[as.character(p)]],  
-                                        settings$n.chains, settings$modelFile[d,1], Show = FALSE)
+                                        settings$n.chains, settings$modelFile[d,1], Show = FALSE))
+                if (inherits(t, "try-error")){ next }
                 out_H <- rbind(out_H,list(seed = seed, p = p, t = t, d = d, rhats = runJags$rhats,
                                           true.values    = design$parameter_set, mean.estimates = runJags$estimates,
                                           std.estimates  = runJags$estimates, elapsed.time   = runJags$clock))
