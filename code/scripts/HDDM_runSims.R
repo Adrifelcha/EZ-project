@@ -14,7 +14,8 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             }
     }
     # Identify output File
-    outputFile <- nameOutput(nTrials, nParticipants, nDatasets, modelType)
+    outputFile <- nameOutput(nTrials, nParticipants, nDatasets, modelType, fromPrior)
+    
     
     # Check if we needToRun simulations again (overruled by 'forceSim')
     if(!forceSim){
