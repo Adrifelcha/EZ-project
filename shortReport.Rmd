@@ -42,7 +42,9 @@ PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu
 
 ```{r}
 for(archive in dir("./code/functions/")){    source(paste("./code/functions/",archive,sep=""))     }
-for(archive in dir("./code/scripts/")){      source(paste("./code/scripts/",archive,sep=""))       }
+source("./code/scripts/HDDM_setup.R")
+source("./code/scripts/HDDM_runJAGS.R")
+source("./code/scripts/HDDM_runSims.R")
 ```
 
 ```{r}
