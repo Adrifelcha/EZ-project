@@ -47,24 +47,35 @@ store_parallelOutput <- function(output, settings){
        # No. parameters depend on No. of participants
        nParamsH <- 6+(3*p)
        nParamsB <- nParamsH+1
-       # Create empty arrays - General
+       # Create empty arrays to store True values
+       Hnames_true      <- sub('.*true.values.','',names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"true.values"])))
+       Hnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"mean.estimates"]))))
+       Hnames_rhats     <- sub(".*\\.", "", names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"rhats"])))
+       Bnames_true      <- sub('.*true.values.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"true.values"])))
+       Bnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"mean.estimates"]))))
+       Bnames_rhats     <- sub(".*\\.", "", names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"rhats"])))
+       emptyObj_Htrue <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
+                           dimnames = list(paste("seed", 1:nDatasets), Hnames_true, paste("T",allT,sep="")))
+       emptyObj_Btrue <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
+                           dimnames = list(paste("seed", 1:nDatasets), Bnames_true, paste("T",allT,sep="")))
+       # Create empty arrays for estimates and errors
        emptyObj_H <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
-                           dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+                           dimnames = list(paste("seed", 1:nDatasets), Hnames_estimates, paste("T",allT,sep="")))
        emptyObj_B <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
-                           dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
-       # Create empty arrays - Rhats include deviance
+                           dimnames = list(paste("seed", 1:nDatasets), Bnames_estimates, paste("T",allT,sep="")))
+       # Create empty arrays for Rhats
        emptyObj_R_H <- array(NA, dim=c(nDatasets,nParamsH+1,length(allT)), 
-                             dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+                             dimnames = list(paste("seed", 1:nDatasets), Hnames_rhats, paste("T",allT,sep="")))
        emptyObj_R_B <- array(NA, dim=c(nDatasets,nParamsB+1,length(allT)), 
-                             dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+                             dimnames = list(paste("seed", 1:nDatasets), Bnames_rhats, paste("T",allT,sep="")))
        # Add these arrays (specific number of columns) to each list
-       trueVals_Hier <- c(trueVals_Hier, list(emptyObj_H))
-       trueVals_Meta_nondt <- c(trueVals_Meta_nondt, list(emptyObj_B))
-       trueVals_Ttst_nondt <- c(trueVals_Ttst_nondt, list(emptyObj_B))
-       trueVals_Meta_drift <- c(trueVals_Meta_drift, list(emptyObj_B))
-       trueVals_Ttst_drift <- c(trueVals_Ttst_drift, list(emptyObj_B))
-       trueVals_Meta_bound <- c(trueVals_Meta_bound, list(emptyObj_B))
-       trueVals_Ttst_bound <- c(trueVals_Ttst_bound, list(emptyObj_B))
+       trueVals_Hier <- c(trueVals_Hier, list(emptyObj_Htrue))
+       trueVals_Meta_nondt <- c(trueVals_Meta_nondt, list(emptyObj_Btrue))
+       trueVals_Ttst_nondt <- c(trueVals_Ttst_nondt, list(emptyObj_Btrue))
+       trueVals_Meta_drift <- c(trueVals_Meta_drift, list(emptyObj_Btrue))
+       trueVals_Ttst_drift <- c(trueVals_Ttst_drift, list(emptyObj_Btrue))
+       trueVals_Meta_bound <- c(trueVals_Meta_bound, list(emptyObj_Btrue))
+       trueVals_Ttst_bound <- c(trueVals_Ttst_bound, list(emptyObj_Btrue))
        meanPosts_Hier <- c(meanPosts_Hier, list(emptyObj_H))
        meanPosts_Meta_nondt <- c(meanPosts_Meta_nondt, list(emptyObj_B))
        meanPosts_Ttst_nondt <- c(meanPosts_Ttst_nondt, list(emptyObj_B))
@@ -160,7 +171,7 @@ store_parallelOutput <- function(output, settings){
    }
 
    ################################################################################
-   # Name the final lists, so that each page can be recognized
+   # Name each array by the number-of-participants included
    ################################################################################
    names(trueVals_Hier) <- paste("P",allP,sep="")
    names(trueVals_Meta_nondt) <- paste("P",allP,sep="");    names(trueVals_Ttst_nondt) <- paste("P",allP,sep="")
