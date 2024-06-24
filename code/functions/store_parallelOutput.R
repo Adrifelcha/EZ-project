@@ -1,20 +1,164 @@
-# store_parallelOutput <- function(output, settings){
-#   ########## Load relevant Settings #########################################
-#   ### R packages
-#   iterations            <- settings$iterations
-#   possible.combinations <- settings$possible.combinations
-#   output.folder         <- settings$output.folder
-#   studyName             <- settings$simstudy.Name
-#   n.iter    <-  settings$n.iter
-#   n.burnin  <-  settings$n.burnin
-#   
-#   nParams <- (length(jagsParameters)-3) + (nParticipants*3)
-#   MatEstimates <- matrix(NA, nrow=nDatasets, ncol=nParams)
-#   MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
-#   ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
-#   MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
-#   
-#   MatRhats[k,] <- runJags$rhats
+store_parallelOutput <- function(output, settings){
+   outH <- output[,"hierarchical"]
+   outB <- output[,"betaEffect"]
+   ### R packages
+   nDatasets            <- length(outH)
+   nCells               <- settings$nCells
+   output.folder        <- settings$output.folder
+   allP   <- settings$participant_levels
+   allT   <- settings$trial_levels
+   allD   <- settings$design_levels
+   allC   <- settings$criterion_levels
+   
+   #############################################################################
+   # Empty lists to story P-specific arrays with T-specific pages an nDataset rows
+   #############################################################################
+   # Store true values
+   trueVals_Hier <- list()
+   trueVals_Meta_nondt <- list();    trueVals_Ttst_nondt <- list()
+   trueVals_Meta_drift <- list();    trueVals_Ttst_drift <- list()
+   trueVals_Meta_bound <- list();    trueVals_Ttst_bound <- list()
+   # Store estimated values (mean posteriors)
+   meanPosts_Hier <- list()
+   meanPosts_Meta_nondt <- list();    meanPosts_Ttst_nondt <- list()
+   meanPosts_Meta_drift <- list();    meanPosts_Ttst_drift <- list()
+   meanPosts_Meta_bound <- list();    meanPosts_Ttst_bound <- list()
+   # Store posterior variance
+   sdevPosts_Hier <- list()
+   sdevPosts_Meta_nondt <- list();   sdevPosts_Ttst_nondt <- list()
+   sdevPosts_Meta_drift <- list();   sdevPosts_Ttst_drift <- list()
+   sdevPosts_Meta_bound <- list();   sdevPosts_Ttst_bound <- list()
+   # Store rhats
+   rhats_Hier <- list()
+   rhats_Meta_nondt <- list();   rhats_Ttst_nondt <- list()
+   rhats_Meta_drift <- list();   rhats_Ttst_drift <- list()
+   rhats_Meta_bound <- list();   rhats_Ttst_bound <- list()
+   # Store running times (in seconds)
+   clock_Hier <- array(NA, dim=c(nDatasets,length(allT),length(allP)), 
+                       dimnames = list(paste("seed", 1:nDatasets), paste("T", allT, sep=""), paste("P", allP,sep="")))
+   clock_Ttst <- list("bound" = clock_Hier, "drift" = clock_Hier, "nondt" = clock_Hier)
+   clock_Meta <- list("bound" = clock_Hier, "drift" = clock_Hier, "nondt" = clock_Hier)
+   
+   i <- 1
+   for(p in allP){
+       # No. parameters depend on No. of participants
+       nParamsH <- 6+(3*p)
+       nParamsB <- nParamsH+1
+       # Create empty arrays - General
+       emptyObj_H <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
+                           dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+       emptyObj_B <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
+                           dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+       # Create empty arrays - Rhats include deviance
+       emptyObj_R_H <- array(NA, dim=c(nDatasets,nParamsH+1,length(allT)), 
+                             dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+       emptyObj_R_B <- array(NA, dim=c(nDatasets,nParamsB+1,length(allT)), 
+                             dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
+       
+       trueVals_Hier <- c(trueVals_Hier, list(emptyObj_H))
+       trueVals_Meta_nondt <- c(trueVals_Meta_nondt, list(emptyObj_B))
+       trueVals_Ttst_nondt <- c(trueVals_Ttst_nondt, list(emptyObj_B))
+       trueVals_Meta_drift <- c(trueVals_Meta_drift, list(emptyObj_B))
+       trueVals_Ttst_drift <- c(trueVals_Ttst_drift, list(emptyObj_B))
+       trueVals_Meta_bound <- c(trueVals_Meta_bound, list(emptyObj_B))
+       trueVals_Ttst_bound <- c(trueVals_Ttst_bound, list(emptyObj_B))
+       meanPosts_Hier <- c(meanPosts_Hier, list(emptyObj_H))
+       meanPosts_Meta_nondt <- c(meanPosts_Meta_nondt, list(emptyObj_B))
+       meanPosts_Ttst_nondt <- c(meanPosts_Ttst_nondt, list(emptyObj_B))
+       meanPosts_Meta_drift <- c(meanPosts_Meta_drift, list(emptyObj_B))
+       meanPosts_Ttst_drift <- c(meanPosts_Ttst_drift, list(emptyObj_B))
+       meanPosts_Meta_bound <- c(meanPosts_Meta_bound, list(emptyObj_B))
+       meanPosts_Ttst_bound <- c(meanPosts_Ttst_bound, list(emptyObj_B))
+       sdevPosts_Hier <- c(sdevPosts_Hier, list(emptyObj_H))
+       sdevPosts_Meta_nondt <- c(sdevPosts_Meta_nondt, list(emptyObj_B))
+       sdevPosts_Ttst_nondt <- c(sdevPosts_Ttst_nondt, list(emptyObj_B))
+       sdevPosts_Meta_drift <- c(sdevPosts_Meta_drift, list(emptyObj_B))
+       sdevPosts_Ttst_drift <- c(sdevPosts_Ttst_drift, list(emptyObj_B))
+       sdevPosts_Meta_bound <- c(sdevPosts_Meta_bound, list(emptyObj_B))
+       sdevPosts_Ttst_bound <- c(sdevPosts_Ttst_bound, list(emptyObj_B))
+       rhats_Hier <- c(rhats_Hier, list(emptyObj_R_H))
+       rhats_Meta_nondt <- c(rhats_Meta_nondt, list(emptyObj_R_B))
+       rhats_Ttst_nondt <- c(rhats_Ttst_nondt, list(emptyObj_R_B))
+       rhats_Meta_drift <- c(rhats_Meta_drift, list(emptyObj_R_B))
+       rhats_Ttst_drift <- c(rhats_Ttst_drift, list(emptyObj_R_B))
+       rhats_Meta_bound <- c(rhats_Meta_bound, list(emptyObj_R_B))
+       rhats_Ttst_bound <- c(rhats_Ttst_bound, list(emptyObj_R_B))
+       
+       for(k in 1:nDatasets){
+           j <- 1
+           for(t in allT){
+               # Hierarchical design
+               thisH <- which(outH[[k]][,"p"]==p&outH[[k]][,"t"]==t)
+               if(length(thisH)>0){
+                     trueVals_Hier[[i]][k,,j] <- unlist(outH[[k]][thisH,"true.values"])
+                     meanPosts_Hier[[i]][k,,j] <- unlist(outH[[k]][thisH,"mean.estimates"])
+                     sdevPosts_Hier[[i]][k,,j] <- unlist(outH[[k]][thisH,"std.estimates"])
+                     rhats_Hier[[i]][k,,j] <- unlist(outH[[k]][thisH,"rhats"])
+                     clock_Hier[k,j,i] <- as.numeric(outH[[k]][thisH,"elapsed.time"])
+               }
+               # Meta-regression - Criterion: nondt
+               thisMn <- which(outB[[k]][,"p"]==p&outB[[k]][,"t"]==t&outB[[k]][,"c"]=="nondt"&outB[[k]][,"d"]=="metaregression")
+               if(length(thisMn)>0){
+                     trueVals_Meta_nondt[[i]][k,,j] <- unlist(outB[[k]][thisMn,"true.values"])
+                     meanPosts_Meta_nondt[[i]][k,,j] <- unlist(outB[[k]][thisMn,"mean.estimates"])
+                     sdevPosts_Meta_nondt[[i]][k,,j] <- unlist(outB[[k]][thisMn,"std.estimates"])
+                     rhats_Meta_nondt[[i]][k,,j] <- unlist(outB[[k]][thisMn,"rhats"])
+                     clock_Meta[["nondt"]][k,j,i] <- as.numeric(outB[[k]][thisMn,"elapsed.time"])
+               }
+               # Meta-regression - Criterion: drift
+               thisMd <- which(outB[[k]][,"p"]==p&outB[[k]][,"t"]==t&outB[[k]][,"c"]=="drift"&outB[[k]][,"d"]=="metaregression")
+               if(length(thisMd)>0){
+                     trueVals_Meta_drift[[i]][k,,j] <- unlist(outB[[k]][thisMd,"true.values"])
+                     meanPosts_Meta_drift[[i]][k,,j] <- unlist(outB[[k]][thisMd,"mean.estimates"])
+                     sdevPosts_Meta_drift[[i]][k,,j] <- unlist(outB[[k]][thisMd,"std.estimates"])
+                     rhats_Meta_drift[[i]][k,,j] <- unlist(outB[[k]][thisMd,"rhats"])
+                     clock_Meta[["drift"]][k,j,i] <- as.numeric(outB[[k]][thisMd,"elapsed.time"])
+               }
+               # Meta-regression - Criterion: bound
+               thisMb <- which(outB[[k]][,"p"]==p&outB[[k]][,"t"]==t&outB[[k]][,"c"]=="bound"&outB[[k]][,"d"]=="metaregression")
+               if(length(thisMb)>0){
+                     trueVals_Meta_bound[[i]][k,,j] <- unlist(outB[[k]][thisMb,"true.values"])
+                     meanPosts_Meta_bound[[i]][k,,j] <- unlist(outB[[k]][thisMb,"mean.estimates"])
+                     sdevPosts_Meta_bound[[i]][k,,j] <- unlist(outB[[k]][thisMb,"std.estimates"])
+                     rhats_Meta_bound[[i]][k,,j] <- unlist(outB[[k]][thisMb,"rhats"])
+                     clock_Meta[["bound"]][k,j,i] <- as.numeric(outB[[k]][thisMb,"elapsed.time"])
+               }
+               # ttest - Criterion: nondt
+               thisTn <- which(outB[[k]][,"p"]==p&outB[[k]][,"t"]==t&outB[[k]][,"c"]=="nondt"&outB[[k]][,"d"]=="ttest")
+               if(length(thisTn)>0){
+                     trueVals_Ttst_nondt[[i]][k,,j] <- unlist(outB[[k]][thisTn,"true.values"])
+                     meanPosts_Ttst_nondt[[i]][k,,j] <- unlist(outB[[k]][thisTn,"mean.estimates"])
+                     sdevPosts_Ttst_nondt[[i]][k,,j] <- unlist(outB[[k]][thisTn,"std.estimates"])
+                     rhats_Ttst_nondt[[i]][k,,j] <- unlist(outB[[k]][thisTn,"rhats"])
+                     clock_Ttst[["nondt"]][k,j,i] <- as.numeric(outB[[k]][thisTn,"elapsed.time"])
+               }
+               # ttest - Criterion: drift
+               thisTd <- which(outB[[k]][,"p"]==p&outB[[k]][,"t"]==t&outB[[k]][,"c"]=="drift"&outB[[k]][,"d"]=="ttest")
+               if(length(thisTd)>0){
+                     trueVals_Ttst_drift[[i]][k,,j] <- unlist(outB[[k]][thisTd,"true.values"])
+                     meanPosts_Ttst_drift[[i]][k,,j] <- unlist(outB[[k]][thisTd,"mean.estimates"])
+                     sdevPosts_Ttst_drift[[i]][k,,j] <- unlist(outB[[k]][thisTd,"std.estimates"])
+                     rhats_Ttst_drift[[i]][k,,j] <- unlist(outB[[k]][thisTd,"rhats"])
+                     clock_Ttst[["drift"]][k,j,i] <- as.numeric(outB[[k]][thisTd,"elapsed.time"])
+               }
+               # ttest - Criterion: bound
+               thisTb <- which(outB[[k]][,"p"]==p&outB[[k]][,"t"]==t&outB[[k]][,"c"]=="bound"&outB[[k]][,"d"]=="ttest")
+               if(length(thisTb)>0){
+                     trueVals_Ttst_bound[[i]][k,,j] <- unlist(outB[[k]][thisTb,"true.values"])
+                     meanPosts_Ttst_bound[[i]][k,,j] <- unlist(outB[[k]][thisTb,"mean.estimates"])
+                     sdevPosts_Ttst_bound[[i]][k,,j] <- unlist(outB[[k]][thisTb,"std.estimates"])
+                     rhats_Ttst_bound[[i]][k,,j] <- unlist(outB[[k]][thisTb,"rhats"])
+                     clock_Ttst[["bound"]][k,j,i] <- as.numeric(outB[[k]][thisTb,"elapsed.time"])
+               }
+           j <- j+1 
+           }
+       }
+       i <- i + 1
+   }
+
+} 
+
+
 #   c <- 0; d <- 0
 #   for(j in 1:length(runJags$estimates)){
 #     m <- length(runJags$estimates[[j]])
