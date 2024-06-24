@@ -10,9 +10,9 @@ store_parallelOutput <- function(output, settings){
    allD   <- settings$design_levels
    allC   <- settings$criterion_levels
    
-   #############################################################################
+   ################################################################################
    # Empty lists to story P-specific arrays with T-specific pages an nDataset rows
-   #############################################################################
+   ################################################################################
    # Store true values
    trueVals_Hier <- list()
    trueVals_Meta_nondt <- list();    trueVals_Ttst_nondt <- list()
@@ -39,6 +39,9 @@ store_parallelOutput <- function(output, settings){
    clock_Ttst <- list("bound" = clock_Hier, "drift" = clock_Hier, "nondt" = clock_Hier)
    clock_Meta <- list("bound" = clock_Hier, "drift" = clock_Hier, "nondt" = clock_Hier)
    
+   ################################################################################
+   # Fill the empty storage objects
+   ################################################################################
    i <- 1
    for(p in allP){
        # No. parameters depend on No. of participants
@@ -54,7 +57,7 @@ store_parallelOutput <- function(output, settings){
                              dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
        emptyObj_R_B <- array(NA, dim=c(nDatasets,nParamsB+1,length(allT)), 
                              dimnames = list(paste("seed", 1:nDatasets), NA, paste("T",allT,sep="")))
-       
+       # Add these arrays (specific number of columns) to each list
        trueVals_Hier <- c(trueVals_Hier, list(emptyObj_H))
        trueVals_Meta_nondt <- c(trueVals_Meta_nondt, list(emptyObj_B))
        trueVals_Ttst_nondt <- c(trueVals_Ttst_nondt, list(emptyObj_B))
@@ -83,7 +86,7 @@ store_parallelOutput <- function(output, settings){
        rhats_Ttst_drift <- c(rhats_Ttst_drift, list(emptyObj_R_B))
        rhats_Meta_bound <- c(rhats_Meta_bound, list(emptyObj_R_B))
        rhats_Ttst_bound <- c(rhats_Ttst_bound, list(emptyObj_R_B))
-       
+       # Fill in each array!
        for(k in 1:nDatasets){
            j <- 1
            for(t in allT){
@@ -156,6 +159,34 @@ store_parallelOutput <- function(output, settings){
        i <- i + 1
    }
 
+   ################################################################################
+   # Name the final lists, so that each page can be recognized
+   ################################################################################
+   names(trueVals_Hier) <- paste("P",allP,sep="")
+   names(trueVals_Meta_nondt) <- paste("P",allP,sep="");    names(trueVals_Ttst_nondt) <- paste("P",allP,sep="")
+   names(trueVals_Meta_drift) <- paste("P",allP,sep="");    names(trueVals_Ttst_drift) <- paste("P",allP,sep="")
+   names(trueVals_Meta_bound) <- paste("P",allP,sep="");    names(trueVals_Ttst_bound) <- paste("P",allP,sep="")
+   # Store estimated values (mean posteriors)
+   names(meanPosts_Hier) <- paste("P",allP,sep="")
+   names(meanPosts_Meta_nondt) <- paste("P",allP,sep="");    names(meanPosts_Ttst_nondt) <- paste("P",allP,sep="")
+   names(meanPosts_Meta_drift) <- paste("P",allP,sep="");    names(meanPosts_Ttst_drift) <- paste("P",allP,sep="")
+   names(meanPosts_Meta_bound) <- paste("P",allP,sep="");    names(meanPosts_Ttst_bound) <- paste("P",allP,sep="")
+   # Store posterior variance
+   names(sdevPosts_Hier) <- paste("P",allP,sep="")
+   names(sdevPosts_Meta_nondt) <- paste("P",allP,sep="");   names(sdevPosts_Ttst_nondt) <- paste("P",allP,sep="")
+   names(sdevPosts_Meta_drift) <- paste("P",allP,sep="");   names(sdevPosts_Ttst_drift) <- paste("P",allP,sep="")
+   names(sdevPosts_Meta_bound) <- paste("P",allP,sep="");   names(sdevPosts_Ttst_bound) <- paste("P",allP,sep="")
+   # Store rhats
+   names(rhats_Hier) <- paste("P",allP,sep="")
+   names(rhats_Meta_nondt) <- paste("P",allP,sep="");   names(rhats_Ttst_nondt) <- paste("P",allP,sep="")
+   names(rhats_Meta_drift) <- paste("P",allP,sep="");   names(rhats_Ttst_drift) <- paste("P",allP,sep="")
+   names(rhats_Meta_bound) <- paste("P",allP,sep="");   names(rhats_Ttst_bound) <- paste("P",allP,sep="")
+   
+   
+   
+   
+   
+   
 } 
 
 
