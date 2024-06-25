@@ -10,7 +10,7 @@ writefixEffJAGSmodel <- function(priors, beta.effect, modelFile){
   priors.drift_m  <- paste("          drift_mean ~ dnorm(", priors$drift_mean_mean,",pow(",priors$drift_mean_sdev,",-2))T(-3.00,3.00)", sep="")
   priors.bound_sd <- paste("          bound_sdev ~ dunif(", priors$bound_sdev_lower,",",priors$bound_sdev_upper,")", sep="")
   priors.nondt_sd <- paste("          nondt_sdev ~ dunif(", priors$nondt_sdev_lower,",",priors$nondt_sdev_upper,")", sep="")
-  priors.beta     <- paste("          betaweight ~ dunif(", priors$betaweight_lower,",",priors$betaweight_upper,")", sep="")
+  priors.beta     <- paste("          betaweight ~ dnorm(", priors$betaweight_mean,",pow(",priors$betaweight_sdev,",-2))", sep="")
   priors.drift_sd <- paste("          drift_sdev ~ dunif(", priors$drift_sdev_lower,",",priors$drift_sdev_upper,")", sep="")
   priorss <- c(priors.bound_m, priors.bound_sd, priors.nondt_m, priors.nondt_sd, priors.drift_m, priors.drift_sd, priors.beta)
   
