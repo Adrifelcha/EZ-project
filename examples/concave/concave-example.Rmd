@@ -579,17 +579,16 @@ dev.off()
 ```
 
 ```{r}
-#png(file = "../../figures/shapeEx_postpred_AccRate.png", width = 7, height = 5, units="in",res=300) 
+png(file = "../../figures/shapeEx_postpred_Full.png", width = 8, height = 11, units="in",res=300) 
 layout(mat = matrix(1:15, ncol=3, byrow=FALSE))
-#layout(mat = matrix(c(1,1,1,2,2,2,3,3,3,0,4,4,5,5,0), nrow = 5, byrow = FALSE))
-#layout.show(n = 15)
-par(pty="m", mai=c(0.1,0,0,0), oma= c(3.2,7,2.5,0.5))
+layout.show(n = 15)
+par(pty="m", mai=c(0.1,0.5,0,0), oma= c(2.4,3.4,2.5,0.4), bg=NA)
 
 
 for(k in 1:5){
   plot(4.5, 10, col="white", ylim=c(0,1), xlim=c(0.5,9.5),ann=F,axes=F)
-  axis(1,seq(1,9,length.out=9),paste("i =",1:9), line=-0.65)
-  axis(2,seq(0,1,0.1), seq(0,1,0.1),las=1)
+  axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
+  axis(2,seq(0,1,0.1), seq(0,1,0.1),las=1, cex.axis=0.7)
   for(i in 1:9){
     this.Y <- pp_accRate[,seq(k,ncol(pp_accRate),5)[i]]
     CI <- quantile(this.Y, probs = c(0.025,0.975))
@@ -597,16 +596,24 @@ for(k in 1:5){
     points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
     points(i, ezdata$acc_rate[which(ezdata$cond==k)][i], pch=8)
   }
-  mtext(paste("Condition", k), 2, f=2, line=1.5, cex=0.9)
-  mtext("Accuracy rate", 2, line=2.5, cex=0.8) 
+  mtext(paste("Condition", k), 2, f=2, line=6, cex=1, col = myCol(r[,k],g[,k],b[,k],4,1))
+  mtext("Accuracy rate", 2, line=2.1, cex=0.6) 
   if(k==1){
-    mtext("Accuracy rate", f=2, line=.5, cex=0.7,)
-    mtext("Qualitative change in Convexity", 2, f=2, line=-2, cex=0.7, col="gray35")}
-  if(k==2){mtext("Quantitative change in Convexity", 2,  f=2, line=-1, cex=0.7, col="gray35")}
-  if(k==3){mtext("Qualitative change in Concavity", 2,  f=2, line=-1.5, cex=0.7, col="gray35")}
-  if(k==4){mtext("Quantitative change in Concavity", 2, f=2, line=0, cex=0.7, col="gray35")}
-  if(k==5){mtext("No change at all", 2, f=2, line=.5, cex=0.7, col="gray35")
-           mtext("Participant",1,line=1.7,cex=0.8)}
+    mtext("Accuracy rate", f=2, line=.5, cex=1)
+    mtext("Qualitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+    mtext("in Convexity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+  if(k==2){
+    mtext("Quantitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+    mtext("in Convexity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+  if(k==3){
+    mtext("Qualitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+    mtext("in Concavity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+  if(k==4){
+    mtext("Quantitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+    mtext("in Concavity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+  if(k==5){mtext("No change at all", 2, f=2, line=5, cex=0.75, col="gray50")
+    mtext("Participant",1,line=1.7,cex=0.8)
+    axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
 }
 
 
@@ -614,8 +621,8 @@ minY <- min(pp_meanRT)
 maxY <- max(pp_meanRT)
 for(k in 1:5){
   plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
-  axis(1,seq(1,9,length.out=9),paste("i =",1:9), line=-0.65)
-  axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1)
+  axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
+  axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1, cex.axis=0.7)
   for(i in 1:9){
     this.Y <- pp_meanRT[,seq(k,ncol(pp_meanRT),5)[i]]
     CI <- quantile(this.Y, probs = c(0.025,0.975))
@@ -623,11 +630,10 @@ for(k in 1:5){
     points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
     points(i, ezdata$meanRT[which(ezdata$cond==k)][i], pch=8)
   }
-  mtext("Mean RT (secs)", 2, line=2.5, cex=0.8) 
-  if(k==1){mtext("Mean RT (secs)", f=2, line=.5, cex=0.7)}
-  if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")
-    mtext("Participant",1,line=1.7,cex=0.8)}
-  
+  mtext("Mean RT (secs)", 2, line=2.1, cex=0.6) 
+  if(k==1){mtext("Mean RT (secs)", f=2, line=.5, cex=1)}
+  if(k==5){mtext("Participant",1,line=1.7,cex=0.8)
+           axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
 }
 
 
@@ -636,8 +642,8 @@ minY <- min(ppl_varRT)
 maxY <- max(ppl_varRT)
 for(k in 1:5){
   plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
-  axis(1,seq(1,9,length.out=9),paste("i =",1:9), line=-0.65)
-  axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1)
+  axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
+  axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1, cex.axis=0.7)
   for(i in 1:9){
     this.Y <- ppl_varRT[,seq(k,ncol(ppl_varRT),5)[i]]
     CI <- quantile(this.Y, probs = c(0.025,0.975))
@@ -645,13 +651,13 @@ for(k in 1:5){
     points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
     points(i, log(ezdata$varRT[which(ezdata$cond==k)][i]), pch=8)
   }
-  mtext("RT variance (log-scale)", 2, line=2.5, cex=0.8)
+  mtext("RT variance (log-scale)", 2, line=2.1, cex=0.6)
   if(k==1){
-    mtext("RT variance (logs)", f=2, line=.5, cex=0.7)}
-  if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")
-    mtext("Participant",1,line=1.7,cex=0.8)}
+    mtext("RT variance (logs)", f=2, line=.5, cex=1)}
+  if(k==5){mtext("Participant",1,line=1.7,cex=0.8)
+    axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
   
 }
-#dev.off()
+dev.off()
 ```
 
