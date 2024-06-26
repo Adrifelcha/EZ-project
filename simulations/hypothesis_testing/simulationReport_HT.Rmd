@@ -61,11 +61,25 @@ source("./writefixEffJAGSmodel.R")
 
 
 ```{r}
-betaDiff <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.5, 
-                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE)
-
 betaNoDiff <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0, 
                          priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label= "Null")
+
+betaDiff1 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.1, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff1")
+
+betaDiff2 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.2, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff2")
+
+betaDiff3 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.3, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff3")
+
+betaDiff4 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.4, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff4")
+
+betaDiff5 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.5, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff5")
+
+
 ```
 
 ```{r}
