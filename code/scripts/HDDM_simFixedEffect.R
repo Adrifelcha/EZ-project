@@ -75,6 +75,8 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
             MatTrueVal   <- matrix(NA, nrow=nDatasets, ncol=nParams)
             ArrayCredInt <- array(NA, dim=c(nDatasets,nParams,2))
             MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
+            betaChain <- array(NA, dim=c(400,4,nDatasets))
+            timeCount <- c()
             # ~~~~~~~~~~~~~~~~~~ Only Show output for a random iteration
             showChains <- rep(FALSE,nDatasets)
             if(Show){showChains[sample(nDatasets,1)] <- TRUE}
@@ -110,8 +112,9 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
                 toc <- clock::date_now(zone="UTC")
                 if(showChains[k]){  plot_Chain(samples) }
                 clock <- as.numeric(toc-tic, units="secs")  # Record time
+                timeCount <- c(timeCount, clock)
                 object <- samples$BUGSoutput$sims.array
-                
+                betaChain[,,k] <- object[,,"betaweight"]
                 c <- 0; d <- 0
                 for(i in jagsParameters){
                     posteriorParameters <- extractSamples(i, samples)
@@ -154,7 +157,7 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
             
             output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "variance" = MatErrors, 
                            "credIntervals" = ArrayCredInt, "trueValues" = MatTrueVal, "settings" = settings, 
-                           "n.chains" = n.chains)
+                           "n.chains" = n.chains, "beta_chain" = betaChain, "time_elapsed" = timeCount)
             save(output, file=outputFile)
             return(output)
     }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")  
