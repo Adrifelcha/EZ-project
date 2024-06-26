@@ -1,4 +1,4 @@
-store_parallelOutput <- function(output, settings){
+store_parallelOutput <- function(output, settings, saveTo = "./"){
    outH <- output[,"hierarchical"]
    outB <- output[,"betaEffect"]
    ### R packages
@@ -193,105 +193,46 @@ store_parallelOutput <- function(output, settings){
    names(rhats_Meta_drift) <- paste("P",allP,sep="");   names(rhats_Ttst_drift) <- paste("P",allP,sep="")
    names(rhats_Meta_bound) <- paste("P",allP,sep="");   names(rhats_Ttst_bound) <- paste("P",allP,sep="")
    
+   simStudy_Hierarchical <- list("true" = trueVals_Hier,
+                                 "recovered" = meanPosts_Hier,
+                                 "estimates_sdev" = sdevPosts_Hier,
+                                 "rhats" = rhats_Hier)
+   outputFile = paste(saveTo,"",sep="simStudy_Hierarchical.RData")
+   save(simStudy_Hierarchical, file=outputFile)
    
+   simStudy_Meta_nondt <- list("true" = trueVals_Meta_nondt, 
+                               "recovered" = meanPosts_Meta_nondt,
+                               "estimates_sdev" = sdevPosts_Meta_nondt,
+                               "rhats" = rhats_Meta_nondt)
+   save(simStudy_Meta_nondt, file=paste(saveTo,"",sep="simStudy_Meta_nondt.RData"))
    
+   simStudy_Ttst_nondt <- list("true" = trueVals_Ttst_nondt,
+                               "recovered" = meanPosts_Ttst_nondt,
+                               "estimates_sdev" = sdevPosts_Ttst_nondt,
+                               "rhats" = rhats_Ttst_nondt)
+   save(simStudy_Ttst_nondt, file=paste(saveTo,"",sep="simStudy_Ttst_nondt.RData"))
    
+   simStudy_Meta_drift <- list("true" = trueVals_Meta_drift,
+                               "recovered" = meanPosts_Meta_drift,
+                               "estimates_sdev" = sdevPosts_Meta_drift,
+                               "rhats" = rhats_Meta_drift)
+   save(simStudy_Meta_drift, file=paste(saveTo,"",sep="simStudy_Meta_drift.RData"))
    
+   simStudy_Ttest_drift <- list("true" = trueVals_Ttst_drift,
+                                "recovered" = meanPosts_Ttst_drift,
+                                "estimates_sdev" = sdevPosts_Ttst_drift,
+                                "rhats" = rhats_Ttst_drift)
+   save(simStudy_Ttest_drift, file=paste(saveTo,"",sep="simStudy_Ttest_drift.RData"))
    
+   simStudy_Meta_bound <- list("true" = trueVals_Meta_bound,
+                               "recovered" = meanPosts_Meta_bound,
+                               "estimates_sdev" = sdevPosts_Meta_bound,
+                               "rhats" = rhats_Meta_bound)
+   save(simStudy_Meta_bound, file=paste(saveTo,"",sep="simStudy_Meta_bound.RData"))
+   
+   simStudy_Ttest_bound <- list("true" = trueVals_Ttst_bound, 
+                                "recovered" = meanPosts_Ttst_bound,
+                                "estimates_sdev" = sdevPosts_Ttst_bound,
+                                "rhats" = rhats_Ttst_bound)
+   save(simStudy_Ttest_bound, file=paste(saveTo,"",sep="simStudy_Ttest_bound.RData"))
 } 
-
-
-#   c <- 0; d <- 0
-#   for(j in 1:length(runJags$estimates)){
-#     m <- length(runJags$estimates[[j]])
-#     w <- length(design$parameter_set[[j]])
-#     MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[j]]
-#     MatTrueVal[k,(d+1):(d+w)]   <- design$parameter_set[[j]]
-#     if(is.vector(runJags$credInterval[[j]])){
-#       ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1]
-#       ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2]
-#     }else{
-#       ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1,]
-#       ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2,]
-#     }
-#     c <- c+m; d <- d+w
-#   }
-# }
-# 
-# paramNames <- NA
-# paramNames2 <- NA
-# for(j in 1:length(runJags$estimates)){
-#   if(is.vector(runJags$credInterval[[j]])){
-#     paramNames <- c(paramNames, names(runJags$credInterval[j]))
-#   }else{
-#     paramNames <- c(paramNames, colnames(runJags$credInterval[[j]]))
-#   }
-#   if(length(design$parameter_set[[j]])==1){
-#     paramNames2 <- c(paramNames2, names(design$parameter_set[j]))
-#   }else{
-#     labels <- paste(names(design$parameter_set[j]), "[",1:length(design$parameter_set[[j]]),"]",sep="")
-#     paramNames2 <- c(paramNames2, labels)
-#   }
-# }
-# paramNames <- paramNames[-1]
-# paramNames2 <- paramNames2[-1]
-# colnames(MatEstimates) <- paramNames
-# colnames(ArrayCredInt) <- paramNames
-# colnames(MatTrueVal)   <- paramNames2
-# colnames(MatRhats) <- names(runJags$rhats)
-#   
-#   ########## Create empty arrays to save output #############################
-#   ### Size variables
-#   # Parameter labels
-#   par.labels <- c("mu1","mu2", "bound","ndt")
-#   # No. of parameters
-#   npar <- length(par.labels)
-#   # Extensive no. of columns (for True value matrix and Rhats)
-#   ncols <- npar+1
-#   # Number of samples kept per chain
-#   nrows <- n.iter-n.burnin
-#   ### Array 1: True parameter values used to generate data
-#   trueValues            <- array(NA, dim=c(possible.combinations,npar))
-#   colnames(trueValues)  <- par.labels
-#   ### Array 2: Mean posteriors
-#   retrievedValues           <- array(NA,dim=c(iterations,npar,possible.combinations))
-#   colnames(retrievedValues) <- par.labels
-#   ### Array 3: Standard deviation
-#   retrievedValues_sd            <- array(NA,dim=c(iterations,npar,possible.combinations))
-#   colnames(retrievedValues_sd)  <- par.labels
-#   ### Array 4: MAP
-#   mapValues           <- array(NA,dim=c(iterations,npar,possible.combinations))
-#   colnames(mapValues) <- par.labels
-#   ### Array 5: R hats
-#   rhats   <- array(NA,dim=c(iterations,ncols,possible.combinations))
-#   ### Array 6: Seconds elapsed per simulation
-#   timers  <- array(NA,dim=c(iterations,possible.combinations))
-#   ### Array 7: Record seeds
-#   seeds <- array(NA,dim=c(iterations,possible.combinations))
-#   
-#   out.size <- possible.combinations * iterations
-#   for(set in 1:possible.combinations){
-#     J <- seq(set,out.size,possible.combinations) 
-#     for(i in 1:iterations){
-#       j <- J[i]
-#       S <- output[j,]
-#       seeds[i,set] <- S$seed
-#       timers[i,set] <- S$elapsed.time
-#       rhats[i,,set] <- S$rhats
-#       trueValues[set,] <- S$true.values
-#       retrievedValues[i,,set] <- S$mean.estimates
-#       retrievedValues_sd[i,,set] <- S$std.estimates
-#       mapValues[i,,set] <-S$map.estimates
-#     }
-#   }
-#   
-#   save(timers, file = paste(output.folder,studyName,"_timers.RData",sep=""))
-#   save(seeds, file = paste(output.folder,studyName,"_seeds.RData",sep=""))
-#   colnames(rhats) <- names(S$rhats)
-#   save(rhats, file = paste(output.folder,studyName,"Rhats.RData",sep=""))
-#   save(trueValues, file = paste(output.folder,studyName,"trueValues.RData",sep=""))
-#   save(retrievedValues, file = paste(output.folder,studyName,"meanPosteriors.RData",sep=""))
-#   save(retrievedValues_sd, file = paste(output.folder,studyName,"std.RData",sep=""))
-#   save(mapValues, file = paste(output.folder,studyName,"MAPs.RData",sep=""))
-#   save(settings, file = paste(output.folder,studyName,"settings.RData",sep=""))
-# }
