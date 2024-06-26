@@ -17,9 +17,9 @@ show_priors <- function(prior){
       cat("Non-decision Time Mean Std: ", prior$nondt_mean_sdev,"\n")
       cat("Non-decision Time Lower-bound:",prior$nondt_sdev_lower,"\n")
       cat("Non-decision Time Upper-bound:",prior$nondt_sdev_upper,"\n")
-      if(!is.null(prior$betaweight_lower)){
+      if(!is.null(prior$betaweight_mean)){
       cat("Betaweight:\n")
-      cat("Betaweight Lower-bound:", prior$betaweight_lower,"\n")
-      cat("Betaweight Upper-bound:", prior$betaweight_upper,"\n")  
+      cat("Betaweight Mean:", prior$betaweight_mean,"\n")
+      cat("Betaweight Std:", prior$betaweight_sdev,"\n")  
       }
 }
