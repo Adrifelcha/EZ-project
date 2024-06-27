@@ -210,7 +210,7 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
                                "recovered" = meanPosts_Ttst_nondt,
                                "estimates_sdev" = sdevPosts_Ttst_nondt,
                                "rhats" = rhats_Ttst_nondt)
-   save(simStudy_Ttst_nondt, file=paste(saveTo,"",sep="simStudy_Ttst_nondt.RData"))
+   save(simStudy_Ttst_nondt, file=paste(saveTo,"",sep="simStudy_Ttest_nondt.RData"))
    
    simStudy_Meta_drift <- list("true" = trueVals_Meta_drift,
                                "recovered" = meanPosts_Meta_drift,
