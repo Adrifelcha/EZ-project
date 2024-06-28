@@ -5,9 +5,9 @@
 # A function to write the JAGS model using the priors values
 write_JAGSmodel <- function(priors, modelType, criterion, modelFile){
   opening <- "model{"
-  priors.bound_m  <- paste("          bound_mean ~ dnorm(", priors$bound_mean_mean,",pow(",priors$bound_mean_sdev,",-2))T(0.10,3.00)", sep="")
+  priors.bound_m  <- paste("          bound_mean ~ dnorm(", priors$bound_mean_mean,",pow(",priors$bound_mean_sdev,",-2))T(0.10,)", sep="")
   priors.nondt_m  <- paste("          nondt_mean ~ dnorm(", priors$nondt_mean_mean,",pow(",priors$nondt_mean_sdev,",-2))T(0.05,)", sep="")
-  priors.drift_m  <- paste("          drift_mean ~ dnorm(", priors$drift_mean_mean,",pow(",priors$drift_mean_sdev,",-2))T(-3.00,3.00)", sep="")
+  priors.drift_m  <- paste("          drift_mean ~ dnorm(", priors$drift_mean_mean,",pow(",priors$drift_mean_sdev,",-2))", sep="")
   priors.bound_sd <- paste("          bound_sdev ~ dunif(", priors$bound_sdev_lower,",",priors$bound_sdev_upper,")", sep="")
   priors.nondt_sd <- paste("          nondt_sdev ~ dunif(", priors$nondt_sdev_lower,",",priors$nondt_sdev_upper,")", sep="")
   priors.drift_sd <- paste("          drift_sdev ~ dunif(", priors$drift_sdev_lower,",",priors$drift_sdev_upper,")", sep="")
@@ -19,31 +19,31 @@ write_JAGSmodel <- function(priors, modelType, criterion, modelFile){
           content.init <-"
                   # Sampling model
                   for (p in 1:nParticipants){
-                      drift[p] ~ dnorm(drift_mean + betaweight*X[p], pow(drift_sdev, -2))T(-3.00,3.00)
-                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
+                      drift[p] ~ dnorm(drift_mean + betaweight*X[p], pow(drift_sdev, -2))
+                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,)
                       nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)"    
       }else{if(criterion=="bound"){
           content.init <-"
                   # Sampling model
                   for (p in 1:nParticipants){
-                      bound[p] ~ dnorm(bound_mean + betaweight*X[p], pow(bound_sdev, -2))T(0.10,3.00)
+                      bound[p] ~ dnorm(bound_mean + betaweight*X[p], pow(bound_sdev, -2))T(0.10,)
                       nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)
-                      drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)"  
+                      drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))"  
       }else{
           content.init <-"
                   # Sampling model
                   for (p in 1:nParticipants){
                       nondt[p] ~ dnorm(nondt_mean + betaweight*X[p], pow(nondt_sdev, -2))T(0.05,)
-                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
-                      drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)"  
+                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,)
+                      drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))"  
       }}
    }else{
       content.init <-"
                 # Sampling model
                 for (p in 1:nParticipants){
-                    bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,3.00)
+                    bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.10,)
                     nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.05,)
-                    drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))T(-3.00,3.00)"  
+                    drift[p] ~ dnorm(drift_mean, pow(drift_sdev, -2))"  
   }
   
   content.end <- "
