@@ -11,9 +11,9 @@ makeSimStudyPlot <- function(simStudyRData, param=NA){
   }
   
     for(par in param){
-        if(par=="drift_mean"){plot.range <- c(-1,1)}
-        if(par=="nondt_mean"){plot.range <- c(0.19,0.4)}
-        if(par=="bound_mean"){plot.range <- c(1.1,1.9)}
+        if(par=="drift_mean"){plot.range <- c(-5,5)}
+        if(par=="nondt_mean"){plot.range <- c(0.2,0.95)}
+        if(par=="bound_mean"){plot.range <- c(0.5,4)}
         if(par=="betaweight"){plot.range <- c(-1,1)}
         fixed.axis <- seq(plot.range[1],plot.range[2],length.out=3)
     
