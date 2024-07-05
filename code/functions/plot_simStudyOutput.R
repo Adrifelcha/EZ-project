@@ -15,14 +15,12 @@ makeSimStudyPlot <- function(simStudyRData, param=NA){
         if(par=="nondt_mean"){plot.range <- c(0.2,0.95)}
         if(par=="bound_mean"){plot.range <- c(0.5,4)}
         if(par=="betaweight"){
-          if(grepl("nondt", simStudyRData)){
-            plot.range <- c(0,1)  
-          }else{
-            plot.range <- c(-1,1)}
+              if(grepl("nondt", simStudyRData)){  plot.range <- c(0,1)  
+              }else{   plot.range <- c(-1,1)} 
         }
-        fixed.axis <- seq(plot.range[1],plot.range[2],length.out=3)
+        fixed.axis <- seq(plot.range[1],plot.range[2],length.out=2)
     
-        par(pty="s", mfrow=c(5,5), mai=c(0,0,0.05,0), oma=c(2,1.5,1.5,1.5))
+        par(pty="s", mfrow=c(5,5), mai=c(0,0,0.05,0.05), oma=c(2,1.5,1.5,1.5))
         for(i in 1:5){
               thisP_x <- obj$true[[i]]
               thisP_y <- obj$recovered[[i]]
@@ -30,6 +28,8 @@ makeSimStudyPlot <- function(simStudyRData, param=NA){
               x <- thisP_x[,param,k]
               y <- thisP_y[,param,k]
               plot(5,5, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="#3480C5")
+              abline(v=mean(plot.range),lty=3,col="gray60")
+              abline(h=mean(plot.range),lty=3,col="gray60")
               #mtext(paste(par), outer = TRUE, line=-20, cex=3, col="gray90")
               points(x,y,col="#3480C5",pch=16)
               box(lty=3)
