@@ -1,0 +1,24 @@
+---
+title: "EZBHDDM: A simulation study where true parameter values are generated from a uniform"
+subtitle: "Short report"
+author: "Adriana F. Chávez De la Peña"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: true
+    cards: false
+    highlight: tango
+    fig_width: 12 
+    fig_height: 8 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rmdformats)
+```
+
+# Introduction
