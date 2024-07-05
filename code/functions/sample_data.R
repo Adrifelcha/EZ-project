@@ -7,11 +7,11 @@ sample_data <- function(nPart, nTrials = NA, parameter_set, nTrialsPerCondition 
         for(i in 1:nPart){      # Get data for every Participant
           this.sub <- which(data[,1]==i)
           accuracy = 0
-          while(sum(accuracy)==0){
+          #while(sum(accuracy)==0){
             temp <- generate_dataset(a = parameter_set$bound[i], v = parameter_set$drift[i], 
                                      t = parameter_set$nondt[i], n = nTrials)
             accuracy = temp$accuracy
-          }
+          #}
           data[this.sub,3] <- accuracy
           data[this.sub,2] <- temp$RT
         }
