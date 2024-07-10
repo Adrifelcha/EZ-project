@@ -10,7 +10,7 @@ check_Rhat <- function(rhats){
           hist(rhats, breaks = 50)
           abline(v=rule, col="red", lty=2)
           legend("top",paste("Rhat > ",rule," | ",
-                             (round(length(bad.Rhat)/(length(rhats)),5))*100,
+                             (round(nrow(bad.Rhat)/(length(as.vector(rhats))),5))*100,
                              "% of chains | ", length(which.are.bad.Rhats), " chains", sep=""), lty=2, col="red", cex=0.4)
           table(which.are.bad.Rhats)
   }else{      paste("No Rhat greater than ", rule, sep="")       }
