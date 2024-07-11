@@ -12,8 +12,8 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
                                    parameters.to.save=jagsParameters, 
                                    model=modelFile, 
                                    n.chains=n.chains, 
-                                   n.iter=500, 
-                                   n.burnin=100, 
+                                   n.iter=2500, 
+                                   n.burnin=500, 
                                    n.thin=1, 
                                    DIC=T, 
                                    inits=jagsInits))
