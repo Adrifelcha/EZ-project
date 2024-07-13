@@ -34,6 +34,7 @@ There are 66 cells in the design with two main factors:
 ```{r, message=FALSE}
 # Load necessary libraries/packages
 library(R2jags)
+library(rstan)
 seed <- 15
 ```
 
@@ -246,12 +247,31 @@ for(i in 1:n.chains){
 ```{r}
 set.seed(seed)
 
+start <- Sys.time()
 samples <- jags(data=data_toJAGS,
                 parameters.to.save=parameters,
                 model="./model_perception.bug",
-                n.chains=n.chains,  n.iter=n.iter,
-                n.burnin=n.burnin,  n.thin=n.thin,
+                n.chains=n.chains,  n.iter=1000,
+                n.burnin=100,  n.thin=n.thin,
                 DIC=T, inits=myinits)
+end <- Sys.time()
+```
+
+```{r, echo=FALSE}
+rhats <- apply(samples$BUGSoutput$sims.array,3,Rhat)
+rule <- 1.05
+bad.Rhat <- which(rhats>rule)
+test.rhat <- length(bad.Rhat) > 0
+  if(test.rhat){
+          par(mfrow=c(1,1))
+          which.are.bad.Rhats <- names(bad.Rhat)
+          hist(rhats, breaks = 50)
+          abline(v=rule, col="red", lty=2)
+          legend("top",paste("Rhat > ",rule," | ",
+                             (round(nrow(bad.Rhat)/(length(as.vector(rhats))),5))*100,
+                             "% of chains | ", length(which.are.bad.Rhats), " chains", sep=""), lty=2, col="red", cex=0.4)
+          table(which.are.bad.Rhats)
+  }else{      paste("No Rhat greater than ", rule, sep="")       }
 ```
 
 ### Extract posterior samples
@@ -560,7 +580,7 @@ spd.bckg <- "#E4EFE1"
 ###################################################################
 # Figure 1: Beta posteriors
 ###################################################################
-png(file = "../../figures/percEx_betas.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_betas.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(mfrow = c(1,2), mai=c(0.6,0.6,0.7,0.2), oma= c(0,0,0,0), bg=NA)
 line.color    <- "#DC9303"
 density.color <- "#F3EAD8"
@@ -606,7 +626,7 @@ errors_spd <- cbind(c(lower_percentiles[33:48],NA, lower_percentiles[49:64]),
                     c(upper_percentiles[33:48],NA, upper_percentiles[49:64]))
 errors <- rbind(errors_acc,c(NA,NA),errors_spd)
 #### Make plot
-png(file = "../../figures/percEx_driftPreds.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_driftPreds.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(pty="m", mfrow = c(1,1), mai=c(0.65,0.6,0.55,0.1), oma= c(0,0,0,0), bg=NA)
 plot(full_x,fit_line, type="l", lwd=4, col=predicted.color, ann=F, axes=F,
      ylab="Drift rate", ylim=c(0,6),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
@@ -647,7 +667,7 @@ data.color  <- "black"
 point.size <- 0.9
 error.color <- "#E69FF8"
 pred.color <- "#BE07C1"
-png(file = "../../figures/percEx_accPostPred.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_accPostPred.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(pty="m", mfrow = c(1,1), mai=c(0.9,0.6,0.5,0.1), oma= c(0,0,0,0), bg=NA)
 plot(full_x,est.accRate.Full, col="white", ann=F, axes=F, 
      ylim=c(0.45,1.05),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
@@ -691,7 +711,7 @@ err.rtMean.spd  <- c(pp.perc.rtMean[1,33:48], pp.perc.rtMean[2,48:33],
 error.color <- "#6DFA9C"
 pred.color <- "#00A437"
 point.size <- 0.9
-png(file = "../../figures/percEx_meanRTpostPred.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_meanRTpostPred.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(pty="m", mfrow = c(1,1), mai=c(0.9,0.6,0.5,0.1), oma= c(0,0,0,0), bg=NA)
     plot(full_x,est.rtMean.Full, col="white", ann=F, axes=F, ylim=c(0.2,1), 
          xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
@@ -722,7 +742,7 @@ dev.off()
 ###################################################################
 # Figure 4b: Posterior predictive check on the Mean RT (log scale)
 ###################################################################
-png(file = "../../figures/percEx_meanRTpostPred_log.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_meanRTpostPred_log.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(pty="m", mfrow = c(1,1), mai=c(0.9,0.6,0.5,0.1), oma= c(0,0,0,0), bg=NA)
 est.rtMean.log <- log(est.rtMean.Full)
 logmeanRT <- log(meanRT)
@@ -772,7 +792,7 @@ err.rtVar.spd  <- c(pp.perc.rtVar[1,33:48], pp.perc.rtVar[2,48:33],
                     pp.perc.rtVar[1,49:64], pp.perc.rtVar[2,64:49])
 error.color <- "#8CE0FF"
 pred.color <- "#095B79"
-png(file = "../../figures/percEx_varRTpostPred.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_varRTpostPred.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(pty="m", mfrow = c(1,1), mai=c(0.9,0.6,0.5,0.1), oma= c(0,0,0,0), bg=NA)
     plot(full_x,est.rtVar.Full, col="white", ann=F, axes=F, ylim=c(0,0.4),
          xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
@@ -803,7 +823,7 @@ dev.off()
 #######################################################################
 # Figure 5b: Posterior predictive check on the Variance RT (log scale)
 #######################################################################
-png(file = "../../figures/percEx_varRTpostPred_log.png", width = 7, height = 4, units="in",res=300) # Width and height of the plot in inches
+png(file = "../../figures/percEx_varRTpostPred_log.png", width = 10, height = 6, units="in",res=300) # Width and height of the plot in inches
 par(pty="m", mfrow = c(1,1), mai=c(0.9,0.6,0.5,0.1), oma= c(0,0,0,0), bg=NA)
 plot(full_x,log(est.rtVar.Full), col="white", ann=F, axes=F, ylim=c(-7.1,-0.8),
      xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
