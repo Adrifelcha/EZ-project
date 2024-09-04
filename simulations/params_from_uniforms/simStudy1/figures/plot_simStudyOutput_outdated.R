@@ -12,7 +12,7 @@ makeSimStudyPlot <- function(simStudyRData, param=NA){
   
     for(par in param){
         if(par=="drift_mean"){plot.range <- c(-2,2)}
-        if(par=="nondt_mean"){plot.range <- c(0.1,0.45)}
+        if(par=="nondt_mean"){plot.range <- c(0.1,0.4)}
         if(par=="bound_mean"){plot.range <- c(1,2)}
         if(par=="betaweight"){
               if(grepl("nondt", simStudyRData)){  plot.range <- c(0,1)  
