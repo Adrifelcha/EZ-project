@@ -84,7 +84,7 @@ dev.off()
 
 png(file = "./simTtest_nondt_drift.png", width = 5, height = 5, units="in",res=300) # Width and height of the plot in inches
 par(bg=NA)
-makeSimStudyPlot("../results/simStudy_Ttest_nondt.RData", par="drift_mean")
+makeSimStudyPlot("../results/simStudy_Ttst_nondt.RData", par="drift_mean")
 dev.off()
 
 ####################
@@ -101,7 +101,7 @@ dev.off()
 
 png(file = "./simTtest_nondt_nondt.png", width = 5, height = 5, units="in",res=300) # Width and height of the plot in inches
 par(bg=NA)
-makeSimStudyPlot("../results/simStudy_Ttest_nondt.RData", par="nondt_mean")
+makeSimStudyPlot("../results/simStudy_Ttst_nondt.RData", par="nondt_mean")
 dev.off()
 
 ####################
@@ -118,7 +118,7 @@ dev.off()
 
 png(file = "./simTtest_nondt_bound.png", width = 5, height = 5, units="in",res=300) # Width and height of the plot in inches
 par(bg=NA)
-makeSimStudyPlot("../results/simStudy_Ttest_nondt.RData", par="bound_mean")
+makeSimStudyPlot("../results/simStudy_Ttst_nondt.RData", par="bound_mean")
 dev.off()
 
 ####################
@@ -135,5 +135,5 @@ dev.off()
 
 png(file = "./simTtest_nondt_beta.png", width = 5, height = 5, units="in",res=300) # Width and height of the plot in inches
 par(bg=NA)
-makeSimStudyPlot("../results/simStudy_Ttest_nondt.RData", par="betaweight")
+makeSimStudyPlot("../results/simStudy_Ttst_nondt.RData", par="betaweight")
 dev.off()
