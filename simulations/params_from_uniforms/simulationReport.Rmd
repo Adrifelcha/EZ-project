@@ -1,0 +1,166 @@
+---
+title: "EZBHDDM: Simulation studies sampling from uniform distributions"
+author: "Adriana F. Chávez De la Peña"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: true
+    cards: false
+    highlight: tango
+    fig_width: 12 
+    fig_height: 8 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rmdformats)
+```
+
+# Introduction
+
+\begin{align*}
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
+\end{align*}
+
+## The EZBHDDM
+
+\begin{align*}
+Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
+\dot{T} &\sim \mbox{Binomial}(PC,N)\\
+\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
+\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+# Load simple functions
+
+```{r}
+# Auxiliary functions
+###########################
+# Function to create a name based on the simulation settings
+source("../../code/functions/namingFunctions.R")
+# Functions to print information to the screen
+source("../../code/functions/show_design.R")
+source("../../code/functions/show_parameters.R")
+source("../../code/functions/show_priors.R")
+
+# Functions to simulate data
+##############################
+source("../../code/functions/generate_trial.R")
+source("../../code/functions/generate_dataset.R")
+source("../../code/functions/sample_data.R")
+source("../../code/functions/getStatistics.R")
+
+
+# Functions to set up the model
+################################
+#source("../../code/functions/default_priors.R")
+#source("../../code/functions/sample_parameters.R")
+
+
+# JAGS related functions
+###########################
+source("../../code/functions/write_JAGSmodel.R")
+source("../../code/functions/data_toJAGS.R")
+source("../../code/functions/check_Rhat.R")
+source("../../code/functions/default_inits.R")
+source("../../code/functions/extractSamples.R")
+
+# Manage results
+################################################
+source("../../code/functions/plot_Chain.R")
+source("../../code/functions/plot_recovery.R")
+source("../../code/functions/getDifferences_TRUEvsEST.R")
+```
+
+# Specify priors
+
+```{r}
+default_priors <- function(Show=TRUE, modelType=NA){
+  prior <- data.frame("bound_mean_mean" = 2.25,  "bound_mean_sdev" = 1.00, # 99% density between {-0.07, 4.57}
+                      "drift_mean_mean" = 0.00,  "drift_mean_sdev" = 3.00, # 99% density between {-6.9 , 6.9}
+                      "nondt_mean_mean" = 0.55,  "nondt_mean_sdev" = 0.25, # 99% density between {-0.03, 1.13}
+                      "bound_sdev_shape" = 3.00,  "bound_sdev_rate" = 0.50,   
+                      "drift_sdev_shape" = 2.00,  "drift_sdev_rate" = 0.20,
+                      "nondt_sdev_shape" = 4.00,  "nondt_sdev_rate" = 0.25)
+  if(modelType!="hierarchical"){
+            prior$betaweight_mean = 0
+            prior$betaweight_sdev = 1
+  }
+  if(Show){       show_priors(prior)           }
+  return(prior)
+}
+```
+
+# Specify how to generate true parameters
+
+```{r}
+sample_parameters <- function(priors, nPart, modelType, X, criterion=NA, fromPrior=NA, Show=TRUE, fixedBeta = NA){
+        # Hierarchical mean values are sampled from a uniform defined because...
+        bound_mean <- runif(1,0.5,4)   # ...95% density of the default prior falls here
+        drift_mean <- runif(1,-5,5)      # ...95% density of the default prior falls here
+        nondt_mean <- runif(1,0.2,0.95) # ...95% density of the default prior falls here
+        # Hierarchical standard deviations are sampled from arbitrary uniforms
+        bound_sdev <- bound_mean/5
+        drift_sdev <- abs(drift_mean/5)+0.01
+        nondt_sdev <- nondt_mean/5
+  bound <- rnorm(nPart,bound_mean, bound_sdev) # Extra-precaution / shouldn't be needed often
+  drift <- rnorm(nPart,drift_mean, drift_sdev)
+  nondt <- rnorm(nPart,nondt_mean, nondt_sdev) # Precaution
+  parameter_set <- list("bound_mean" = bound_mean, "drift_mean" = drift_mean, "nondt_mean" = nondt_mean, 
+                        "bound_sdev" = bound_sdev, "drift_sdev" = drift_sdev, "nondt_sdev" = nondt_sdev,
+                        "bound" = bound,   "drift" = drift,   "nondt" = nondt)
+  # Check modelType to determine the need for a coefficient
+  if(!(modelType=="hierarchical"|is.na(modelType))){  
+        if(!is.na(fixedBeta)){
+          betaweight <- fixedBeta
+          parameter_set$drift_sdev <- 0.25
+          parameter_set$drift <- rnorm(nPart*2,drift_mean+betaweight*X, 0.25)
+        }else{
+            # Sample and add coefficient to the parameter_set
+            if(criterion=="nondt"){   betaweight <- runif(1, 0, 1)
+                             }else{   betaweight <- runif(1, -1, 1)       }
+            # Identify criterion (i.e., parameter of interest)
+            if(is.na(criterion)){  criterion <- "drift"  }
+            if(criterion=="bound"){  parameter_set$bound <- rnorm(nPart,bound_mean+(betaweight*X), bound_sdev)  }
+            if(criterion=="drift"){  parameter_set$drift <- rnorm(nPart,drift_mean+(betaweight*X), drift_sdev)  }
+            if(criterion=="nondt"){  parameter_set$nondt <- rnorm(nPart,nondt_mean+(betaweight*X), nondt_sdev)  }
+        }
+    parameter_set <- c(parameter_set, list("betaweight" = betaweight))
+  }
+  
+  if(Show){   show_parameters(parameter_set)    }
+  return(parameter_set)
+}
+```
+
+# Load core scripts
+
+```{r, echo=FALSE}
+source("../../code/scripts/HDDM_setup.R")
+source("../../code/scripts/HDDM_runJAGS.R")
+source("../../code/scripts/HDDM_runSims.R")
+```
+
+```{r file="../../code/scripts/HDDM_setup.R"}
+```
+
+```{r file="../../code/scripts/HDDM_runJAGS.R"}
+```
+
+```{r file= "../../code/scripts/HDDM_runSims.R"}
+```
+
+# Run simple simulation grid
+
+```{r}
+x <- HDDM_runSims(nParticipants = 20, nTrials = 20, nDatasets = 100,
+                  modelType = "metaregression", criterion = "drift",
+                  n.chains=4, forceSim = FALSE, fromPrior = FALSE)
+```

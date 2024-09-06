@@ -1,0 +1,31 @@
+model{
+          bound_mean ~ dnorm(2.25,pow(1,-2))T(0.20,)
+          nondt_mean ~ dnorm(0.55,pow(0.25,-2))T(0.1,)
+          drift_mean ~ dnorm(0,pow(3,-2))
+       bound_sdInv ~ dgamma(3,0.5)
+          bound_sdev <- 1/bound_sdInv
+       nondt_sdInv ~ dgamma(4,0.25)
+          nondt_sdev <- 1/nondt_sdInv
+       drift_sdInv ~ dgamma(2,0.2)
+          drift_sdev <- 1/drift_sdInv
+          betaweight ~ dnorm(0,pow(1,-2))
+
+                  # Sampling model
+                  for (p in 1:nParticipants){
+                      drift[p] ~ dnorm(drift_mean + betaweight*X[p], pow(drift_sdev, -2))
+                      bound[p] ~ dnorm(bound_mean, pow(bound_sdev, -2))T(0.2,)
+                      nondt[p] ~ dnorm(nondt_mean, pow(nondt_sdev, -2))T(0.1,)
+
+                  # Forward equations from EZ Diffusion
+                  ey[p]  = exp(-bound[p] * drift[p])
+                  Pc[p]  = 1 / (1 + ey[p])
+                  PRT[p] = 2 * pow(drift[p], 3) / bound[p] * pow(ey[p] + 1, 2) / (2 * -bound[p] * drift[p] * ey[p] - ey[p]*ey[p] + 1)
+                  MDT[p] = (bound[p] / (2 * drift[p])) * (1 - ey[p]) / (1 + ey[p])
+                  MRT[p] = MDT[p] + nondt[p]
+
+                  # Loss functions using MRT, PRT, and Pc
+                  correct[p] ~ dbin(Pc[p], nTrialsPerPerson)
+                  meanRT[p]  ~ dnorm(MRT[p], PRT[p] * nTrialsPerPerson)
+                  varRT[p]   ~ dnorm(1/PRT[p], 0.5*(nTrialsPerPerson-1) * PRT[p] * PRT[p])
+              }
+      }
