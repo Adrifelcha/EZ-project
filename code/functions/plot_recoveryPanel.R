@@ -1,0 +1,134 @@
+make_panel_type1 <- function(simOutput, parameter=NA, add.titles = FALSE, plot.range=NA){
+  if(is.na(parameter)){ stop("Please specify a parameter")  }else{
+    if(parameter=="drift"){              parameter <- "drift_mean"
+               red <- 247/255 ;  green <- 167/255 ; blue <- 26/255
+    }else{if(parameter=="bound"){        parameter <- "bound_mean"  
+               red <- 188/255 ;  green <- 56/255 ; blue <- 156/255
+    }else{if(parameter=="nondt"){        parameter <- "nondt_mean"
+               red <- 56/255 ;  green <- 188/255 ; blue <- 58/255
+    }else{  red <- 0.2 ;  green <- 0.8 ; blue <- 0.6    }}}
+    
+    x <- output$trueValues[,parameter]
+    y <- output$estimates[,parameter]
+    n <- length(x)
+    edges <- range(x)
+    
+    if(sum(is.na(plot.range))>0){
+      edges.plot <- range(c(x,y))
+      plot.border <- sd(c(x,y))*0.05
+      plot.range <- c(edges.plot[1]-plot.border,edges.plot[2]+plot.border)
+    }
+    
+    plot(x,y, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="white")
+    if(add.titles){
+      if(parameter=="betaweight"){
+        mtext(expression(paste(beta, " coefficient")),3, line=1, f=2, cex=1.5)
+      }else{
+        if(parameter=="drift_mean"){
+          mtext(expression(paste("Mean drift rate - ", mu[nu])),3, line=1, f=2, cex=1.5)
+        }else{
+          if(parameter=="bound_mean"){
+            mtext(expression(paste("Mean boundary - ", mu[alpha])),3, line=1, f=2, cex=1.5)
+          }else{
+            if(parameter=="nondt_mean"){
+              mtext(expression(paste("Mean nondecision time - ", mu[tau])),3, line=1, f=2, cex=1.5)
+            }else{
+              mtext(parameter,3, line=1, f=2, cex=1.5)
+            }}}}
+    }
+    abline(0,1,col="gray70", lwd=2, lty=2)
+    points(x,y, cex=0.8, pch=16, col=rgb(red,green,blue,0.3))
+    axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
+    axis(1, axis.labels, round(axis.labels,1))
+    axis(2, axis.labels, round(axis.labels,1), las=2)
+    if(add.titles){
+      mtext("Simulated values",1, line=2.5, f=2, cex=1.2)
+      mtext("Recovered values",2, line=2.75, f=2, cex=1.2)
+    }
+  }
+}
+
+#load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
+#simOutput <- output
+#make_panel_type1(simOutput, parameter="bound", 
+#                 add.titles = TRUE, plot.range=NA)
+
+
+
+make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=15, plot.range=NA){
+  if(is.na(parameter)){ stop("Please specify a parameter")  }else{
+    if(parameter=="drift"){              parameter <- "drift_mean"
+    red <- 247/255 ;  green <- 167/255 ; blue <- 26/255
+    }else{if(parameter=="bound"){        parameter <- "bound_mean"  
+    red <- 188/255 ;  green <- 56/255 ; blue <- 156/255
+    }else{if(parameter=="nondt"){        parameter <- "nondt_mean"
+    red <- 56/255 ;  green <- 188/255 ; blue <- 58/255
+    }else{  red <- 0.2 ;  green <- 0.8 ; blue <- 0.6    }}}
+    
+    x <- output$trueValues[,parameter]
+    y <- output$estimates[,parameter]
+    n <- length(x)
+    edges <- range(x)
+    bins <- seq(edges[1],edges[2],length.out=nBins)
+    
+    if(sum(is.na(plot.range))>0){
+      edges.plot <- range(c(x,y))
+      plot.border <- sd(c(x,y))*0.05
+      plot.range <- c(edges.plot[1]-plot.border,edges.plot[2]+plot.border)
+    }
+    
+    plot(x,y, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="white")
+    if(add.titles){
+      if(parameter=="betaweight"){
+        mtext(expression(paste(beta, " coefficient")),3, line=1, f=2, cex=1.5)
+      }else{
+        if(parameter=="drift_mean"){
+          mtext(expression(paste("Mean drift rate - ", mu[nu])),3, line=1, f=2, cex=1.5)
+        }else{
+          if(parameter=="bound_mean"){
+            mtext(expression(paste("Mean boundary - ", mu[alpha])),3, line=1, f=2, cex=1.5)
+          }else{
+            if(parameter=="nondt_mean"){
+              mtext(expression(paste("Mean nondecision time - ", mu[tau])),3, line=1, f=2, cex=1.5)
+            }else{
+              mtext(parameter,3, line=1, f=2, cex=1.5)
+            }}}}
+    }
+    
+    
+    abline(0,1,col="gray70", lwd=2, lty=2)
+    heights <- c()
+    mids <- c()
+    for(b in 2:length(bins)){
+      X.inBin <- x[x<=bins[b]&x>=bins[b-1]]
+      Y.inBin <- y[x<=bins[b]&x>=bins[b-1]]
+      count <- length(X.inBin)
+      whiskers <- quantile(Y.inBin,probs = c(0.025,0.975))
+      prop  <- count/n
+      lines(c(bins[b-1],bins[b]),rep(whiskers[1],2))
+      lines(c(bins[b-1],bins[b]),rep(whiskers[2],2))
+      polygon(c(bins[b-1],bins[b],bins[b],bins[b-1]),
+              c(whiskers[2],whiskers[2],whiskers[1],whiskers[1]),
+              col=rgb(red,green,blue,prop), border = NA)
+      heights <- rbind(heights,whiskers)
+      mids <- append(mids,median(c(bins[b],bins[b-1])))
+    }
+    points(mids, heights[,1], pch=16, cex=0.5)
+    points(mids, heights[,2], pch=16, cex=0.5)
+    lines(mids,heights[,1])
+    lines(mids,heights[,2], )
+    points(x,y, cex=0.8, pch=16, col=rgb(red,green,blue,0.3))
+    axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
+    axis(1, axis.labels, round(axis.labels,1))
+    axis(2, axis.labels, round(axis.labels,1), las=2)
+    if(add.titles){
+      mtext("Simulated values",1, line=2.5, f=2, cex=1.2)
+      mtext("Recovered values",2, line=2.75, f=2, cex=1.2)
+    }
+  }
+}
+
+#load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
+#simOutput <- output
+#make_panel_type2(simOutput, parameter="nondt", 
+#                 add.titles = TRUE, nBins=15, plot.range=NA)
