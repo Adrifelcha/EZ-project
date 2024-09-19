@@ -103,21 +103,20 @@ make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=
       X.inBin <- x[x<=bins[b]&x>=bins[b-1]]
       Y.inBin <- y[x<=bins[b]&x>=bins[b-1]]
       count <- length(X.inBin)
-      whiskers <- quantile(Y.inBin,probs = c(0.025,0.975))
+      whiskers <- quantile(Y.inBin,probs = c(0.025,0.5,0.975))
       prop  <- count/n
-      lines(c(bins[b-1],bins[b]),rep(whiskers[1],2))
-      lines(c(bins[b-1],bins[b]),rep(whiskers[2],2))
-      polygon(c(bins[b-1],bins[b],bins[b],bins[b-1]),
-              c(whiskers[2],whiskers[2],whiskers[1],whiskers[1]),
-              col=rgb(red,green,blue,prop), border = NA)
       heights <- rbind(heights,whiskers)
       mids <- append(mids,median(c(bins[b],bins[b-1])))
     }
     points(mids, heights[,1], pch=16, cex=0.5)
+    points(mids, heights[,3], pch=16, cex=0.5)
     points(mids, heights[,2], pch=16, cex=0.5)
-    lines(mids,heights[,1])
-    lines(mids,heights[,2], )
-    points(x,y, cex=0.8, pch=16, col=rgb(red,green,blue,0.3))
+    lines(mids,heights[,1], lwd=2)
+    lines(mids,heights[,2], lwd=2)
+    lines(mids,heights[,3], lwd=2)
+    polygon(c(mids,rev(mids)), c(heights[,1],rev(heights[,3])),
+            col=rgb(red,green,blue,0.15), border = NA)
+    points(x,y, cex=0.8, pch=16, col=rgb(red/10,green/10,blue/10,0.1))
     axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
     axis(1, axis.labels, round(axis.labels,1))
     axis(2, axis.labels, round(axis.labels,1), las=2)
@@ -128,7 +127,7 @@ make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=
   }
 }
 
-#load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
-#simOutput <- output
-#make_panel_type2(simOutput, parameter="nondt", 
-#                 add.titles = TRUE, nBins=15, plot.range=NA)
+load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
+simOutput <- output
+make_panel_type2(simOutput, parameter="bound", 
+                 add.titles = TRUE, nBins=11, plot.range=NA)
