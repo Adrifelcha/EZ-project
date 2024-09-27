@@ -1,4 +1,4 @@
-makeSimStudyPlot <- function(simStudyRData, param=NA){
+makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=NA){
   assign('obj', get(load(simStudyRData)))
   lvls <- c(20,40,80,160,320)
   P <- lvls
@@ -25,8 +25,8 @@ makeSimStudyPlot <- function(simStudyRData, param=NA){
               thisP_x <- obj$true[[i]]
               thisP_y <- obj$recovered[[i]]
           for(k in 1:5){
-              x <- thisP_x[,param,k]
-              y <- thisP_y[,param,k]
+              x <- thisP_x[,par,k]
+              y <- thisP_y[,par,k]
               plot(5,5, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="#3480C5")
               abline(v=mean(plot.range),lty=3,col="gray60")
               abline(h=mean(plot.range),lty=3,col="gray60")
