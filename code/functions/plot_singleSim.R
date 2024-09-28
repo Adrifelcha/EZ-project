@@ -63,4 +63,4 @@ plot_recovery <- function(simOutput, plotType=1){
         mtext("Retrieved values", 2, line=2, cex=1.5, outer=TRUE, f=2)
 } 
 
-plot_recovery(simOutput,1)
+plot_recovery(simOutput,2)
