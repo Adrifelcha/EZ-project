@@ -17,6 +17,8 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
       par(pty="s", mfrow=c(5,5), mai=c(0,0,0.05,0.05), 
           oma=c(2,1.5,1.5,1.5))
       panel_no <- 1
+      plot.range <- round(range(obj$true[[1]][,par,], na.rm = TRUE),1)
+      
       print(par)
       for(i in 1:5){
             thisP_x <- obj$true[[i]]
@@ -54,7 +56,6 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
   }
 }
 
-simStudyRData <- "../../simStudy1/results/simStudy_Meta_bound.RData"
+simStudyRData <- "../../simStudy1/results/simStudy_Meta_nondt.RData"
 #dev.new(width=8, height=12)
-makeSimStudyPlot(simStudyRData, param=NA, plotType=2)
-  
+makeSimStudyPlot(simStudyRData, param="bound_mean", plotType=2)
