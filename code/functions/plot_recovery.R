@@ -14,8 +14,8 @@ plot_recovery <- function(simOutput){
               parBeta_Tru <- parnt_Tru[,-findParents_Tru]
               par(mfrow = c(1,1))
                   plot.range <- c(min(parBeta_Tru,parBeta_Est),max(parBeta_Tru,parBeta_Est))
-                  plot(parBeta_Tru,parBeta_Est, ann=F, col=colorPar[length(colorPar)], pch=16,
-                       xlim=plot.range, ylim=plot.range)
+                  plot(parBeta_Tru,parBeta_Est, ann=F, col=colorPar[length(colorPar)], 
+                       pch=16, xlim=plot.range, ylim=plot.range)
                   abline(0,1, lty=2)
                   mtext("Simulated values", 1, line=2.1, cex=0.7)
                   mtext(colnames(parnt_Est)[-findParents_Est], 3, line=0.5, cex=1, f=2)
@@ -51,10 +51,13 @@ plot_recovery <- function(simOutput){
           mtext("Simulated values", 1, line=2.1, cex=0.7)
           mtext(paste("Individual", idIndPar[p]), 3, line=0.5, cex=0.8, f=2)
         }
+        par(mfrow = c(1, length(idIndPar)), mar =c(5.1,2,4.1,2))
 } 
 
 
-make_panel <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=15){
+
+
+make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=15, plot.range=NA){
   if(is.na(parameter)){ stop("Please specify a parameter")  }else{
     if(parameter=="drift"){              parameter <- "drift_mean"
     }else{if(parameter=="bound"){        parameter <- "bound_mean"  
@@ -66,11 +69,14 @@ make_panel <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=15){
     n <- length(x)
     edges <- range(x)
     bins <- seq(edges[1],edges[2],length.out=nBins)
-    edges.plot <- range(c(x,y))
-    plot.border <- sd(c(x,y))*0.05
-    plot.range <- c(edges.plot[1]-plot.border,edges.plot[2]+plot.border)
-    plot(x,y, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="white")
     
+    if(is.na(plot.range)){
+          edges.plot <- range(c(x,y))
+          plot.border <- sd(c(x,y))*0.05
+          plot.range <- c(edges.plot[1]-plot.border,edges.plot[2]+plot.border)
+    }
+    
+    plot(x,y, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="white")
     if(add.titles){
         if(parameter=="betaweight"){
           mtext(expression(paste(beta, " coefficient")),3, line=1, f=2, cex=1.5)
