@@ -15,18 +15,20 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
   
   for(par in param){
       par(pty="s", mfrow=c(5,5), mai=c(0,0,0.05,0.05), 
-          oma=c(2,1.5,1.5,1.5))
+          oma=c(2.5,2.5,1.5,1.5))
       panel_no <- 1
-      plot.range <- round(range(obj$true[[1]][,par,], na.rm = TRUE),1)
+      plot.range <- round(range(c(obj$true[[1]][,par,]
+                                  ,obj$recovered[[1]][,par,]
+                                  ), na.rm = TRUE),1)
       
       print(par)
       for(i in 1:5){
             thisP_x <- obj$true[[i]]
             thisP_y <- obj$recovered[[i]]
         for(k in 1:5){
-                this.panel <- list("estimates" = matrix(as.vector(thisP_x[,par,k]), ncol=1,
+                this.panel <- list("trueValues" = matrix(as.vector(thisP_x[,par,k]), ncol=1,
                                                         dimnames = list(list(),par)),
-                                   "trueValues" = matrix(as.vector(thisP_y[,par,k]), ncol=1,
+                                   "estimates" = matrix(as.vector(thisP_y[,par,k]), ncol=1,
                                                          dimnames = list(list(),par)))
             if(plotType==1){
                 make_panel_type1(this.panel, parameter=par, 
@@ -39,7 +41,7 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
                              axisY = print_Yaxis[panel_no])
             }
             box(lty=3)
-            if(k==1){mtext(paste("P =",P[i]),2,line=3,f=2)}
+            if(k==1){mtext(paste("P =",P[i]),2,line=2.5,f=2)}
             if(i==1){mtext(paste("T =",Tr[k]),line=0.5,f=2)}
             panel_no <- panel_no +1
             
@@ -51,11 +53,15 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
       if(par=="nondt_mean"){       label <-  expression(paste(mu[tau]))   }
       if(par=="bound_mean"){       label <-  expression(paste(mu[alpha]))   }
       if(par=="betaweight"){  label <-  expression(paste(beta))   }
-      mtext(label, 4, outer=T, las=2, line=-2, cex=2)
+      mtext(label, 4, outer=T, las=2, line=-1.5, cex=2)
       
   }
 }
 
-#simStudyRData <- "../../simStudy1/results/simStudy_Meta_nondt.RData"
+check.par <- "bound_mean"
+simStudyRData <- "../../simulations/params_from_uniforms/simStudy1/results/simStudy_Meta_nondtx.RData"
 #dev.new(width=8, height=12)
-#makeSimStudyPlot(simStudyRData, param="bound_mean", plotType=2)
+makeSimStudyPlot(simStudyRData, param=NA, plotType=2)
+
+#source("../../simulations/params_from_uniforms/simStudy1/figures/plot_simStudyOutput_outdated.R")
+#makeSimStudyPlot(simStudyRData, param=check.par)
