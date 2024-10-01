@@ -57,11 +57,11 @@ make_panel_type2 <- function(simOutput, parameter=NA,
                              plot.range=NA, axisX=TRUE, axisY=TRUE){
   if(is.na(parameter)){ stop("Please specify a parameter")  }
   
-  if(parameter=="drift"){          parameter <- "drift_mean"
+  if(parameter=="drift"|parameter=="drift_mean"){          parameter <- "drift_mean"
   red <- 247/255 ;  green <- 167/255 ; blue <- 26/255
-  }else{if(parameter=="bound"){    parameter <- "bound_mean"  
+  }else{if(parameter=="bound"|parameter=="bound_mean"){    parameter <- "bound_mean"  
   red <- 188/255 ;  green <- 56/255 ; blue <- 156/255
-  }else{if(parameter=="nondt"){    parameter <- "nondt_mean"
+  }else{if(parameter=="nondt"|parameter=="nondt_mean"){    parameter <- "nondt_mean"
   red <- 56/255 ;  green <- 188/255 ; blue <- 58/255
   }else{  red <- 0.2 ;  green <- 0.8 ; blue <- 0.6    }}}
   
@@ -114,7 +114,7 @@ make_panel_type2 <- function(simOutput, parameter=NA,
     lines(mids,heights[,2], lwd=2)
     lines(mids,heights[,3], lwd=2, col=rgb(red,green,blue,1))
     polygon(c(mids,rev(mids)), c(heights[,1],rev(heights[,3])),
-            col=rgb(red,green,blue,0.08), border = NA)
+            col=rgb(red,green,blue,0.09), border = NA)
     points(x,y, cex=0.75, pch=16, col=rgb(red/10,green/10,blue/10,0.1))
     axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
     if(axisX){  axis(1, axis.labels, round(axis.labels,1))         }
