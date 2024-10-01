@@ -56,6 +56,6 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
   }
 }
 
-simStudyRData <- "../../simStudy1/results/simStudy_Meta_nondt.RData"
+#simStudyRData <- "../../simStudy1/results/simStudy_Meta_nondt.RData"
 #dev.new(width=8, height=12)
-makeSimStudyPlot(simStudyRData, param="bound_mean", plotType=2)
+#makeSimStudyPlot(simStudyRData, param="bound_mean", plotType=2)

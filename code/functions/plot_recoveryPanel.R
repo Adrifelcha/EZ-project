@@ -124,9 +124,9 @@ make_panel_type2 <- function(simOutput, parameter=NA,
     }
 }
 
-load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
-simOutput <- output
-make_panel_type1(simOutput, parameter="bound", 
-                 add.titles = TRUE, plot.range=NA)
-make_panel_type2(simOutput, parameter="bound", 
-                 add.titles = TRUE, nBins=11, plot.range=NA)
+#load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
+#simOutput <- output
+#make_panel_type1(simOutput, parameter="bound", 
+#                 add.titles = TRUE, plot.range=NA)
+#make_panel_type2(simOutput, parameter="bound", 
+#                 add.titles = TRUE, nBins=11, plot.range=NA)
