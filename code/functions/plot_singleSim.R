@@ -5,9 +5,6 @@ plot_recovery <- function(simOutput, plotType=1){
       findIndiv_Tru <- which(grepl("\\[",colnames(simOutput$trueValues)))
       indiv_Tru  <- simOutput$trueValues[,findIndiv_Tru]
       parnt_Tru  <- simOutput$trueValues[,-findIndiv_Tru]
-      colorPar <- c("#AB1914", "#42AB14", "#F8B51A", "#44E5A3", 
-                      "#4483E5", "#9044E5", "#E544BE", "#0144A4")
-      idIndPar <- unique(sub("\\[.*", "", colnames(indiv_Est)))
       colorInd <- c(rgb(188/255,56/255,156/255,0.2),
                     rgb(56/255,188/255,58/255,0.2),
                     rgb(247/255,167/255,26/255,0.2))
