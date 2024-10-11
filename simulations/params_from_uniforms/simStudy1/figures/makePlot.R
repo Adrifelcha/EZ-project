@@ -1,5 +1,4 @@
 source("../../../../code/functions/plot_simStudyOutput.R")
-#source("./plot_simStudyOutput_outdated.R")
 
 png(file = "./simMeta_drift_drift.png", width = 5, height = 5, units="in",res=300) # Width and height of the plot in inches
 par(bg=NA)
