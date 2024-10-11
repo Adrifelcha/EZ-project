@@ -58,10 +58,10 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
   }
 }
 
-check.par <- "bound_mean"
-simStudyRData <- "../../simulations/params_from_uniforms/simStudy1/results/simStudy_Meta_nondtx.RData"
+#check.par <- "bound_mean"
+#simStudyRData <- "../../simulations/params_from_uniforms/simStudy1/results/simStudy_Meta_nondtx.RData"
 #dev.new(width=8, height=12)
-makeSimStudyPlot(simStudyRData, param=NA, plotType=2)
+#makeSimStudyPlot(simStudyRData, param=NA, plotType=2)
 
 #source("../../simulations/params_from_uniforms/simStudy1/figures/plot_simStudyOutput_outdated.R")
 #makeSimStudyPlot(simStudyRData, param=check.par)
