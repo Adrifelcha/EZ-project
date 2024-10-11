@@ -24,7 +24,7 @@ settings <- list("fromPrior" = TRUE,  # This logical variable should be defined 
                  "output.folder" = "./samples/", # Before running this script, indicate where to store samples
                  "participant_levels" = c(20,40,80,160,320), 
                  "trial_levels" = c(20,40,80,160,320),
-                 "nDatasets" = 100,
+                 "nDatasets" = 200,
                  "criterion_levels" = c("drift", "nondt", "bound"),
                  "design_levels" = c("ttest","metaregression"),
                  "n.chains" = 3)
@@ -71,7 +71,7 @@ output <- foreach(i = 1:settings$nDatasets,
 stopCluster(cl = my.cluster)
 
 source("../functions/store_parallelOutput.R")
-store_parallelOutput(output, settings, saveTo = "../../simulations/params_from_uniforms/simStudy2/results/")
+store_parallelOutput(output, settings, saveTo = "./results/")
 source("../functions/plot_simStudyOutput.R")
 makeSimStudyPlot("../../simulations/params_from_uniforms/simStudy2/results/simStudy_Meta_bound.RData")
 
