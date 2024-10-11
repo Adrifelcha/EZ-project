@@ -1,8 +1,8 @@
 store_parallelOutput <- function(output, settings, saveTo = "./"){
-   outH <- output[,"hierarchical"]
-   outB <- output[,"betaEffect"]
-   ### R packages
-   nDatasets            <- length(outH)
+  #################################################################################
+  # Identify relevant properties of the simulation study
+  #################################################################################
+   nDatasets            <- settings$nDatasets
    nCells               <- settings$nCells
    output.folder        <- settings$output.folder
    allP   <- settings$participant_levels
@@ -10,34 +10,56 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
    allD   <- settings$design_levels
    allC   <- settings$criterion_levels
    
+   # Is a simple Hierarchial study included?
+   Hierarchical <- "hierarchical" %in% settings$design_levels
+   # Is a Beta-effect design included?
+   BetaEffect <- "ttest" %in% settings$design_levels | "metaregression" %in% settings$design_levels
+   if(Hierarchical){   outH <- output[,"hierarchical"]    }
+   if(BetaEffect){     outB <- output[,"betaEffect"]      }
+   Ttest <- "ttest" %in% settings$design_levels
+   Meta <- "metaregression" %in% settings$design_levels
+   
    ################################################################################
    # Empty lists to story P-specific arrays with T-specific pages an nDataset rows
    ################################################################################
    # Store true values
-   trueVals_Hier <- list()
-   trueVals_Meta_nondt <- list();    trueVals_Ttst_nondt <- list()
-   trueVals_Meta_drift <- list();    trueVals_Ttst_drift <- list()
-   trueVals_Meta_bound <- list();    trueVals_Ttst_bound <- list()
+   if(Hierarchical){      trueVals_Hier <- list()                 }
+   if(Ttest){             trueVals_Ttst_nondt <- list()           
+                          trueVals_Ttst_drift <- list()
+                          trueVals_Ttst_bound <- list()           }
+   if(Meta){              trueVals_Meta_nondt <- list()
+                          trueVals_Meta_drift <- list()    
+                          trueVals_Meta_bound <- list()           }
    # Store estimated values (mean posteriors)
-   meanPosts_Hier <- list()
-   meanPosts_Meta_nondt <- list();    meanPosts_Ttst_nondt <- list()
-   meanPosts_Meta_drift <- list();    meanPosts_Ttst_drift <- list()
-   meanPosts_Meta_bound <- list();    meanPosts_Ttst_bound <- list()
+   if(Hierarchical){      meanPosts_Hier <- list()                 }
+   if(Ttest){             meanPosts_Ttst_nondt <- list()           
+                          meanPosts_Ttst_drift <- list()
+                          meanPosts_Ttst_bound <- list()           }
+   if(Meta){              meanPosts_Meta_nondt <- list()
+                          meanPosts_Meta_drift <- list()    
+                          meanPosts_Meta_bound <- list()           }
    # Store posterior variance
-   sdevPosts_Hier <- list()
-   sdevPosts_Meta_nondt <- list();   sdevPosts_Ttst_nondt <- list()
-   sdevPosts_Meta_drift <- list();   sdevPosts_Ttst_drift <- list()
-   sdevPosts_Meta_bound <- list();   sdevPosts_Ttst_bound <- list()
+   if(Hierarchical){      sdevPosts_Hier <- list()                 }
+   if(Ttest){             sdevPosts_Ttst_nondt <- list()
+                          sdevPosts_Ttst_drift <- list()
+                          sdevPosts_Ttst_bound <- list()           }
+   if(Meta){              sdevPosts_Meta_nondt <- list()
+                          sdevPosts_Meta_drift <- list()
+                          sdevPosts_Meta_bound <- list()           }
    # Store rhats
-   rhats_Hier <- list()
-   rhats_Meta_nondt <- list();   rhats_Ttst_nondt <- list()
-   rhats_Meta_drift <- list();   rhats_Ttst_drift <- list()
-   rhats_Meta_bound <- list();   rhats_Ttst_bound <- list()
+   if(Hierarchical){      rhats_Hier <- list()                     }
+   if(Ttest){             rhats_Ttst_nondt <- list()
+                          rhats_Ttst_drift <- list()
+                          rhats_Ttst_bound <- list()               }
+   if(Meta){              rhats_Meta_nondt <- list()
+                          rhats_Meta_drift <- list()   
+                          rhats_Meta_bound <- list()               }
    # Store running times (in seconds)
-   clock_Hier <- array(NA, dim=c(nDatasets,length(allT),length(allP)), 
+   clock_base <- array(NA, dim=c(nDatasets,length(allT),length(allP)), 
                        dimnames = list(paste("seed", 1:nDatasets), paste("T", allT, sep=""), paste("P", allP,sep="")))
-   clock_Ttst <- list("bound" = clock_Hier, "drift" = clock_Hier, "nondt" = clock_Hier)
-   clock_Meta <- list("bound" = clock_Hier, "drift" = clock_Hier, "nondt" = clock_Hier)
+   if(Hierarchical){     clock_Hier <- clock_base                   }
+   if(Ttest){ clock_Ttst <- list("bound" = clock_base, "drift" = clock_base, "nondt" = clock_base)}
+   if(Meta){  clock_Meta <- list("bound" = clock_base, "drift" = clock_base, "nondt" = clock_base)}
    
    ################################################################################
    # Fill the empty storage objects
@@ -47,50 +69,63 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
        # No. parameters depend on No. of participants
        nParamsH <- 6+(3*p)
        nParamsB <- nParamsH+1
-       # Create empty arrays to store True values
-       Hnames_true      <- sub('.*true.values.','',names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"true.values"])))
-       Hnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"mean.estimates"]))))
-       Hnames_rhats     <- sub(".*\\.", "", names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"rhats"])))
-       Bnames_true      <- sub('.*true.values.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"true.values"])))
-       Bnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"mean.estimates"]))))
-       Bnames_rhats     <- sub(".*\\.", "", names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"rhats"])))
-       emptyObj_Htrue <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
-                           dimnames = list(paste("seed", 1:nDatasets), Hnames_true, paste("T",allT,sep="")))
-       emptyObj_Btrue <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
-                           dimnames = list(paste("seed", 1:nDatasets), Bnames_true, paste("T",allT,sep="")))
-       # Create empty arrays for estimates and errors
-       emptyObj_H <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
-                           dimnames = list(paste("seed", 1:nDatasets), Hnames_estimates, paste("T",allT,sep="")))
-       emptyObj_B <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
-                           dimnames = list(paste("seed", 1:nDatasets), Bnames_estimates, paste("T",allT,sep="")))
-       # Create empty arrays for Rhats
-       emptyObj_R_H <- array(NA, dim=c(nDatasets,nParamsH+1,length(allT)), 
-                             dimnames = list(paste("seed", 1:nDatasets), Hnames_rhats, paste("T",allT,sep="")))
-       emptyObj_R_B <- array(NA, dim=c(nDatasets,nParamsB+1,length(allT)), 
-                             dimnames = list(paste("seed", 1:nDatasets), Bnames_rhats, paste("T",allT,sep="")))
-       # Add these arrays (specific number of columns) to each list
-       trueVals_Hier <- c(trueVals_Hier, list(emptyObj_Htrue))
+       if(Hierarchical){
+           # Identify parameter names
+           Hnames_true      <- sub('.*true.values.','',names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"true.values"])))
+           Hnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"mean.estimates"]))))
+           Hnames_rhats     <- sub(".*\\.", "", names(unlist(outH[[1]][which(outH[[1]][,"p"]==p)[1],"rhats"])))
+           # Create empty arrays to store True values
+           emptyObj_Htrue <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
+                                   dimnames = list(paste("seed", 1:nDatasets), Hnames_true, paste("T",allT,sep="")))
+           # Create empty arrays for estimates and errors
+           emptyObj_H <- array(NA, dim=c(nDatasets,nParamsH,length(allT)), 
+                               dimnames = list(paste("seed", 1:nDatasets), Hnames_estimates, paste("T",allT,sep="")))
+           # Create empty arrays for Rhats
+           emptyObj_R_H <- array(NA, dim=c(nDatasets,nParamsH+1,length(allT)), 
+                                 dimnames = list(paste("seed", 1:nDatasets), Hnames_rhats, paste("T",allT,sep="")))
+           # Add these arrays (specific number of columns) to each list
+           trueVals_Hier <- c(trueVals_Hier, list(emptyObj_Htrue))
+           meanPosts_Hier <- c(meanPosts_Hier, list(emptyObj_H))
+           sdevPosts_Hier <- c(sdevPosts_Hier, list(emptyObj_H))
+           rhats_Hier <- c(rhats_Hier, list(emptyObj_R_H))
+       }
+       if(BetaEffect){
+           # Identify parameter names
+           Bnames_true      <- sub('.*true.values.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"true.values"])))
+           Bnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"mean.estimates"]))))
+           Bnames_rhats     <- sub(".*\\.", "", names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"rhats"])))
+           # Create empty arrays to store True values
+           emptyObj_Btrue <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
+                               dimnames = list(paste("seed", 1:nDatasets), Bnames_true, paste("T",allT,sep="")))
+           # Create empty arrays for estimates and errors
+           emptyObj_B <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
+                               dimnames = list(paste("seed", 1:nDatasets), Bnames_estimates, paste("T",allT,sep="")))
+           # Create empty arrays for Rhats
+           emptyObj_R_B <- array(NA, dim=c(nDatasets,nParamsB+1,length(allT)), 
+                                 dimnames = list(paste("seed", 1:nDatasets), Bnames_rhats, paste("T",allT,sep="")))
+       }
+       
        trueVals_Meta_nondt <- c(trueVals_Meta_nondt, list(emptyObj_Btrue))
        trueVals_Ttst_nondt <- c(trueVals_Ttst_nondt, list(emptyObj_Btrue))
        trueVals_Meta_drift <- c(trueVals_Meta_drift, list(emptyObj_Btrue))
        trueVals_Ttst_drift <- c(trueVals_Ttst_drift, list(emptyObj_Btrue))
        trueVals_Meta_bound <- c(trueVals_Meta_bound, list(emptyObj_Btrue))
        trueVals_Ttst_bound <- c(trueVals_Ttst_bound, list(emptyObj_Btrue))
-       meanPosts_Hier <- c(meanPosts_Hier, list(emptyObj_H))
+       
        meanPosts_Meta_nondt <- c(meanPosts_Meta_nondt, list(emptyObj_B))
        meanPosts_Ttst_nondt <- c(meanPosts_Ttst_nondt, list(emptyObj_B))
        meanPosts_Meta_drift <- c(meanPosts_Meta_drift, list(emptyObj_B))
        meanPosts_Ttst_drift <- c(meanPosts_Ttst_drift, list(emptyObj_B))
        meanPosts_Meta_bound <- c(meanPosts_Meta_bound, list(emptyObj_B))
        meanPosts_Ttst_bound <- c(meanPosts_Ttst_bound, list(emptyObj_B))
-       sdevPosts_Hier <- c(sdevPosts_Hier, list(emptyObj_H))
+       
        sdevPosts_Meta_nondt <- c(sdevPosts_Meta_nondt, list(emptyObj_B))
        sdevPosts_Ttst_nondt <- c(sdevPosts_Ttst_nondt, list(emptyObj_B))
        sdevPosts_Meta_drift <- c(sdevPosts_Meta_drift, list(emptyObj_B))
        sdevPosts_Ttst_drift <- c(sdevPosts_Ttst_drift, list(emptyObj_B))
        sdevPosts_Meta_bound <- c(sdevPosts_Meta_bound, list(emptyObj_B))
        sdevPosts_Ttst_bound <- c(sdevPosts_Ttst_bound, list(emptyObj_B))
-       rhats_Hier <- c(rhats_Hier, list(emptyObj_R_H))
+       
        rhats_Meta_nondt <- c(rhats_Meta_nondt, list(emptyObj_R_B))
        rhats_Ttst_nondt <- c(rhats_Ttst_nondt, list(emptyObj_R_B))
        rhats_Meta_drift <- c(rhats_Meta_drift, list(emptyObj_R_B))
