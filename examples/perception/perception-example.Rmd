@@ -257,6 +257,7 @@ samples <- jags(data=data_toJAGS,
 end <- Sys.time()
 
 save(samples, file="./results/samples.RData")
+save(df, file="./results/df.RData")
 ```
 
 ```{r, echo=FALSE}
