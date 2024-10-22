@@ -40,3 +40,11 @@ for(i in 1:J){
   pp_varRT[,i]   <- rnorm(n,1/PRT[,i], sqrt(2/((nTrials[i]-1) * PRT[,i] * PRT[,i])))
   pp_meanRT[,i]  <- rnorm(n,MRT[,i],sqrt(1/(PRT[,i]*nTrials[i])))
 }
+
+
+
+# Identify conditions to plot on x axis
+x_values <- unique(df$Xs)
+# Insert a 'jump' in between these values
+fit_x <- c(x_values[1:16],NA,x_values[17:32])
+full_x <- c(fit_x,NA,fit_x+6.8)
