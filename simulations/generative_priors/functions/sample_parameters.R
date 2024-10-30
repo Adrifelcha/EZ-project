@@ -18,12 +18,13 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion=NA, fromPri
         if(!is.na(fixedBeta)){
         }else{
             # Sample and add coefficient to the parameter_set
-            betaweight <- runif(1,priors$betaweight_lower,priors$betaweight_upper)
+            betaweight <- runif(1,-1,1)
             # Identify criterion (i.e., parameter of interest)
             if(is.na(criterion)){  criterion <- "drift"  }
             if(criterion=="bound"){  parameter_set$bound <- rnorm(nPart,bound_mean+(betaweight*X), bound_sdev)  }
             if(criterion=="drift"){  parameter_set$drift <- rnorm(nPart,drift_mean+(betaweight*X), drift_sdev)  }
-            if(criterion=="nondt"){  parameter_set$nondt <- rnorm(nPart,nondt_mean+(betaweight*X), nondt_sdev)  }
+            if(criterion=="nondt"){  betaweight <- abs(betaweight)
+                                     parameter_set$nondt <- rnorm(nPart,nondt_mean+(betaweight*X), nondt_sdev)  }
         }
     parameter_set <- c(parameter_set, list("betaweight" = betaweight))
   }
