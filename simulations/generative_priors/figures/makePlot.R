@@ -118,7 +118,7 @@ dev.off()
 
 png(file = "./simTtest_nondt_bound.png", width = 5, height = 5, units="in",res=300) # Width and height of the plot in inches
 par(bg=NA)
-makeSimStudyPlot("../results/simStudy_Ttst_nondt.RData", param="bound_mean", plotType=2)
+makeSimStudyPlot("../results/simStudy_Ttest_nondt.RData", param="bound_mean", plotType=2)
 dev.off()
 
 ####################
