@@ -1,4 +1,4 @@
-makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA){
+makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA, showParam = TRUE, showStudy = FALSE){
   assign('obj', get(load(simStudyRData)))
   lvls <- c(20,40,80,160,320)
   nL <- length(lvls)
@@ -49,12 +49,13 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA)
             print(cbind(this.panel$estimates[1:2], this.panel$trueValues[1:2]))
         }
       }
-      if(par=="drift_mean"){       label <-  expression(paste(mu[nu]))   }
-      if(par=="nondt_mean"){       label <-  expression(paste(mu[tau]))   }
-      if(par=="bound_mean"){       label <-  expression(paste(mu[alpha]))   }
-      if(par=="betaweight"){  label <-  expression(paste(beta))   }
-      mtext(label, 4, outer=T, las=2, line=-1.5, cex=2)
-      
+      if(showParam){
+              if(par=="drift_mean"){       label <-  expression(paste(mu[nu]))   }
+              if(par=="nondt_mean"){       label <-  expression(paste(mu[tau]))   }
+              if(par=="bound_mean"){       label <-  expression(paste(mu[alpha]))   }
+              if(par=="betaweight"){  label <-  expression(paste(beta))   }
+              mtext(label, 4, outer=T, las=2, line=-1.5, cex=2)
+      }
   }
 }
 
