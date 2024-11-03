@@ -2,7 +2,7 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
   assign('obj', get(load(simStudyRData)))
   lvls <- c(20,40,80,160,320)
   nL <- length(lvls)
-  print_Yaxis <- rep(c(TRUE,rep(FALSE,nL-1)),nL)
+  print_Yaxis <- rep(c(rep(FALSE,nL-1),TRUE),nL)
   print_Xaxis <- c(rep(rep(FALSE,nL),nL-1),rep(TRUE,nL))
   P <- lvls
   Tr <- lvls
@@ -14,8 +14,12 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
   }
   
   for(par in param){
-      par(pty="s", mfrow=c(5,5), mai=c(0,0,0.05,0.05), 
-          oma=c(2.5,2.5,1.5,1.5))
+      mai <- c(0,0,0.075,0.075)
+      if(showParam){
+                      par(pty="s", mfrow=c(5,5), mai=mai, oma=c(2.5,1.4,1.4,4))
+      }else{
+                      par(pty="s", mfrow=c(5,5), mai=mai, oma=c(2.5,1.4,1.4,0))
+      }
       panel_no <- 1
       plot.range <- round(range(c(obj$true[[1]][,par,]
                                   ,obj$recovered[[1]][,par,]
@@ -41,7 +45,7 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
                              axisY = print_Yaxis[panel_no])
             }
             box(lty=3)
-            if(k==1){mtext(paste("P =",P[i]),2,line=2.5,f=2)}
+            if(k==1){mtext(paste("P =",P[i]),2,line=0.75,f=2, srt=180)}
             if(i==1){mtext(paste("T =",Tr[k]),line=0.5,f=2)}
             panel_no <- panel_no +1
             
@@ -54,15 +58,13 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
               if(par=="nondt_mean"){       label <-  expression(paste(mu[tau]))   }
               if(par=="bound_mean"){       label <-  expression(paste(mu[alpha]))   }
               if(par=="betaweight"){  label <-  expression(paste(beta))   }
-              mtext(label, 4, outer=T, las=2, line=-1.5, cex=2)
+              mtext(label, 4, outer=T, las=2, line=1, cex=2)
       }
   }
 }
 
-#check.par <- "bound_mean"
-#simStudyRData <- "../../simulations/params_from_uniforms/simStudy1/results/simStudy_Meta_nondtx.RData"
-#dev.new(width=8, height=12)
-#makeSimStudyPlot(simStudyRData, param=NA, plotType=2)
-
+check.par <- "bound_mean"
+simStudyRData <- "../results/simStudy_Meta_drift.RData"
+makeSimStudyPlot(simStudyRData, param=check.par, plotType=2, plot.range=NA, showParam = TRUE, showStudy = FALSE)
 #source("../../simulations/params_from_uniforms/simStudy1/figures/plot_simStudyOutput_outdated.R")
 #makeSimStudyPlot(simStudyRData, param=check.par)
