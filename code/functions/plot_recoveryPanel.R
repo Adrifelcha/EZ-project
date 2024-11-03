@@ -94,7 +94,8 @@ make_panel_type2 <- function(simOutput, parameter=NA,
             }}}}
     }
     
-    
+    abline(v=mean(plot.range), col="gray80", lty=3)
+    abline(h=mean(plot.range), col="gray80", lty=3)
     abline(0,1,col="gray70", lwd=2, lty=2)
     heights <- c()
     mids <- c()
