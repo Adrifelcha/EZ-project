@@ -119,7 +119,7 @@ make_panel_type2 <- function(simOutput, parameter=NA,
     points(x,y, cex=0.75, pch=16, col=rgb(red/10,green/10,blue/10,0.1))
     axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
     if(axisX){  axis(1, axis.labels, round(axis.labels,1))         }
-    if(axisY){  axis(2, axis.labels, round(axis.labels,1), las=2)  }
+    if(axisY){  axis(4, axis.labels, round(axis.labels,1), las=2)  }
     if(add.titles){
       mtext("Simulated values",1, line=2.5, f=2, cex=1.2)
       mtext("Recovered values",2, line=2.75, f=2, cex=1.2)
