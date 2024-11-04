@@ -22,36 +22,32 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
    ################################################################################
    # Empty lists to story P-specific arrays with T-specific pages an nDataset rows
    ################################################################################
-   # Store true values
-   if(Hierarchical){      trueVals_Hier <- list()                 }
+   if(Hierarchical){      trueVals_Hier <- list()                 
+                          meanPosts_Hier <- list()
+                          sdevPosts_Hier <- list()
+                          rhats_Hier <- list()                    }
    if(Ttest){             trueVals_Ttst_nondt <- list()           
                           trueVals_Ttst_drift <- list()
-                          trueVals_Ttst_bound <- list()           }
-   if(Meta){              trueVals_Meta_nondt <- list()
-                          trueVals_Meta_drift <- list()    
-                          trueVals_Meta_bound <- list()           }
-   # Store estimated values (mean posteriors)
-   if(Hierarchical){      meanPosts_Hier <- list()                 }
-   if(Ttest){             meanPosts_Ttst_nondt <- list()           
+                          trueVals_Ttst_bound <- list()
+                          meanPosts_Ttst_nondt <- list()           
                           meanPosts_Ttst_drift <- list()
-                          meanPosts_Ttst_bound <- list()           }
-   if(Meta){              meanPosts_Meta_nondt <- list()
-                          meanPosts_Meta_drift <- list()    
-                          meanPosts_Meta_bound <- list()           }
-   # Store posterior variance
-   if(Hierarchical){      sdevPosts_Hier <- list()                 }
-   if(Ttest){             sdevPosts_Ttst_nondt <- list()
+                          meanPosts_Ttst_bound <- list()
+                          sdevPosts_Ttst_nondt <- list()
                           sdevPosts_Ttst_drift <- list()
-                          sdevPosts_Ttst_bound <- list()           }
-   if(Meta){              sdevPosts_Meta_nondt <- list()
-                          sdevPosts_Meta_drift <- list()
-                          sdevPosts_Meta_bound <- list()           }
-   # Store rhats
-   if(Hierarchical){      rhats_Hier <- list()                     }
-   if(Ttest){             rhats_Ttst_nondt <- list()
+                          sdevPosts_Ttst_bound <- list()
+                          rhats_Ttst_nondt <- list()
                           rhats_Ttst_drift <- list()
                           rhats_Ttst_bound <- list()               }
-   if(Meta){              rhats_Meta_nondt <- list()
+   if(Meta){              trueVals_Meta_nondt <- list()
+                          trueVals_Meta_drift <- list()    
+                          trueVals_Meta_bound <- list()
+                          meanPosts_Meta_nondt <- list()
+                          meanPosts_Meta_drift <- list()    
+                          meanPosts_Meta_bound <- list()
+                          sdevPosts_Meta_nondt <- list()
+                          sdevPosts_Meta_drift <- list()
+                          sdevPosts_Meta_bound <- list()
+                          rhats_Meta_nondt <- list()
                           rhats_Meta_drift <- list()   
                           rhats_Meta_bound <- list()               }
    # Store running times (in seconds)
@@ -251,7 +247,7 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
                        names(sdevPosts_Meta_bound) <- paste("P",allP,sep="")
                        names(rhats_Meta_nondt) <- paste("P",allP,sep="")        # Rhats
                        names(rhats_Meta_drift) <- paste("P",allP,sep="")
-                       names(rhats_Meta_bound) <- paste("P",allP,sep="")s
+                       names(rhats_Meta_bound) <- paste("P",allP,sep="")
    }
    
    ################################################################################
