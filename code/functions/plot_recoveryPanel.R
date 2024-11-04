@@ -36,8 +36,8 @@ make_panel_type1 <- function(simOutput, parameter=NA, add.titles = FALSE, plot.r
     abline(0,1,col="gray70", lwd=2, lty=2)
     points(x,y, cex=0.8, pch=16, col=rgb(red,green,blue,0.3))
     axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
-    if(axisX){  axis(1, axis.labels, round(axis.labels,1))         }
-    if(axisY){  axis(2, axis.labels, round(axis.labels,1), las=2)  }
+    if(axisX){  axis(1, axis.labels, sprintf("%.2f", axis.labels))         }
+    if(axisY){  axis(2, axis.labels, sprintf("%.2f", axis.labels), las=2)  }
     if(add.titles){
       mtext("Simulated values",1, line=2.5, f=2, cex=1.2)
       mtext("Recovered values",2, line=2.75, f=2, cex=1.2)
@@ -96,7 +96,7 @@ make_panel_type2 <- function(simOutput, parameter=NA,
     
     abline(v=mean(plot.range), col="gray80", lty=3)
     abline(h=mean(plot.range), col="gray80", lty=3)
-    abline(0,1,col="gray70", lwd=2, lty=2)
+    abline(0,1,col="gray70", lwd=1, lty=1)
     heights <- c()
     mids <- c()
     for(b in 2:length(bins)){
@@ -111,15 +111,21 @@ make_panel_type2 <- function(simOutput, parameter=NA,
     #points(mids, heights[,1], pch=16, cex=0.5)
     #points(mids, heights[,3], pch=16, cex=0.5)
     #points(mids, heights[,2], pch=16, cex=0.5)
-    lines(mids,heights[,1], lwd=2, col=rgb(red,green,blue,1))
-    lines(mids,heights[,2], lwd=2)
-    lines(mids,heights[,3], lwd=2, col=rgb(red,green,blue,1))
     polygon(c(mids,rev(mids)), c(heights[,1],rev(heights[,3])),
             col=rgb(red,green,blue,0.09), border = NA)
-    points(x,y, cex=0.75, pch=16, col=rgb(red/10,green/10,blue/10,0.1))
+    points(x,y, cex=0.6, pch=16, col=rgb(red/10,green/10,blue/10,0.3))
     axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
-    if(axisX){  axis(1, axis.labels, round(axis.labels,1))         }
-    if(axisY){  axis(4, axis.labels, round(axis.labels,1), las=2)  }
+    lines(mids,heights[,1], lwd=1.5, col=rgb(red,green,blue,1))
+    lines(mids,heights[,2], lwd=1)
+    lines(mids,heights[,3], lwd=1.5, col=rgb(red,green,blue,1))
+    if(axisX){  axis(1, axis.labels, sprintf("%.2f", axis.labels), cex.axis=0.78, las=2, line=-0.35,
+                     col = rgb(0, 0, 0, alpha = 0), col.axis = "black") # Don't show line and ticks
+                axis(1, axis.labels, rep("",length(axis.labels)), tcl = -0.3, col.axis = NA, 
+                     col = rgb(0, 0, 0, alpha = 0), col.ticks = "black")                                }
+    if(axisY){  axis(4, axis.labels, sprintf("%.2f", axis.labels), cex.axis=0.78, las=2, line=-0.45,
+                     col = rgb(0, 0, 0, alpha = 0), col.axis = "black") # Don't show line and ticks
+                axis(4, axis.labels, rep("",length(axis.labels)), tcl = -0.3, col.axis = NA, 
+                     col = rgb(0, 0, 0, alpha = 0), col.ticks = "black")                                }
     if(add.titles){
       mtext("Simulated values",1, line=2.5, f=2, cex=1.2)
       mtext("Recovered values",2, line=2.75, f=2, cex=1.2)
