@@ -4,24 +4,24 @@
 # CUSTOMIZABLE SETTINGS
 #simulationDirectory <- "../../simulations/generative_priors/"
 #setwd(simulationDirectory)
-simStudyID <- "sim"
-showParam = TRUE
+results.at <- "./results/"
+save.to <- "../../figures/"
+simStudyID <- "genPrior"
+showParam = FALSE
 plotType = 2
-h = 6 #height in inches
+h = 5 #height in inches
 w = h #width in inches
 res = 300
 units <- "in"
 
-plot.ranges <- rbind(c(,),   # drift
-                     c(,),   # bound
-                     c(,),   # nondt
-                     c(,))   # betaweight
-
+plot.ranges <- rbind(c(-1.3,1.3),   # drift
+                     c(1,2),   # bound
+                     c(0.15,0.4),   # nondt
+                     c(-1,1))   # betaweight
 
 ###############################################################################
 # Make plots
 ###############################################################################
-results.at <- "./results/"
 results.available <- gsub(".RData","",sub('simStudy_', '', dir(results.at)))
 split_ <- strsplit(results.available, "_")
 designs.available <- unique(sapply(split_, `[`, 1))
@@ -32,14 +32,15 @@ parameters <- cbind(c("drift","bound","nondt","beta"),
 for(d in designs.available){
     
     for(c in criterion.parameters){
-      
+        plot.range <- plot.ranges
+        if(c == "nondt"){       plot.range[4,] <- c(0,1)            }
         results.file <- paste("simStudy_",d,"_",c,".RData", sep="")
         simResults <- paste(results.at,results.file,sep="")
         for(i in 1:nrow(parameters)){
-            makePNG <- paste("./figures/",simStudyID,d,"_",c,"_",parameters[i,1],".png",sep="")
+            makePNG <- paste(save.to,simStudyID,d,"_",c,"_",parameters[i,1],".png",sep="")
             png(file = makePNG, width = w, height = h, units=units,res=res) 
             par(bg=NA)
-            makeSimStudyPlot(simResults, param=parameters[i,2], plotType=plotType, showParam=showParam)
+            makeSimStudyPlot(simResults, param=parameters[i,2], plotType=plotType, showParam=showParam, plot.range=plot.range[i,])
             dev.off()
         }
       
