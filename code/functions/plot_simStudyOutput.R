@@ -64,8 +64,8 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
   }
 }
 
-check.par <- "drift_mean"
-simStudyRData <- "./results/simStudy_Meta_drift.RData"
-makeSimStudyPlot(simStudyRData, param=check.par, plotType=2, plot.range=NA, showParam = TRUE, showStudy = FALSE)
+#check.par <- "drift_mean"
+#simStudyRData <- "./results/simStudy_Meta_drift.RData"
+#makeSimStudyPlot(simStudyRData, param=check.par, plotType=2, plot.range=NA, showParam = TRUE, showStudy = FALSE)
 #source("../../simulations/params_from_uniforms/simStudy1/figures/plot_simStudyOutput_outdated.R")
 #makeSimStudyPlot(simStudyRData, param=check.par)
