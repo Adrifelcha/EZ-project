@@ -3,10 +3,9 @@
 ##########################################################
 ######## Load required R packages for parallel processing
 for(archive in dir("../../code/functions/")){    source(paste("../../code/functions/",archive,sep=""))     }
+for(archive in dir("./functions/")){    source(paste("./functions/",archive,sep=""))     }
 source("../../code/scripts/HDDM_setup.R")
 source("../../code/scripts/HDDM_runJAGS.R")
-source("../../code/scripts/HDDM_runFullSeed.R")
-for(archive in dir("./functions/")){    source(paste("./functions/",archive,sep=""))     }
 library(foreach)
 library(doParallel)
 
@@ -24,7 +23,7 @@ settings <- list("fromPrior" = TRUE,  # This logical variable should be defined 
                  "output.folder" = "./samples/", # Before running this script, indicate where to store samples
                  "participant_levels" = c(20,40,80,160,320), 
                  "trial_levels" = c(20,40,80,160,320),
-                 "nDatasets" = 200,
+                 "nDatasets" = 1000,
                  "criterion_levels" = c("drift", "nondt", "bound"),
                  "design_levels" = c("ttest","metaregression"),
                  "n.chains" = 3)
@@ -59,20 +58,23 @@ for(model in settings$design_levels){
 # Define simulation functions
 ################################################################
 cores       <-  detectCores()
-my.cluster  <-  makeCluster(cores[1]-4)
+my.cluster  <-  makeCluster(cores[1]-3)
 
 registerDoParallel(cl = my.cluster)
-output <- foreach(i = 1:settings$nDatasets, 
-                  .errorhandling = "pass",
-                  .combine = 'rbind'
-                  ) %dopar% {
-                    Z <- HDDM_runFullSeed(seed = i, settings, forceRun = TRUE)
-                  }
+#output <- foreach(i = 120:1000, 
+#                  .errorhandling = "pass",
+#                  .combine = 'rbind'
+#                  ) %dopar% {
+#                    Z <- HDDM_runFullSeed(seed = i, settings, forceRun = TRUE)
+#                  }
 stopCluster(cl = my.cluster)
 
-source("../functions/store_parallelOutput.R")
-store_parallelOutput(output, settings, saveTo = "./results/")
-source("../functions/plot_simStudyOutput.R")
-makeSimStudyPlot("../../simulations/params_from_uniforms/simStudy2/results/simStudy_Meta_bound.RData")
+#newoutput <- output
+#output <- rbind(output1to119,output)
+#output1to119 <- output
+
+source("../../code/functions/store_parallelOutput.R")
+#store_parallelOutput(output, settings, saveTo = "./results/")
+makeSimStudyPlot("./results/simStudy_Meta_drift.RData", plotType = 2)
 
 
