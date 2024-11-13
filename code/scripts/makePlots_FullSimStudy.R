@@ -5,19 +5,25 @@
 #simulationDirectory <- "../../simulations/generative_priors/"
 #setwd(simulationDirectory)
 results.at <- "./results/"
-save.to <- "../../figures/"
-simStudyID <- "genPrior"
-showParam = FALSE
+save.to <- "./figures/"
+simStudyID <- "sim"
+showParam = TRUE
 plotType = 2
 h = 5 #height in inches
 w = h #width in inches
 res = 300
 units <- "in"
 
+##### Simulaion study 1: Generative prior
 plot.ranges <- rbind(c(-1.3,1.3),   # drift
-                     c(1,2),   # bound
+                     c(1,2),        # bound
                      c(0.15,0.4),   # nondt
-                     c(-1,1))   # betaweight
+                     c(-1,1))       # betaweight
+###### Simulation study 2: Uniform parameters
+#plot.ranges <- rbind(c(-6,6),   # drift
+#                     c(0.25,5),   # bound
+#                     c(0.1,1.1),   # nondt
+#                     c(-1.5,1.5))   # betaweight
 
 ###############################################################################
 # Make plots
