@@ -5,8 +5,8 @@
 #simulationDirectory <- "../../simulations/generative_priors/"
 #setwd(simulationDirectory)
 results.at <- "./results/"
-save.to <- "./figures/"
-simStudyID <- "sim"
+save.to <- "../../figures/"
+simStudyID <- "genPrior"
 showParam = TRUE
 plotType = 2
 h = 5 #height in inches
