@@ -1,4 +1,4 @@
-makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA, showParam = TRUE, showStudy = FALSE, showTestValues=FALSE){
+makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA, showParam = TRUE, showStudy = FALSE, showTestValues=FALSE, nBins=15){
   assign('obj', get(load(simStudyRData)))
   lvls <- c(20,40,80,160,320)
   nL <- length(lvls)
@@ -40,7 +40,7 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
                              add.titles = FALSE, plot.range=plot.range)
             }else{
                 make_panel_type2(this.panel, parameter=par, 
-                             add.titles = FALSE, nBins=15, 
+                             add.titles = FALSE, nBins=nBins, 
                              plot.range=plot.range,
                              axisX = print_Xaxis[panel_no], 
                              axisY = print_Yaxis[panel_no])
