@@ -19,10 +19,11 @@ for(b in 1:length(estimates)){
     }
 }
 
-plot(m,p[,1], type="l", ylim=c(0,1))
+plot(m,p[,1], type="l", ylim=c(0,1), ann=F, axes=F)
 for(j in 2:length(estimates)){
     lines(m,p[,j],col=j)
 }
+
 
 plot(p[,2],p[,1], type="l", ylim=c(0,1))
 for(j in 3:length(estimates)){
