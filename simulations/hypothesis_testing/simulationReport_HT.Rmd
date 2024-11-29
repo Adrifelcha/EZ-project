@@ -55,13 +55,13 @@ for(archive in dir("../../code/functions/")){    source(paste("../../code/functi
 for(archive in dir("../../code/scripts/")){    
   if(length(which(grepl("HDDM",archive)))!=0){  source(paste("../../code/scripts/",archive,sep="")) }    
 }
-source("../../code/scripts/HDDM_simFixedEffect.R")
-source("./writefixEffJAGSmodel.R")
+source("./scripts/HDDM_simFixedEffect.R")
+source("./scripts/writefixEffJAGSmodel.R")
 ```
 
 
 ```{r}
-setwd("../../../../../Dropbox/cidlab/achavezd/samples/tmp2/")
+setwd("../../../../../../Dropbox/achavezd/samples/tmp2/")
 
 betaNoDiff <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0, 
                          priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label= "Null")
