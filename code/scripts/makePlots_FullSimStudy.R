@@ -53,14 +53,37 @@ for(d in designs.available){
             dev.off()
             
             makePDF <- paste(save.to,simStudyID,d,"_",c,"_",parameters[i,1],".pdf",sep="")
-            pdf(file = makePDF, width = w, height = h) 
-            par(bg=NA)
-            makeSimStudyPlot(simResults, param=parameters[i,2], plotType=plotType, showParam=showParam, 
-                             plot.range=plot.range[i,], showStudy=showStudy, nBins=nBins)
-            dev.off()
+            if(d=="Meta"&c=="bound"){
+                pdf(file = makePDF, width = w, height = h)
+                par(bg=NA)
+                makeSimStudyPlot(simResults, param=parameters[i,2], plotType=plotType, showParam=FALSE, 
+                                 plot.range=plot.range[i,], showStudy=showStudy, nBins=nBins, fixedMargins=FALSE)
+                dev.off()
+            }else{
+                pdf(file = makePDF, width = w, height = h)
+                par(bg=NA)
+                makeSimStudyPlot(simResults, param=parameters[i,2], plotType=plotType, showParam=showParam, 
+                                 plot.range=plot.range[i,], showStudy=showStudy, nBins=nBins, fixedMargins=FALSE)
+                dev.off()
+            }
         }
-      
     }
-  
 }
 
+
+single_example <- "simStudy_Meta_drift.RData"
+par <- "betaweight"
+getExample <- paste(results.at,single_example, sep="")
+
+example_info <- gsub(".RData","",sub('simStudy_', '', single_example))
+example_split_ <- strsplit(example_info, "_")
+example_design <- sapply(example_split_, `[`, 1)
+example_criterion <- sapply(example_split_, `[`, 2)
+plot.range <- c(-1,1)
+makePDF <- paste(save.to,simStudyID,example_design,"_",example_criterion,"_",
+                 parameters[which(parameters[,2]==par),1],"_sample.pdf",sep="")
+pdf(file = makePDF, width = w, height = h) 
+par(bg=NA)
+makeSimStudyPlot(getExample, param=par, plotType=plotType, showParam=TRUE, 
+                 plot.range=plot.range, showStudy=showStudy, nBins=15, fixedMargins=TRUE)
+dev.off()
