@@ -1,4 +1,4 @@
-makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA, showParam = TRUE, showStudy = FALSE, showTestValues=FALSE, nBins=15){
+makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA, showParam = TRUE, showStudy = FALSE, showTestValues=FALSE, nBins=15, fixedMargins=FALSE){
   assign('obj', get(load(simStudyRData)))
   lvls <- c(20,40,80,160,320)
   nL <- length(lvls)
@@ -15,9 +15,16 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
   
   for(par in param){
       mai <- c(0,0,0.075,0.075)
+      
+      upper_margin <- 1  
       right_margin <- 1.7 
-      upper_margin <- 1
-      if(showParam){ right_margin <- 4.7  }
+      if(fixedMargins|showParam){
+              if(par=="betaweight"){    right_margin <- 4.3   }
+              if(par=="drift_mean"){    right_margin <- 5.4   }
+              if(par=="nondt_mean"){    right_margin <- 5.4   }
+              if(par=="bound_mean"){    right_margin <- 5.4   }
+      }
+      
       if(showStudy){ upper_margin <- 3.7    }
       par(pty="s", mfrow=c(5,5), mai=mai, oma=c(2.5,1.75,upper_margin,right_margin))
       
@@ -59,11 +66,12 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
         }
       }
       if(showParam){
-              if(par=="drift_mean"){       label <-  expression(paste(mu[nu]))   }
-              if(par=="nondt_mean"){       label <-  expression(paste(mu[tau]))   }
-              if(par=="bound_mean"){       label <-  expression(paste(mu[alpha]))   }
-              if(par=="betaweight"){  label <-  expression(paste(beta))   }
-              mtext(label, 4, outer=T, las=2, line=1.75, cex=2)
+              if(par=="drift_mean"){       label <-  expression(paste(mu[nu]))     }
+              if(par=="nondt_mean"){       label <-  expression(paste(mu[tau]))    }
+              if(par=="bound_mean"){       label <-  expression(paste(mu[alpha]))  }
+              if(par=="betaweight"){  label <-  expression(paste(beta)) 
+                          mtext(label, 4, outer=T, las=2, line=2.2, cex=2.5)
+              }else{      mtext(label, 4, outer=T, las=2, line=2, cex=2.8)      }
       }
       if(showStudy){
         fileName <- simStudyRData
@@ -73,9 +81,9 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
         split_design <- unlist(strsplit(studyInfo, "_"))
         if(split_design[1]=="Meta"|split_design[1]=="Ttest"){
           if(split_design[1]=="Meta"){ 
-            design_label <- "Metaregression"}
+            design_label <- "metaregression"}
             else{                       
-              design_label <- "T-test design"
+              design_label <- "t-test design"
             }
           if(split_design[2]=="drift"){ title <-  bquote(.(design_label) ~ "on" ~ nu)   }
           if(split_design[2]=="bound"){ title <-  bquote(.(design_label) ~ "on" ~ alpha)   }
@@ -86,8 +94,20 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
   }
 }
 
-check.par <- "drift_mean"
-simStudyRData <- "./results/simStudy_Meta_drift.RData"
-makeSimStudyPlot(simStudyRData, param=check.par, plotType=2, plot.range=NA, showParam = TRUE, showStudy = TRUE)
-#source("../../simulations/params_from_uniforms/simStudy1/figures/plot_simStudyOutput_outdated.R")
-#makeSimStudyPlot(simStudyRData, param=check.par)
+
+#single_example <- "simStudy_Meta_drift.RData"
+#par <- "drift_mean"
+#getExample <- paste(results.at,single_example, sep="")
+
+#example_info <- gsub(".RData","",sub('simStudy_', '', single_example))
+#example_split_ <- strsplit(example_info, "_")
+#example_design <- sapply(example_split_, `[`, 1)
+#example_criterion <- sapply(example_split_, `[`, 2)
+#plot.range <- c(-1,1)
+#makePDF <- paste(save.to,simStudyID,example_design,"_",example_criterion,"_",
+#                 parameters[which(parameters[,2]==par),1],"_sample.pdf",sep="")
+#pdf(file = makePDF, width = w, height = h) 
+#par(bg=NA)
+#makeSimStudyPlot(getExample, param=par, plotType=plotType, showParam=TRUE, 
+#                 plot.range=plot.range, showStudy=showStudy, nBins=15)
+#dev.off()
