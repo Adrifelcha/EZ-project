@@ -1,5 +1,5 @@
-HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, beta.effect = 0, 
-                         priors = NA, n.chains = 4,  Show=TRUE, forceSim = FALSE, fromPrior=FALSE, label=NA){
+HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 10, betaweight = 0, 
+                                n.chains = 3,  Show=TRUE, forceSim = FALSE, label=NA){
     #################################
     # Initial checks
     #################################
@@ -10,10 +10,10 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
     
     if(!is.na(label)){
           outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
-                              "_FixedEffect",label,".RData", sep="")
+                              "_FixedEff_",label,".RData", sep="")
     }else{
           outputFile <- paste("./sim_P",nParticipants,"Tc",nTrialsPerCondition,"D",nDatasets,
-                              "_FixedEffect.RData", sep="")
+                              "_FixedEff.RData", sep="")
     }
     
     # Check if we needToRun simulations again (overruled by 'forceSim')
@@ -36,16 +36,12 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
             ######################
             #      SET UP        #
             ######################
-            # ~~~~~~~~~~~~~~~~ Settings
             # Define the design settings according to modelType and (optionally) print to screen
             settings <- list("nPart"= nParticipants, "nTrialsPerCondition"= nTrialsPerCondition,
-                             "effect" = beta.effect, "nDatasets" = nDatasets, "modelType" = "ttest",
-                             "criterion" = "drift")
+                             "effect" = betaweight, "nDatasets" = nDatasets)
             if(Show){  show_design(settings)  }
-            
-            # Load default priors if needed and add to settings
-            if(sum(is.na(priors))>0){    priors <- default_priors(Show, modelType="ttest")    }else{
-                            if(Show){    show_priors(priors)}                         }
+            # Load default priors and add to settings
+            priors <- default_priors(Show)
             settings <- c(settings, list("prior" = priors))
             # ~~~~~~~~~~~~~~~~ JAGS variables
             # Define parameters to be tracked on JAGS, according to the modelType
@@ -53,17 +49,14 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
                                 "drift_sdev", "nondt_sdev", "bound_sdev", "drift", "betaweight")
             # Write pertinent JAGS model
             modelFile <- "./FixedEffect.bug"  
-            writefixEffJAGSmodel(priors, beta.effect, modelFile)
+            writefixEffJAGSmodel(priors, modelFile)
             # Data to be passed to JAGS
             X <- rep(c(1,0),nParticipants)
             P <- rep(1:nParticipants, each=2)
-            jagsData = c(data_toJAGS(modelType="ttest"), list("P"))
-            jagsData[[2]] <- "nTrialsPerCondition"
-            # init values
+            jagsData = list("nParticipants", "nTrialsPerCondition", "X", "P",
+                            "meanRT", "varRT", "correct")
+            # Init values
             jagsInits <- rep(list(list()), n.chains)
-            # for(i in 1:n.chains){
-            #   jagsInits[[i]] <- list(drift = matrix(rnorm(nParticipants*2,0,1),ncol=2))
-            # }
             for(i in 1:n.chains){
               jagsInits[[i]] <- list(drift = matrix(rep(rnorm(nParticipants,0,0.25),2),ncol=2, byrow = FALSE))
             }
@@ -87,12 +80,11 @@ HDDM_simFixedEffect <- function(nParticipants, nTrialsPerCondition, nDatasets = 
                 set.seed(k)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
                 # Sample "true parameters" for the simulation using the priors
-                parameter_set <- sample_parameters(priors = priors, nPart = nParticipants, modelType = "ttest", 
-                                                   X = X, criterion = NA, fromPrior = fromPrior, Show=FALSE, 
-                                                   fixedBeta = beta.effect)
-                
+                parameter_set <- sample_parameters(priors = priors, nPart = nParticipants, 
+                                                   X = X, Show=FALSE, betaweight = betaweight)
                 # Generate and prepare data
-                rawData = sample_data(nParticipants, nTrials = NA, parameter_set, nTrialsPerCondition)
+                rawData = sample_data(nPart = nParticipants, nTrialsPerCondition = nTrialsPerCondition, 
+                                      parameter_set = parameter_set)
                 summData = getStatistics(rawData)
                 correct <- summData[,"sum_correct"]
                 varRT   <- summData[,"varRT"]
