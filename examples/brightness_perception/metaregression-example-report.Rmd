@@ -34,7 +34,6 @@ There are 66 cells in the design with two main factors:
 ```{r, message=FALSE}
 # Load necessary libraries/packages
 library(R2jags)
-library(rstan)
 seed <- 15
 ```
 
@@ -44,7 +43,7 @@ seed <- 15
 
 ```{r}
 # Load the data from one participant
-data_raw <- read.csv("./nh.tsv", sep = "")
+data_raw <- read.csv("./data/nh.tsv", sep = "")
 colnames(data_raw) <- c("index","cond","response","RT")
 head(data_raw)
 
@@ -206,7 +205,7 @@ model {
                                          * PRT[p] * PRT[p])
             meanRT[p]  ~ dnorm(MRT[p], PRT[p] * nTrials[p])
       }
-}", "./model_perception.bug")
+}", "./metaregression_model.bug")
 ```
 
 
@@ -250,7 +249,7 @@ set.seed(seed)
 start <- Sys.time()
 samples <- jags(data=data_toJAGS,
                 parameters.to.save=parameters,
-                model="./model_perception.bug",
+                model="./metaregression_model.bug",
                 n.chains=n.chains,  n.iter=1000,
                 n.burnin=100,  n.thin=n.thin,
                 DIC=T, inits=myinits)
@@ -261,7 +260,9 @@ save(df, file="./results/df.RData")
 ```
 
 ```{r, echo=FALSE}
-rhats <- apply(samples$BUGSoutput$sims.array,3,Rhat)
+source("../../code/functions/rhat.R")
+
+rhats <- apply(samples$BUGSoutput$sims.array,3,getRhat)
 rule <- 1.05
 bad.Rhat <- which(rhats>rule)
 test.rhat <- length(bad.Rhat) > 0
