@@ -12,15 +12,15 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
                                    parameters.to.save=jagsParameters, 
                                    model=modelFile, 
                                    n.chains=n.chains, 
-                                   n.iter=2500, 
-                                   n.burnin=500, 
+                                   n.iter=1500, 
+                                   n.burnin=300, 
                                    n.thin=1, 
                                    DIC=T, 
                                    inits=jagsInits))
   toc <- clock::date_now(zone="UTC")
   clock <- as.numeric(toc-tic, units="secs")  # Record time
   object <- samples$BUGSoutput$sims.array
-  rhats <- apply(object,3,Rhat)
+  rhats <- apply(object,3,getRhat)
   if(Show){  
     plot_Chain(samples)   
   }
