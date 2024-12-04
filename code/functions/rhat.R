@@ -19,14 +19,14 @@ getRhat <- function(posterior_chains, n.chains=NA) {
         overall_mean <- mean(chainMean)
         
         # Step 3: Compute between-chain variance (B)
-        B <- n * var(chainMean)
+        B <- n.iter * var(chainMean)
         
         # Step 4: Compute within-chain variances (W)
         chainVar <- apply(posterior_chains, 2, var)
         W <- mean(chainVar)
         
         # Step 5: Estimate the marginal posterior variance
-        Z <- ((n - 1) / n) * W + (1 / n) * B
+        Z <- ((n.iter - 1) / n.iter) * W + (1 / n.iter) * B
         
         # Step 6: Compute R-hat
         Rhat <- sqrt(Z / W)
