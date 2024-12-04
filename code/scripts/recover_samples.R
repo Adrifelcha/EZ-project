@@ -1,4 +1,4 @@
-setwd("../../generative_priors/samples/")
+setwd("../params_from_uniforms/simStudy_Nov24/samples/")
 
 recover_output <- list()
 for(archive in dir()){
