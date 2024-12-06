@@ -5,9 +5,9 @@ sample_parameters <- function(priors, nPart, modelType, X, criterion=NA, fromPri
         bound_mean <- rnorm(1,priors$bound_mean_mean,priors$bound_mean_sdev)
         drift_mean <- rnorm(1,priors$drift_mean_mean,priors$drift_mean_sdev)
         nondt_mean <- rnorm(1,priors$nondt_mean_mean,priors$nondt_mean_sdev)
-        bound_sdev <- runif(1,priors$bound_sdev_lower*1.15, priors$bound_sdev_upper*0.85)  
-        nondt_sdev <- runif(1,priors$nondt_sdev_lower*2, priors$nondt_sdev_upper*0.85)
-        drift_sdev <- runif(1,priors$drift_sdev_lower*1.1, priors$drift_sdev_upper*0.9)
+        bound_sdev <- runif(1,priors$bound_sdev_lower, priors$bound_sdev_upper)  
+        nondt_sdev <- runif(1,priors$nondt_sdev_lower, priors$nondt_sdev_upper)
+        drift_sdev <- runif(1,priors$drift_sdev_lower, priors$drift_sdev_upper)
   }else{
         # Hierarchical mean values are sampled from a uniform defined because...
         bound_mean <- runif(1,0.5,4)     # ...95% density of the default prior falls here
