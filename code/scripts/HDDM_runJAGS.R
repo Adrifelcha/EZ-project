@@ -1,5 +1,6 @@
 HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jagsInits, 
-                         n.chains=4, modelFile="./EZHBDDM.bug", Show = TRUE){
+                         n.chains=4, n.burnin=250, n.iter=2000, n.thin=1, modelFile="./EZHBDDM.bug", Show = TRUE,
+                         track_allParameters = track_allParameters){
   # Prepare data
   correct <- summaryData[,"sum_correct"]
   varRT   <- summaryData[,"varRT"]
@@ -12,9 +13,9 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
                                    parameters.to.save=jagsParameters, 
                                    model=modelFile, 
                                    n.chains=n.chains, 
-                                   n.iter=1500, 
-                                   n.burnin=300, 
-                                   n.thin=1, 
+                                   n.iter=n.iter, 
+                                   n.burnin=n.burnin, 
+                                   n.thin=n.thin, 
                                    DIC=T, 
                                    inits=jagsInits))
   toc <- clock::date_now(zone="UTC")
@@ -22,9 +23,8 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
   object <- samples$BUGSoutput$sims.array
   rhats <- apply(object,3,getRhat)
   if(Show){  
-    plot_Chain(samples)   
+    plot_Chain(samples = samples, track_allParameters = track_allParameters)   
   }
-  
   estimates <- list()
   error <- list
   credInterval <- list()
