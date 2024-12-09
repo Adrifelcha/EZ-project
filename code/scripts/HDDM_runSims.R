@@ -1,6 +1,6 @@
 HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA, criterion = NA, n.chains = 3, 
                          n.burnin=250, n.iter=2000, n.thin=1, Show=TRUE, forceSim = FALSE, fromPrior=TRUE, output.folder = "./",
-                         track_allParameters = FALSE, rhatCheck=TRUE){
+                         track_allParameters = FALSE, rhatCheck=TRUE, redo_if_bad_rhat=FALSE){
     grand_tic <- clock::date_now(zone="UTC")
     #################################
     # Initial checks
@@ -85,49 +85,82 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             MatRhats     <- matrix(NA, nrow=nDatasets, ncol=(nParams+1))
             # ~~~~~~~~~~~~~~~~~~ Only Show output for a random iteration
             showChains <- rep(FALSE,nDatasets)
+            seed_id <- rep(NA,nDatasets)
             if(Show){showChains[sample(nDatasets,1)] <- TRUE}
             ######################
             #   Run iterations   #
             ######################
+            repetition_counts <- 0
             for(k in 1:nDatasets){
-                set.seed(k)
+                rhat_not_verified <- TRUE
+                seed <- k
+                set.seed(seed)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
                 design <- HDDM_setup(priors = priors, nPart = nParticipants, nTrials = nTrials, modelType = modelType, 
                                      X = X, criterion = criterion, fromPrior = fromPrior, Show=FALSE)
-                runJags <- HDDM_runJAGS(summaryData = design$sumData, nTrials = nTrials, X = X, 
-                                        jagsData = jagsData, jagsParameters = jagsParameters, jagsInits = jagsInits, 
-                                        n.chains = n.chains, modelFile = modelFile, Show = showChains[k],
-                                        track_allParameters = track_allParameters)  
+                while(rhat_not_verified){
+                      if(k>100){
+                                runJags <- try(HDDM_runJAGS(summaryData = design$sumData, nTrials = nTrials, X = X, 
+                                                        jagsData = jagsData, jagsParameters = jagsParameters, jagsInits = jagsInits, 
+                                                        n.chains = n.chains, modelFile = modelFile, Show = showChains[k],
+                                                        track_allParameters = track_allParameters))
+                                while(inherits(runJags, "try-error")){
+                                  repetition_counts <- repetition_counts+1
+                                  seed <- seed+10000
+                                  set.seed(seed)
+                                  cat("============>> Dataset", k, "of", nDatasets,"+",repetition_counts,"\n")
+                                  design <- HDDM_setup(priors = priors, nPart = nParticipants, nTrials = nTrials, modelType = modelType, 
+                                                       X = X, criterion = criterion, fromPrior = fromPrior, Show=FALSE)
+                                  runJags <- try(HDDM_runJAGS(summaryData = design$sumData, nTrials = nTrials, X = X, 
+                                                              jagsData = jagsData, jagsParameters = jagsParameters, jagsInits = jagsInits, 
+                                                              n.chains = n.chains, modelFile = modelFile, Show = showChains[k],
+                                                              track_allParameters = track_allParameters))
+                                }
+                      }else{
+                                  runJags <- HDDM_runJAGS(summaryData = design$sumData, nTrials = nTrials, X = X, 
+                                                          jagsData = jagsData, jagsParameters = jagsParameters, jagsInits = jagsInits, 
+                                                          n.chains = n.chains, modelFile = modelFile, Show = showChains[k],
+                                                          track_allParameters = track_allParameters)
+                      }
+                    
+                      count_bad_rhats <- sum(runJags$rhats[jagsParameters]>1.05)
+                      if((!redo_if_bad_rhat)|(count_bad_rhats==0)){ rhat_not_verified <-  FALSE}
+                      seed <- seed+10000
+                }
                 MatRhats[k,] <- runJags$rhats
                 c <- 0; d <- 0
                 for(j in 1:length(runJags$estimates)){
-                   m <- length(runJags$estimates[[j]])
-                   w <- length(design$parameter_set[[j]])
-                   MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[j]]
-                   MatTrueVal[k,(d+1):(d+w)]   <- design$parameter_set[[j]]
+                   this <-  names(runJags$estimates[j])
+                   m <- length(runJags$estimates[[this]])
+                   w <- length(design$parameter_set[[this]])
+                   MatEstimates[k,(c+1):(c+m)] <- runJags$estimates[[this]]
+                   MatTrueVal[k,(d+1):(d+w)]   <- design$parameter_set[[this]]
                    if(is.vector(runJags$credInterval[[j]])){
-                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1]
-                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2]
+                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[this]][1]
+                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[this]][2]
                    }else{
-                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[j]][1,]
-                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[j]][2,]
+                         ArrayCredInt[k,(c+1):(c+m),1] <- runJags$credInterval[[this]][1,]
+                         ArrayCredInt[k,(c+1):(c+m),2] <- runJags$credInterval[[this]][2,]
                    }
                    c <- c+m; d <- d+w
                 }
+                
+                seed_id[k] <- seed
             }
             
             paramNames <- NA
             paramNames2 <- NA
             for(j in 1:length(runJags$estimates)){
-                  if(is.vector(runJags$credInterval[[j]])){
-                     paramNames <- c(paramNames, names(runJags$credInterval[j]))
+                  this <-  names(runJags$estimates[j])
+                  if(is.vector(runJags$credInterval[[this]])){
+                     paramNames <- c(paramNames, names(runJags$credInterval[this]))
                   }else{
-                     paramNames <- c(paramNames, colnames(runJags$credInterval[[j]]))
+                     paramNames <- c(paramNames, colnames(runJags$credInterval[[this]]))
                   }
-                  if(length(design$parameter_set[[j]])==1){
-                    paramNames2 <- c(paramNames2, names(design$parameter_set[j]))
+                  if(length(design$parameter_set[[this]])==1){
+                    paramNames2 <- c(paramNames2, names(design$parameter_set[this]))
                   }else{
-                    labels <- paste(names(design$parameter_set[j]), "[",1:length(design$parameter_set[[j]]),"]",sep="")
+                    labels <- paste(names(design$parameter_set[this]), "[",1:length(design$parameter_set[[this]]),"]",sep="")
                     paramNames2 <- c(paramNames2, labels)
                   }
             }
@@ -144,11 +177,13 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             total_time <- difftime(grand_toc, grand_tic, units="mins")
             output <- list("rhats"  = MatRhats, "estimates" = MatEstimates, "credIntervals" = ArrayCredInt,
                            "trueValues" = MatTrueVal, "settings" = settings, "n.chains" = n.chains,
-                           "totalTime" = total_time)
+                           "totalTime" = total_time, "seed_id" = seed_id)
             save(output, file=outputFile)
             
-            cat(total_time)
-    }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!")      }
-    
+            cat("Running this simulation study took ", total_time, "minutes.\n")
+    }else{  cat("This simulation had been run before.\nLoading stored results: COMPLETE!\n",
+                "Running this simulation study took ", output$totalTime, "minutes.\n")
+            if(Show|rhatCheck){   check_Rhat(output$rhats)      }
+    }
     return(output)
 }
