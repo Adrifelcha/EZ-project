@@ -4,7 +4,7 @@ default_priors <- function(Show=TRUE, modelType=NA){
                        "nondt_mean_mean" = 0.30,  "nondt_mean_sdev" = 0.06, 
                        "bound_sdev_lower" = 0.10, "bound_sdev_upper" = 0.40,   
                        "drift_sdev_lower" = 0.20, "drift_sdev_upper" = 0.40,
-                       "nondt_sdev_lower" = 0.025, "nondt_sdev_upper" = 0.25)
+                       "nondt_sdev_lower" = 0.05, "nondt_sdev_upper" = 0.25)
   if(modelType!="hierarchical"){
             prior$betaweight_mean = 0
             prior$betaweight_sdev = 1
