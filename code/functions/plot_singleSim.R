@@ -18,13 +18,11 @@ plot_recovery <- function(simOutput, plotType=1){
                                      add.titles = TRUE, nBins=15, 
                                      plot.range=NA)
                   }
-              parnt_Est <- parnt_Est[,findParents_Est]
-              parnt_Tru <- parnt_Tru[,findParents_Tru]
         }
-        idParPar <- colnames(parnt_Est)
-        nParPar  <- length(idParPar)
         
-        par(mfrow = c(2,3), oma =c(4,5,0,3), mar=c(2,1,2,2))
+        if(length(findIndiv_Tru)>0){
+                  par(mfrow = c(2,3), oma =c(4,5,0,3), mar=c(2,1,2,2))
+        }else{    par(mfrow = c(2,2), oma =c(1,2,0,0), mar=c(2,2,1,1))     }
         # Parent parameters - use functions
         for(p in c("bound","nondt","drift")){
         # Parent parameters - use functions
@@ -37,27 +35,29 @@ plot_recovery <- function(simOutput, plotType=1){
                                  plot.range=NA)
               }
         }
-        mtext("GROUP MEAN", 4, line=2, cex=1.5, f=2)
+        #mtext("GROUP MEAN", 4, line=2, cex=1.5, f=2)
         k <- 1
-        # Individual parameters - do it here
-        for(p in c("bound","nondt","drift")){
-        x.true <- indiv_Tru[,which(grepl(p,colnames(indiv_Tru)))]
-        y.esti <- indiv_Est[,which(grepl(p,colnames(indiv_Est)))]
-        plot.range <- c(min(x.true,y.esti),max(x.true,y.esti))
-        plot(x.true,y.esti, ann=F, col=colorInd[k], pch=16, cex=0.7,
-               xlim=plot.range, ylim=plot.range, axes=F)
-        abline(0,1, lty=2)
-        axis(1, seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),
-             round(seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),1))
-        axis(2, seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),
-             round(seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),1),
-             las=2)
-        mtext(paste(p), 3, line=0, cex=1, f=2)  
-        k <- k+1
+        if(length(findIndiv_Tru)>0){
+            # Individual parameters - do it here
+            for(p in c("bound","nondt","drift")){
+                x.true <- indiv_Tru[,which(grepl(p,colnames(indiv_Tru)))]
+                y.esti <- indiv_Est[,which(grepl(p,colnames(indiv_Est)))]
+                plot.range <- c(min(x.true,y.esti),max(x.true,y.esti))
+                plot(x.true,y.esti, ann=F, col=colorInd[k], pch=16, cex=0.7,
+                       xlim=plot.range, ylim=plot.range, axes=F)
+                abline(0,1, lty=2)
+                axis(1, seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),
+                     round(seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),1))
+                axis(2, seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),
+                     round(seq(min(x.true,y.esti),max(x.true,y.esti),length.out=7),1),
+                     las=2)
+                mtext(paste(p), 3, line=0, cex=1, f=2)  
+                k <- k+1
+            }
+            mtext("INDIVIDUAL", 4, line=2, cex=1.5, f=2)
+            mtext("Simulated values", 1, line=2, cex=1.5, outer=TRUE, f=2)
+            mtext("Retrieved values", 2, line=2, cex=1.5, outer=TRUE, f=2)
         }
-        mtext("INDIVIDUAL", 4, line=2, cex=1.5, f=2)
-        mtext("Simulated values", 1, line=2, cex=1.5, outer=TRUE, f=2)
-        mtext("Retrieved values", 2, line=2, cex=1.5, outer=TRUE, f=2)
 } 
 
 #plot_recovery(simOutput,2)
