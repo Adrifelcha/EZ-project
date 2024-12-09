@@ -1,6 +1,6 @@
 make_panel_type1 <- function(simOutput, parameter=NA, add.titles = FALSE, plot.range=NA,
-                             axisX=TRUE, axisY=TRUE){
-  if(is.na(parameter)){ stop("Please specify a parameter")  }else{
+                             axisX=TRUE, axisY=TRUE, internalParLabel=TRUE){
+    if(is.na(parameter)){ stop("Please specify a parameter")  }else{
     if(parameter=="drift"){              parameter <- "drift_mean"
                red <- 247/255 ;  green <- 167/255 ; blue <- 26/255
     }else{if(parameter=="bound"){        parameter <- "bound_mean"  
@@ -15,27 +15,27 @@ make_panel_type1 <- function(simOutput, parameter=NA, add.titles = FALSE, plot.r
     if(sum(is.na(plot.range))>0){
       plot.range <- range(c(x,y))
     }
-    
+    axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
     plot(x,y, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="white")
-    if(add.titles){
+    if(internalParLabel){
+      label_color <- "gray40"
       if(parameter=="betaweight"){
-        mtext(expression(paste(beta, " coefficient")),3, line=1, f=2, cex=1.5)
+        text(axis.labels[2], rev(axis.labels)[2], expression(paste(beta)), cex=2, col = label_color)
       }else{
         if(parameter=="drift_mean"){
-          mtext(expression(paste("Mean drift rate - ", mu[nu])),3, line=1, f=2, cex=1.5)
+          text(axis.labels[2], rev(axis.labels)[2], expression(paste(mu[nu])), cex=2, col = label_color)
         }else{
           if(parameter=="bound_mean"){
-            mtext(expression(paste("Mean boundary - ", mu[alpha])),3, line=1, f=2, cex=1.5)
+            text(axis.labels[2], rev(axis.labels)[2], expression(paste(mu[alpha])), cex=2, col = label_color)
           }else{
             if(parameter=="nondt_mean"){
-              mtext(expression(paste("Mean nondecision time - ", mu[tau])),3, line=1, f=2, cex=1.5)
+              text(axis.labels[2], rev(axis.labels)[2], expression(paste(mu[tau])), cex=2, col = label_color)
             }else{
-              mtext(parameter,3, line=1, f=2, cex=1.5)
+              mtext(parameter,3, line=1, f=2, cex=2)
             }}}}
     }
     abline(0,1,col="gray70", lwd=2, lty=2)
     points(x,y, cex=0.8, pch=16, col=rgb(red,green,blue,0.3))
-    axis.labels <- seq(plot.range[1],plot.range[2],length.out=7)
     if(axisX){  axis(1, axis.labels, sprintf("%.2f", axis.labels))         }
     if(axisY){  axis(2, axis.labels, sprintf("%.2f", axis.labels), las=2)  }
     if(add.titles){
@@ -45,14 +45,9 @@ make_panel_type1 <- function(simOutput, parameter=NA, add.titles = FALSE, plot.r
   }
 }
 
-#load("../../../../simulations/params_from_uniforms/sim_P20T20D1000_MetaRegEZBHDDM_genUnif.RData")
-#simOutput <- output
-#make_panel_type1(simOutput, parameter="bound", 
-#                 add.titles = TRUE, plot.range=NA)
 
 
-
-make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=15, plot.range=NA, axisX=TRUE, axisY=TRUE){
+make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=15, plot.range=NA, axisX=TRUE, axisY=TRUE, internalParLabel=TRUE){
   if(is.na(parameter)){ stop("Please specify a parameter")  }
   
   if(parameter=="drift"|parameter=="drift_mean"){          parameter <- "drift_mean"
@@ -73,22 +68,23 @@ make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=
       #plot.range <- range(c(x,y), na.rm = TRUE)
       plot.range <- edges
     }
-    
+    axis.labels <- seq(plot.range[1],plot.range[2],length.out=5)
     plot(10,10, xlim=plot.range, ylim=plot.range, ann=F, axes=F, col="white")
-    if(add.titles){
+    if(internalParLabel){
+      label_color <- "gray40"
       if(parameter=="betaweight"){
-        mtext(expression(paste(beta, " coefficient")),3, line=1, f=2, cex=1.5)
+        text(axis.labels[2], rev(axis.labels)[2], expression(paste(beta)), cex=2, col = label_color)
       }else{
         if(parameter=="drift_mean"){
-          mtext(expression(paste("Mean drift rate - ", mu[nu])),3, line=1, f=2, cex=1.5)
+          text(axis.labels[2], rev(axis.labels)[2], expression(paste(mu[nu])), cex=2, col = label_color)
         }else{
           if(parameter=="bound_mean"){
-            mtext(expression(paste("Mean boundary - ", mu[alpha])),3, line=1, f=2, cex=1.5)
+            text(axis.labels[2], rev(axis.labels)[2], expression(paste(mu[alpha])), cex=2, col = label_color)
           }else{
             if(parameter=="nondt_mean"){
-              mtext(expression(paste("Mean nondecision time - ", mu[tau])),3, line=1, f=2, cex=1.5)
+              text(axis.labels[2], rev(axis.labels)[2], expression(paste(mu[tau])), cex=2, col = label_color)
             }else{
-              mtext(parameter,3, line=1, f=2, cex=1.5)
+              mtext(parameter,3, line=1, f=2, cex=2)
             }}}}
     }
     
@@ -116,7 +112,6 @@ make_panel_type2 <- function(simOutput, parameter=NA, add.titles = FALSE, nBins=
             col=rgb(red,green,blue,0.3), border = NA)
     #points(x,y, cex=0.6, pch=16, col=rgb(red/10,green/10,blue/10,0.01))
     points(x,y, cex=0.6, pch=16, col=rgb(red/10,green/10,blue/10,0.08))
-    axis.labels <- seq(plot.range[1],plot.range[2],length.out=5)
     lines(mids,heights[,1], lwd=1, col=rgb(red,green,blue,1))
     lines(mids,heights[,2], lwd=1)
     lines(mids,heights[,3], lwd=1.5, col=rgb(red,green,blue,1))
