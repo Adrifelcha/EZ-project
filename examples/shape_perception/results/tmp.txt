@@ -1,0 +1,2 @@
+Redundant text file to ensure the results folder is preserved, even when empty
+
