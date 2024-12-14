@@ -5,7 +5,7 @@ load("../results/data_toJAGS.RData")
 load("../results/samples.RData")
 source("./loadSamples.R")
 
-png(file = "../../figures/mlr_QualandChangeTypeEffcts.png", width = 7, height = 5, units="in",res=300) # Width and height of the plot in 
+png(file = "../../../figures/mlr_QualandChangeTypeEffcts.png", width = 7, height = 5, units="in",res=300) # Width and height of the plot in 
 par(mar=c(3.5,1.5,1.5,1), bg=NA)
 layout(matrix(c(1,2,3,4,4,4), 2, 3, byrow = TRUE))
 
