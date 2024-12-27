@@ -32,10 +32,6 @@ This repository contains all code needed to replicate the results reported throu
 
 **Folder:** `./examples/brghtness_perception/` 
 
-
-
-
-
 ## Short hypothesis testing example
 
 **Folder:** `./examples/shape_perception/`
