@@ -12,17 +12,17 @@ This repository contains all code needed to replicate the results reported throu
 
 - `/examples/` This folder contains the code needed to replicate the analysis and figures presented in Apendices B and C.
 
-    - ``
+    - `/examples/brightness_perception/` : Materials related to the applied example in Appendix C.
     
-    - ``
+    - `/examples/shape_perception/` : Materials related to the applied example in Appendix B.
 
-- `/simulations/`
+- `/simulations/` This folder contains many sub-folders to store the specific functions and scripts, as well as the output for different simulation studies.
 
-    - ``
+    - `/simulations/generative_priors` : Six simulation studies where we use generative priors to sample true hierarchical parameters.
     
-    - ``
+    - `/simulations/params_from_uniforms` : Six simulation studies where true hierarchical parameters are sampled from generative uniform distributions.
     
-    - ``
+    - `/simulations/within-subject_ttest` : 
 
 - `/figures/` This folder contains all figures included in the paper
 
