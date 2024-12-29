@@ -94,11 +94,11 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
             for(k in 1:nDatasets){
                 rhat_not_verified <- TRUE
                 seed <- k
-                set.seed(seed)
                 cat("============>> Dataset", k, "of", nDatasets,"\n")
-                design <- HDDM_setup(priors = priors, nPart = nParticipants, nTrials = nTrials, modelType = modelType, 
-                                     X = X, criterion = criterion, fromPrior = fromPrior, Show=FALSE)
                 while(rhat_not_verified){
+                      set.seed(seed)
+                      design <- HDDM_setup(priors = priors, nPart = nParticipants, nTrials = nTrials, modelType = modelType, 
+                                           X = X, criterion = criterion, fromPrior = fromPrior, Show=FALSE)
                       if(k>100){
                                 runJags <- try(HDDM_runJAGS(summaryData = design$sumData, nTrials = nTrials, X = X, 
                                                         jagsData = jagsData, jagsParameters = jagsParameters, jagsInits = jagsInits, 
