@@ -47,5 +47,5 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
   names(credInterval) <- jagsParameters
   
   return(list("estimates" = estimates, "sd" = error, "credInterval" = credInterval,
-              "rhats" = rhats, "clock" = clock))
+              "rhats" = rhats, "clock" = clock, "n.iter" = n.iter))
 }
