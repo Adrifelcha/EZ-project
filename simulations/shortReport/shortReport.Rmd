@@ -1,0 +1,277 @@
+---
+title: "EZBHDDM: Short report"
+author: "Adriana F. Chávez De la Peña"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: true
+    cards: false
+    highlight: tango
+    fig_width: 12 
+    fig_height: 8 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rmdformats)
+library(here)
+```
+
+# Welcome!
+
+**This short report contains the code to replicate a full parameter-recovery simulation study**.
+
+Once a number of participants (`nParticipants`) and trials (`nTrials`) have been selected, we generate data from a diffusion process with individual parameter values sampled from parental distributions. The hierarchical means and standard deviations are either sampled from the same prior distributions later used for estimation (`fromPrior = TRUE`) or from suited uniform distributions (`fromPrior = FALSE`). If `fromPrior = FALSE`, the hierarchical standard deviations are fixed. Once trial-level data has been generated, we compute the EZ-summary statistics and obtain estimations for the hierarchical mean parameters using our Hierarchical Bayesian EZ-DDM model. This parameter-recovery test is repeated over the course of many iterations (`nDatasets`).
+
+# Introduction
+
+The Simple Drift diffusion model describes jointly ($\mathbf{Y}$) the choices and response times (RTs) observed in binary decision tasks using a Wiener likelihood with three parameters:
+
+\begin{align*}
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
+\end{align*}
+
+where $\alpha$ corresponds to the boundary separation parameter, $\tau$ is the nondecision time parameter and $\nu$ is the drift rate. In 2007, Wagenmaker and collaborators presented 
+
+\begin{align*}
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+We present a probabilistic formulation of the EZ-DDM, that allows the user to build Hierarchical Bayesian extensions using the following three summary statistics:
+
+\begin{align*}
+Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
+\end{align*}
+
+where $\{\dot{T}$ is the total number of correct responses observed, \dot{M} is the mean of the observed RTs, and \dot{V}\} corresponds to the variance of the observed RTs. In 2007, Wagenmakers and collaborators introduced the EZ-DDM: a system of equations derived from the method of moments that allows us to express three key summary statistics of the data as functions of the model parameters:
+
+\begin{align*}
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+where $PC$ is the Proportion of Correct responses, and $MRT$ and $PRT$ are the mean and precission (i.e., the inverse of the variance) of the RT distribution. Importantly, inverting this system of equations allows us to obtain closed-form parameter estimators from these summary statistics.
+
+Here, we present a probabilistic formulation of the EZ-DDM that allows for the hyper-efficient construction of Hierarchical Bayesian extensions that explain the variability across parameters as a function of predictors, or higher-level structures of interest. Our probabilistic model is built using what we know about the sampling distributions of the summary statistics used in the EZ-DDM:
+
+\begin{align*}
+\dot{T} &\sim \mbox{Binomial}(PC,N)\\
+\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
+\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
+\end{align*}
+
+where the normal distributions are parametrized in terms of their mean and precision. 
+
+**In our paper, we present six simulation studies** testing the parameter recovery of the hierarchical means of the drift rate, boundary separation and nondecision time parameter, and the regression coefficient parameter $\beta$, across different designs. In this script we introduce a single function `HDDM_runSims()` that executes a script for conducting a full simulation study with `nParticipants`, `nTrials`, `nDatasets`.
+
+### Loading up the necessary functions
+
+```{r}
+#### We will load all function scripts nested in the./code/functions/ directory
+for(archive in dir(here("./code/functions/"))){    source(paste(here("./code/functions/"),archive,sep=""))     }
+#### We load the higher-level functions that call individual functions to do specific routines
+source(here("./code/scripts/HDDM_setup.R"))      # Sample parameters and generate data
+source(here("./code/scripts/HDDM_runJAGS.R"))    # Run JAGS
+source(here("./code/scripts/HDDM_runSims.R"))    # Run full simulation study
+```
+
+# Define general settings for our simulation study
+
+```{r}
+########################
+###  General design  ###
+########################
+nParticipants <- 40 
+nTrials   <- 160
+nDatasets <- 200
+
+########################
+###  JAGS variables  ###
+########################
+n.iter   = 2000
+n.chains = 4
+n.burnin = 500
+n.thin   = 1
+
+##########################################
+# Preferences for running the simulation #
+##########################################
+# Are true parameter values generated from the prior?
+fromPrior = TRUE
+# Where we storing the results (i.e., samples and JAGS model file)
+store_results_to <- here("./simulations/shortReport_results/")
+# Show some results on screen (i.e. the chains for one of the iterations)
+Show = TRUE 
+# Do we want to track ALL parameters or just the hierarchical means?
+track_allParameters = FALSE
+# Verify that there are no Rhats > 1.05
+rhatCheck = TRUE
+# Do we want to re-do iterations with a bad R-hat
+redo_if_bad_rhat = TRUE
+```
+
+# Run a simple simulation!
+
+We can run the `HDDM_runSims()` function (stored at "./code/scripts/HDDM_runSims.R") to run a full simulation study with the characteristics specified above. We will start with `modelType="hierarchical"`, which is the simplest design available, where all individual-level parameters are generated (and modeled) as samples from a parent normal distribution.
+
+\begin{align*}
+\nu_p \sim \mtext{Normal}(\mu_\nu, \lambda_\nu)\\
+\alpha_p \sim \mtext{Normal}(\mu_\alpha, \lambda_\alpha)\\
+\tau_p \sim \mtext{Normal}(\mu_\tau, \lambda_\tau)
+\end{align*}
+
+```{r, fig.height=4}
+simH <- HDDM_runSims(nParticipants = nParticipants, 
+                     nTrials = nTrials, 
+                     nDatasets = nDatasets, 
+                     n.iter = n.iter, 
+                     n.chains = n.chains, 
+                     n.burnin = n.burnin, 
+                     n.thin = n.thin,
+                     fromPrior = fromPrior, 
+                     output.folder = store_results_to, 
+                     Show = Show,
+                     track_allParameters = track_allParameters,
+                     rhatCheck = rhatCheck,
+                     redo_if_bad_rhat = redo_if_bad_rhat,
+                     modelType = "hierarchical")   # Simple HB-EZDDM
+plot_recovery(simH)
+```
+
+# Simulation studies with different designs
+
+### Metaregression model
+
+We model the individual-level drift rate parameter $\nu_p$ using a simple linear regression function, with a **continuous individual predictor** $X_p \in \left(0,1\right)$.
+
+\begin{align*}
+\nu_p \sim \mtext{Normal}(\mu_\nu + \beta X_p, \lambda_\nu)\\
+\alpha_p \sim \mtext{Normal}(\mu_\alpha, \lambda_\alpha)\\
+\tau_p \sim \mtext{Normal}(\mu_\tau, \lambda_\tau)
+\end{align*}
+
+```{r, fig.height=4}
+simM <- HDDM_runSims(nParticipants = nParticipants, 
+                     nTrials = nTrials, 
+                     nDatasets = nDatasets, 
+                     n.iter = n.iter, 
+                     n.chains = n.chains, 
+                     n.burnin = n.burnin, 
+                     n.thin = n.thin,
+                     fromPrior = fromPrior, 
+                     output.folder = store_results_to, 
+                     Show = Show,
+                     track_allParameters = track_allParameters,
+                     rhatCheck = rhatCheck,
+                     redo_if_bad_rhat = redo_if_bad_rhat,
+                     modelType = "metaregression")
+
+plot_recovery(simM)
+```
+
+
+### T-test model
+
+We model the individual-level drift rate parameter $\nu_p$ using a simple linear regression function, with a **dichotomous individual predictor** $X_p \in \left\{0,1\right\}$.
+
+\begin{align*}
+\nu_p \sim \mtext{Normal}(\mu_\nu + \beta X_p, \lambda_\nu)\\
+\alpha_p \sim \mtext{Normal}(\mu_\alpha, \lambda_\alpha)\\
+\tau_p \sim \mtext{Normal}(\mu_\tau, \lambda_\tau)
+\end{align*}
+
+```{r, fig.height=4}
+simT <- HDDM_runSims(nParticipants = nParticipants, 
+                     nTrials = nTrials, 
+                     nDatasets = nDatasets, 
+                     n.iter = n.iter, 
+                     n.chains = n.chains, 
+                     n.burnin = n.burnin, 
+                     n.thin = n.thin,
+                     fromPrior = fromPrior, 
+                     output.folder = store_results_to, 
+                     Show = Show,
+                     track_allParameters = track_allParameters,
+                     rhatCheck = rhatCheck,
+                     redo_if_bad_rhat = redo_if_bad_rhat,
+                     modelType = "ttest")
+
+plot_recovery(simT)
+```
+
+
+# Simulation studies with uniform generative distributions
+
+All past simulation studies were conducted by using generative priors (i.e., the hierarchical mean and standard deviation parameters are sampled from the prior distributions used for inference). 
+
+By setting `fromPrior = FALSE`, our function allows to conduct simulation studies where the hierarchical mean parameters are extracted from suited uniform distributions, with the hierarchical standard deviations being fixed.
+
+### Hierarchical model
+
+```{r, fig.height=4, fig.align='center'}
+simH2 <- HDDM_runSims(nParticipants = nParticipants, 
+                     nTrials = nTrials, 
+                     nDatasets = nDatasets, 
+                     n.iter = n.iter, 
+                     n.chains = n.chains, 
+                     n.burnin = n.burnin, 
+                     n.thin = n.thin,
+                     fromPrior = FALSE, 
+                     output.folder = store_results_to, 
+                     Show = Show,
+                     track_allParameters = track_allParameters,
+                     rhatCheck = rhatCheck,
+                     redo_if_bad_rhat = redo_if_bad_rhat,
+                     modelType = "hierarchical")
+
+plot_recovery(simH2)
+```
+
+### Metaregression model
+
+```{r, fig.height=4, fig.align='center'}
+simM2 <- HDDM_runSims(nParticipants = nParticipants, 
+                     nTrials = nTrials, 
+                     nDatasets = nDatasets, 
+                     n.iter = n.iter, 
+                     n.chains = n.chains, 
+                     n.burnin = n.burnin, 
+                     n.thin = n.thin,
+                     fromPrior = FALSE, 
+                     output.folder = store_results_to, 
+                     Show = Show,
+                     track_allParameters = track_allParameters,
+                     rhatCheck = rhatCheck,
+                     redo_if_bad_rhat = redo_if_bad_rhat,
+                     modelType = "metaregression")
+
+plot_recovery(simM2)
+```
+
+### T-test model
+
+```{r, fig.height=4, fig.align='center'}
+simT2 <- HDDM_runSims(nParticipants = nParticipants, 
+                     nTrials = nTrials, 
+                     nDatasets = nDatasets, 
+                     n.iter = n.iter, 
+                     n.chains = n.chains, 
+                     n.burnin = n.burnin, 
+                     n.thin = n.thin,
+                     fromPrior = FALSE, 
+                     output.folder = store_results_to, 
+                     Show = Show,
+                     track_allParameters = track_allParameters,
+                     rhatCheck = rhatCheck,
+                     redo_if_bad_rhat = redo_if_bad_rhat,
+                     modelType = "ttest")
+
+plot_recovery(simT2)
+```
