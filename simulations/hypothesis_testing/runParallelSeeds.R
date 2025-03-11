@@ -96,10 +96,10 @@ stopCluster(cl = my.cluster)
 #this.output <- resultado
 
 settings$nDatasets <- nrow(resultado)
-store_parallelOutput(resultado, settings, saveTo = "./results_40x40/")
+store_parallelOutput(resultado, settings, saveTo = "./results/")
 
 
 
 
-
+save(resultado, file = here("simulations", "hypothesis_testing", "results", "resultadoFullObject_200.RData"))
 
