@@ -1,27 +1,43 @@
 ##########################################################
-# LOAD FUNCTIONS/PACKAGES
+# Hypothesis testing simulation study
 ##########################################################
-######## Load required R packages for parallel processing
+############## Adriana F. Chávez De la Peña ##############
+# Main settings
 nParticipants <- 40
 nTrialsPerCondition <- 40
 beta_levels <- c(0,0.2,0.4)
-source("../../code/functions/show_priors.R")
-source("../../code/functions/generate_dataset.R")
-source("../../code/functions/generate_trial.R")
-source("../../code/functions/getStatistics.R")
-source("../../code/functions/extractSamples.R")
-for(archive in dir("./scripts/")){   
-  if(archive == "plot_hypothesisTesting_paper.R"|archive == "plot_betaDistributions_paper.R"){next}
-  source(paste("./scripts/",archive,sep=""))     }
+
+##########################################################
+# LOAD FUNCTIONS/PACKAGES
+##########################################################
+######## Load required R packages for parallel processing
+library(here)
 library(foreach)
 library(doParallel)
+########| Load required R scripts
+source(here("code", "functions", "show_priors.R"))
+source(here("code", "functions", "generate_dataset.R"))
+source(here("code", "functions", "generate_trial.R"))
+source(here("code", "functions", "getStatistics.R"))
+source(here("code", "functions", "extractSamples.R"))
+
+skip_scripts <- c("plot_hypothesisTesting_paper.R", 
+                  "plot_betaDistributions_paper.R",
+                  "plot_hypothesisTesting_paper_mgkrp.R")
+cat("Sourcing scripts...\n")
+for(archive in dir(here("simulations", "hypothesis_testing", "scripts"))){   
+    if(archive %in% skip_scripts){
+        next
+    }else{                
+        cat(paste("Sourcing:", archive, "\n"))
+        source(here("simulations", "hypothesis_testing", "scripts", archive))        
+    }    
+}
 
 ##########################################################
 # SIMULATION SETTINGS
 ##########################################################
-########| Create a "settings" object that specifies all relevant aspects of the simulation study
-#################| Fixed variables
-settings <- list("output.folder" = "./samples_40x40/", # Before running this script, indicate where to store samples
+settings <- list("output.folder" = here("simulations", "hypothesis_testing", "samples"), 
                  "nParticipants" = nParticipants,
                  "nTrialsPerCondition" = nTrialsPerCondition,
                  "nDatasets" = 1000,
