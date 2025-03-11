@@ -1,35 +1,56 @@
 ##########################################################
-# LOAD FUNCTIONS/PACKAGES
+# Hypothesis testing simulation study
 ##########################################################
-######## Load required R packages for parallel processing
+############## Adriana F. Chávez De la Peña ##############
+# Main settings
 nParticipants <- 40
 nTrialsPerCondition <- 40
 beta_levels <- c(0,0.2,0.4)
-source("../../code/functions/show_priors.R")
-source("../../code/functions/generate_dataset.R")
-source("../../code/functions/generate_trial.R")
-source("../../code/functions/getStatistics.R")
-source("../../code/functions/extractSamples.R")
-for(archive in dir("./scripts/")){   
-  if(archive == "plot_hypothesisTesting_paper.R"|archive == "plot_betaDistributions_paper.R"){next}
-  source(paste("./scripts/",archive,sep=""))     }
+
+##########################################################
+# LOAD FUNCTIONS/PACKAGES
+##########################################################
+######## Load required R packages for parallel processing
+library(here)
 library(foreach)
 library(doParallel)
+########| Load required R scripts
+source(here("code", "functions", "show_priors.R"))
+source(here("code", "functions", "generate_dataset.R"))
+source(here("code", "functions", "generate_trial.R"))
+source(here("code", "functions", "getStatistics.R"))
+source(here("code", "functions", "extractSamples.R"))
+
+skip_scripts <- c("plot_hypothesisTesting_paper.R", 
+                  "plot_betaDistributions_paper.R",
+                  "plot_hypothesisTesting_paper_mgkrp.R")
+cat("Sourcing scripts...\n")
+for(archive in dir(here("simulations", "hypothesis_testing", "scripts"))){   
+    if(archive %in% skip_scripts){
+        next
+    }else{                
+        cat(paste("Sourcing:", archive, "\n"))
+        source(here("simulations", "hypothesis_testing", "scripts", archive))        
+    }    
+}
 
 ##########################################################
 # SIMULATION SETTINGS
 ##########################################################
-########| Create a "settings" object that specifies all relevant aspects of the simulation study
-#################| Fixed variables
-settings <- list("output.folder" = "./samples_40x40/", # Before running this script, indicate where to store samples
-                 "nParticipants" = nParticipants,
-                 "nTrialsPerCondition" = nTrialsPerCondition,
-                 "nDatasets" = 1000,
-                 "beta_levels" = beta_levels,
-                 "n.chains" = 2,
-                 "nCells" = length(beta_levels),
-                 "X" = rep(c(1,0),nParticipants),
-                 "P" = rep(1:nParticipants, each=2))
+# Create output directory if it doesn't exist
+output_dir <- here("simulations", "hypothesis_testing", "samples")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+settings <- list(
+    "output.folder" = file.path(output_dir, "/"),  # Ensure trailing slash
+    "nParticipants" = nParticipants,
+    "nTrialsPerCondition" = nTrialsPerCondition,
+    "nDatasets" = 200,
+    "beta_levels" = beta_levels,
+    "n.chains" = 2,
+    "nCells" = length(beta_levels),
+    "X" = rep(c(1,0),nParticipants),
+    "P" = rep(1:nParticipants, each=2))
 #################| Specific JAGS objects
 jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                     "drift_sdev", "nondt_sdev", "bound_sdev", "drift", "betaweight")
@@ -58,7 +79,8 @@ resultado <- foreach(i = 1:settings$nDatasets,
                     .errorhandling = "pass",
                     .combine = 'rbind'
                     ) %dopar% {
-                      W <- HDDM_simBySeed_fixEff(seed = i, settings, forceRun=TRUE)
+                      W <- HDDM_simBySeed_fixEff(seed = i, settings, forceRun=TRUE,
+                                                 redo_if_bad_rhat=TRUE, rhat_cutoff=1.05)
                     }
 stopCluster(cl = my.cluster)
 
@@ -74,10 +96,10 @@ stopCluster(cl = my.cluster)
 #this.output <- resultado
 
 settings$nDatasets <- nrow(resultado)
-store_parallelOutput(resultado, settings, saveTo = "./results_40x40/")
+store_parallelOutput(resultado, settings, saveTo = "./results/")
 
 
 
 
-
+save(resultado, file = here("simulations", "hypothesis_testing", "results", "resultadoFullObject_200.RData"))
 
