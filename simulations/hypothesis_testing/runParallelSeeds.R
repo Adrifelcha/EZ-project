@@ -37,15 +37,20 @@ for(archive in dir(here("simulations", "hypothesis_testing", "scripts"))){
 ##########################################################
 # SIMULATION SETTINGS
 ##########################################################
-settings <- list("output.folder" = here("simulations", "hypothesis_testing", "samples"), 
-                 "nParticipants" = nParticipants,
-                 "nTrialsPerCondition" = nTrialsPerCondition,
-                 "nDatasets" = 1000,
-                 "beta_levels" = beta_levels,
-                 "n.chains" = 2,
-                 "nCells" = length(beta_levels),
-                 "X" = rep(c(1,0),nParticipants),
-                 "P" = rep(1:nParticipants, each=2))
+# Create output directory if it doesn't exist
+output_dir <- here("simulations", "hypothesis_testing", "samples")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+settings <- list(
+    "output.folder" = file.path(output_dir, "/"),  # Ensure trailing slash
+    "nParticipants" = nParticipants,
+    "nTrialsPerCondition" = nTrialsPerCondition,
+    "nDatasets" = 200,
+    "beta_levels" = beta_levels,
+    "n.chains" = 2,
+    "nCells" = length(beta_levels),
+    "X" = rep(c(1,0),nParticipants),
+    "P" = rep(1:nParticipants, each=2))
 #################| Specific JAGS objects
 jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
                     "drift_sdev", "nondt_sdev", "bound_sdev", "drift", "betaweight")
@@ -74,7 +79,8 @@ resultado <- foreach(i = 1:settings$nDatasets,
                     .errorhandling = "pass",
                     .combine = 'rbind'
                     ) %dopar% {
-                      W <- HDDM_simBySeed_fixEff(seed = i, settings, forceRun=TRUE)
+                      W <- HDDM_simBySeed_fixEff(seed = i, settings, forceRun=TRUE,
+                                                 redo_if_bad_rhat=TRUE, rhat_cutoff=1.05)
                     }
 stopCluster(cl = my.cluster)
 
