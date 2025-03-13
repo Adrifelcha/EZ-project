@@ -34,7 +34,7 @@ sample_data <- function(nPart, nTrials = NA, parameter_set,
           
           # Generate dataset for this participant using their specific parameters
           accuracy = 0
-          while(sum(accuracy)==0 & prevent_zero_accuracy){
+          while(sum(accuracy)==0 && prevent_zero_accuracy){
             temp <- sample_dataset(a = parameter_set$bound[i], 
                                      v = parameter_set$drift[i], 
                                      t = parameter_set$nondt[i], 
@@ -76,7 +76,7 @@ sample_data <- function(nPart, nTrials = NA, parameter_set,
                 
                 # Generate dataset ensuring non-zero accuracy
                 accuracy = 0
-                while(sum(accuracy)==0 & prevent_zero_accuracy){
+                while(sum(accuracy)==0 && prevent_zero_accuracy){
                   temp <- sample_dataset(a = parameter_set$bound[i], 
                                            v = parameter_set$drift[j], 
                                            t = parameter_set$nondt[i], 
