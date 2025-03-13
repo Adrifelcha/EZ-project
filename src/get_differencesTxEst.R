@@ -1,4 +1,7 @@
-# A function to take difference between the true values and estimates retrieved
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+# This function takes the true values used to simulate data (parameter_set)
+# and the mean posterior estimates retrieved (estimates) from the model, and
+# returns the difference between them.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 getDifferences_TRUEvsEST <- function(estimates, parameter_set){
   error <- list("bound" = estimates$bound - parameter_set$bound,
