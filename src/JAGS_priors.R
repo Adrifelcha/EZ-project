@@ -2,7 +2,7 @@
 # This function loads the default priors for all hierarchical DDM parameters 
 # including, (if needed) the betaweight regression coefficient.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-default_priors <- function(Show=TRUE, modelType="NA", custom_prior_list=NULL){
+JAGS_priors <- function(Show=TRUE, modelType="NA", custom_prior_list=NULL){
    
    # Load default priors
    prior <- data.frame( # Normal priors for the hierarchical means
