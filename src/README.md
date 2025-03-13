@@ -13,4 +13,7 @@ This folder is organized as follows:
 
 The folder also contains a series of HIGHER-LEVEL scripts that call the functions in the other files to complete a step necessary for a simulation study:
 
-    - HDDM_...: 
+    - HDDM_setup.R: This data generates parameter values and data for a simulation study.
+    - HDDM_runJAGS.R: This data runs the JAGS model on the data generated in the previous step.
+    - HDDM_runSims.R: This data runs a single simulation study (Fixed parameter set, fixed number of participants, fixed number of trials).
+    - HDDM_runFullSeed.R: This data runs a full simulation study across different numbers of participants and trials, generating new parameter values and data for each iteration.
