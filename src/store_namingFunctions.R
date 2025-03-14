@@ -1,22 +1,37 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+# This function generates standardized filenames for simulation output files
+# Note: This function ISN'T made to work for within-subject designs
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 nameOutput <- function(nTrials, nParticipants, nDatasets, modelType=NA, fromPrior=NA, output.folder = NA){
-  if(is.na(output.folder)){       output.folder <- "./"        }
+  # Set default output folder to current directory if not specified
+  if(is.na(output.folder)){
+    output.folder <- here("output")
+  }
   
-  start <- paste(output.folder,"sim_P", sep="")
+  # Filename should specify the number of participants and trials, and the number of datasets
+  start <- paste("sim_P", nParticipants,"T", nTrials,"D", nDatasets, sep="")
   
+  # Filename should specify the model type
   if(is.na(modelType)|modelType=="hierarchical"){
-          fileName <- paste(start,nParticipants,"T",nTrials,"D",nDatasets,
-                            "_EZBHDDM", sep="")
+          # Basic hierarchical model
+          fileName <- paste(start, "_EZBHDDM", sep="")
   }else{if(modelType=="metaregression"){
-          fileName <- paste(start,nParticipants,"T",nTrials,"D",nDatasets,
-                            "_MetaRegEZBHDDM", sep="")
+          # Meta-regression model
+          fileName <- paste(start, "_MetaRegEZBHDDM", sep="")
   }else{if(modelType=="ttest"){
-          fileName <- paste(start,nParticipants,"T",nTrials,"D",nDatasets,
-                            "_ttestEZBHDDM", sep="")
-  }else{  stop("Invalid modelType")  }}}
+          # T-test model
+          fileName <- paste(start, "_ttestEZBHDDM", sep="")
+  }else{  
+          # Invalid model type
+          stop("Invalid modelType")  
+  }}}
   
+  # Filename should specify the parameter generation method
   if(fromPrior){
+        # Parameters generated from prior distributions
         fileName <- paste(fileName,"_genPrior.RData", sep="")
   }else{
+        # Parameters generated from uniform distributions
         fileName <- paste(fileName,"_genUnif.RData", sep="")
   }
   
