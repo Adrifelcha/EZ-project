@@ -20,13 +20,14 @@
 #   * sumData: Summary statistics calculated from the raw data
 ###################################################################################
 
-HDDM_setup <-function(priors, nPart, nTrials, modelType=NA, X=NA, criterion=NA, fromPrior=TRUE, Show=TRUE){
+HDDM_setup <-function(priors, nPart, nTrials, modelType=NA, X=NA, criterion=NA, fromPrior=TRUE, Show=TRUE, 
+                      nTrialsPerCondition=NA, prevent_zero_accuracy=TRUE){
 
     # Step 1: Obtain parameter values to be used as ground truth in simulation studies    
     parameter_set <- sample_parameters(priors, nPart, modelType, X, criterion, fromPrior, Show, fixedBeta = NA)
     
     # Step 2: Generate hierarchical DDM data from the parameter set, using simulation settings
-    rawData = sample_data(nPart, nTrials, parameter_set)
+    rawData = sample_data(nPart, nTrials, parameter_set, nTrialsPerCondition, prevent_zero_accuracy)
     
     # Step 3: Calculate EZ summary statistics from the raw data
     summData = getStatistics(rawData) 
