@@ -29,7 +29,7 @@
 #   * estimates: Posterior means for all monitored parameters
 #   * sd: Posterior standard deviations
 #   * credInterval: 95% credible intervals
-#   * rhats: Gelman-Rubin convergence diagnostics
+#   * rhats: Convergence diagnostics
 #   * clock: Computation time in seconds
 #   * n.iter: Number of iterations used
 ###################################################################################
