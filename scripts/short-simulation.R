@@ -14,7 +14,7 @@ for(archive in dir(here("src"))) {
 ### Simulation settings
 n.participants <-  40 
 n.trials       <- 160
-n.simulations  <- 10
+n.simulations  <- 50
 modelType      <- "ttest"
 
 ### JAGS variables 
@@ -30,13 +30,13 @@ rhatCheck <- TRUE   # Check the Rhats?
 redo_if_bad_rhat     <- TRUE # Redo iterations with a bad Rhat?
 track_all_parameters <- FALSE # Track all parameters?
 
-
+cat("\n\n========================================\n")
 cat("Simulation settings:\n")
 cat("========================================\n")
+cat("\nModelType =", modelType, "\n\n")
 cat("n.participants =", n.participants, "\n")
 cat("n.trials =", n.trials, "\n")
-cat("n.simulations =", n.simulations, "\n")
-cat("modelType =", modelType, "\n")
+cat("n.simulations =", n.simulations, "\n\n")
 cat("fromPrior =", fromPrior, "\n")
 cat("redo_if_bad_rhat =", redo_if_bad_rhat, "\n")
 cat("track_all_parameters =", track_all_parameters, "\n\n\n")
