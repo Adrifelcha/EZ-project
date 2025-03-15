@@ -77,7 +77,7 @@ HDDM_runJAGS <- function(summaryData, nTrials, X, jagsData, jagsParameters, jags
   
   # Step 4: Generate diagnostic plots if requested
   if(Show){  
-    plot_Chain(samples = samples, track_allParameters = track_allParameters)   
+    JAGS_plotChain(samples = samples)   
   }
   
   # Step 5: Process posterior samples for each monitored parameter
