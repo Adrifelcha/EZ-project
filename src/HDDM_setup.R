@@ -21,16 +21,20 @@
 ###################################################################################
 
 HDDM_setup <-function(priors, nPart, nTrials, modelType=NA, X=NA, criterion=NA, fromPrior=TRUE, Show=TRUE, 
-                      nTrialsPerCondition=NA, prevent_zero_accuracy=TRUE){
+                      nTrialsPerCondition=NA, prevent_zero_accuracy=TRUE, fixedBeta=NA, withinSubject=FALSE){
 
     # Step 1: Obtain parameter values to be used as ground truth in simulation studies    
-    parameter_set <- sample_parameters(priors, nPart, modelType, X, criterion, fromPrior, Show, fixedBeta = NA)
-    
+    parameter_set <- sample_parameters(priors = priors, nPart = nPart, modelType = modelType, X = X, 
+                                       criterion = criterion, fromPrior = fromPrior, Show = Show, 
+                                       fixedBeta = fixedBeta, withinSubject = withinSubject)
+
     # Step 2: Generate hierarchical DDM data from the parameter set, using simulation settings
-    rawData = sample_data(nPart, nTrials, parameter_set, nTrialsPerCondition, prevent_zero_accuracy)
+    rawData = sample_data(nPart = nPart, nTrials = nTrials, parameter_set = parameter_set, 
+                          nTrialsPerCondition = nTrialsPerCondition, prevent_zero_accuracy = prevent_zero_accuracy)
     
+
     # Step 3: Calculate EZ summary statistics from the raw data
-    summData = getStatistics(rawData) 
+    summData = getStatistics(data = rawData) 
     
     # Return all components needed for subsequent analysis
     return(list("parameter_set" = parameter_set,
