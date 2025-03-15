@@ -1,12 +1,15 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 # This function creates diagnostic plots showing the MCMC chains
+# for all hierarchical parameters.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
-JAGS_plotChain <- function(samples, track_allParameters){
-  # Extract the 3D array of MCMC samples (iterations × chains × parameters)
+JAGS_plotChain <- function(samples){
+
+  # Extract the 3D array of posterior samples
+  # Dimensions: (iterations × chains × parameters)
   posterior.samples <- samples$BUGSoutput$sims.array
   
-  # Get the names of all parameters in the MCMC output
+  # Get the names of all parameters in the posterior samples array
   labels <- names(posterior.samples[1,1,])
   
   # Find indices of hierarchical parameters (those containing underscores)
@@ -16,22 +19,15 @@ JAGS_plotChain <- function(samples, track_allParameters){
   # Count the number of hierarchical parameters
   N <- length(locateHier)
   
-  # Determine the number of MCMC chains used
+  # Determine the number of chains
   n.chains <- ncol(posterior.samples[,,labels[locateHier[1]]])
   
-  # Set up the plotting layout based on whether we're tracking all parameters
-  if(track_allParameters){
-    # Larger layout (2 rows, 3 columns) for tracking more parameters
-    par(mfrow = c(2, 3), 
-        mar = c(5.1, 2, 4.1, 2),  # Margins: bottom, left, top, right
-        bty = "o")                # Box type: "o" for complete box
-  } else {
-    # Smaller layout (2 rows, 2 columns) for tracking fewer parameters
-    par(mfrow = c(2, 2), 
-        mar = c(1, 1, 1, 1),      # Minimal margins
-        mai = c(0.5, 0.5, 0.5, 0.2),  # Inner margins in inches
-        bty = "o")                # Box type: "o" for complete box
-  }
+
+  # Plotting layout  
+  par(mfrow = c(2, 2),              # 2 rows, 2 columns
+      mar = c(1, 1, 1, 1),          # Minimal margins
+      mai = c(0.5, 0.5, 0.5, 0.2),  # Inner margins in inches
+      bty = "o")                    # Box type: "o" for complete box
   
   # Loop through each hierarchical parameter to create trace plots
   for(i in locateHier){
@@ -51,7 +47,5 @@ JAGS_plotChain <- function(samples, track_allParameters){
         lines(posterior.samples[, a, i], col = a)
       }
     }
-  }
-  
-  # Note: The function doesn't return any values, it produces graphical output
+  }   
 }
