@@ -136,4 +136,4 @@ JAGS_writeModel <- function(priors, modelType, criterion, modelFile=NA, custom_t
 }
 
 
-JAGS_writeModel(priors, modelType = "hierarchical", criterion = "drift", modelFile=NA, custom_truncation_list = NULL)
+#JAGS_writeModel(priors, modelType = "hierarchical", criterion = "drift", modelFile=NA, custom_truncation_list = NULL)
