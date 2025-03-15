@@ -3,7 +3,7 @@
 #####################################################################
 
 # A function to write the JAGS model using the priors values
-writefixEffJAGSmodel <- function(priors, modelFile, custom_truncation_list = NULL){
+write_within_subject_model <- function(priors, modelFile, custom_truncation_list = NULL){
   # If no custom truncation list is provided, use these default values
   if(is.null(custom_truncation_list)){
     custom_truncation_list <- list(
