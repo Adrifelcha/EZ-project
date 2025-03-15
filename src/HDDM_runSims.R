@@ -71,8 +71,14 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
         output.folder <- here("output", "RData-results")
     }
 
+    # Ensure output folder exists
+    if(!dir.exists(output.folder)){
+        dir.create(output.folder, recursive = TRUE)
+        cat("Created output directory:", output.folder, "\n")
+    }
+
     # Determine output file name based on simulation parameters
-    outputFile <- nameOutput(nTrials, nParticipants, nDatasets, modelType, fromPrior, output.folder = output.folder)
+    outputFile <- nameOutput(nTrials, nParticipants, nDatasets, modelType, fromPrior, output.folder)
     
     # Check if we need to run simulations again or can use existing results    
     if(!forceSim){
@@ -160,7 +166,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
         }
         
         # Write appropriate JAGS model file based on model type and criterion
-        name_start <- paste(output.folder, "EZHBDDM", sep="")
+        name_start <- paste(here("output", "BUGS-models/"), "EZHBDDM", sep="")
         if(modelType == "hierarchical"){  
             modelFile <- paste(name_start, ".bug", sep="")
         } else {
@@ -357,7 +363,12 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                        "n.chains" = n.chains,
                        "totalTime" = total_time, 
                        "seed_id" = seed_id)
-        save(output, file=outputFile)
+        tryCatch({
+            save(output, file=outputFile)
+            cat("Successfully saved results to:\n", outputFile, "\n\n")
+        }, error = function(e) {
+            cat("Error saving results:\n", e$message, "\n")
+        })
         
         cat("Running this simulation study took ", total_time, "minutes.\n")
     } else {  
