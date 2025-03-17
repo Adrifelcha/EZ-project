@@ -23,7 +23,7 @@ The incompletely crossed design leads to five experimental conditions:
 
 ## Model Description
 
-We explore the variability in the drift rate parameter across conditions using a multiple linear regression model, with regression coefficients for the effects of change presence, change quality, and change type, as captured by the dummy variables A, B, and C.
+We explore the variability in the drift rate parameter across conditions using a multiple linear regression model with regression coefficients for the effects of change presence, change quality, and change type, as captured by the dummy variables A, B, and C.
 
 The predicted drift rate for each condition is determined by its unique configuration of the dummy variables A, B, and C. The model parameters have the following interpretations:
 
@@ -39,9 +39,9 @@ The predicted drift rate for each condition is determined by its unique configur
 
 Our analysis focuses on the regression effects γ₁, γ₂, and γ₃:
 
-1. For γ₁ (effect of change quality), we obtain a Bayes factor of 0.93, which is nearly perfectly equivocal
-2. For γ₂ (effect of change type), we obtain a Bayes factor of 26, which is strong evidence for a difference between the concavity and convexity conditions
-3. For γ₃ (interaction effect), we compute a Bayes factor of 0.67, suggesting at best weak evidence for an interaction effect
+1. For γ₁ (effect of change quality)
+2. For γ₂ (effect of change type)
+3. For γ₃ (interaction effect)
 
 The posterior distributions of the predicted drift rates show a clear effect of change type (concavity vs. convexity), while other effects are less pronounced.
 
