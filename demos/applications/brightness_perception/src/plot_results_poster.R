@@ -1,10 +1,22 @@
 ###########################################################################################
-# Individual plots showing relevant results
+# Load results and define plotting variables
 ############################################################################################
-load("../results/samples.RData")
-source("./loadSamples.R")
-source("./getPostPredictives.R")
+results_at <- here("output", "RData-results", "demo_brightness_results.RData")
+if(file.exists(results_at)){
+  load(results_at)
+} else {
+  source(here("demos", "applications", "brightness_perception", "src", "run_metaregression-example.R"))
+}
 
+###########################################################################################
+# Plotting file description:
+# This R script generates a single pdf showing the results for the brightness perception demo.
+# The resulting figure has two panels:
+# 1. The upper panel shows the posterior distributions for beta3 and beta4
+# 2. The lower panel shows the predicted drift rate vs the recovered drift rate
+############################################################################################
+
+# Custom plotting functions
 makeLines <- function(posterior_object){
   x <- posterior_object
   line_acc <- c(x[1:16], NA,x[17:32])
@@ -13,10 +25,10 @@ makeLines <- function(posterior_object){
   return(full_line)
 }
 
+pdf(file = here("output", "figures", "poster_brightnessExample.pdf"), width = 4, height = 3.2)
 ###################################################################
-# Figure 1: Beta posteriors
+# Panel 1: Beta posteriors
 ###################################################################
-pdf(file = "../../../figures/metaEx_poster.pdf", width = 4, height = 3.2)
 par(mai=c(0.3,0.1,0,0.05), oma= c(0,1,0.2,0.1), bg=NA)
 layout(matrix(c(1,2,3,3), 2, 2, byrow = TRUE),heights = c(1, 1.5))
 line.color    <- "#245BC3"
@@ -51,12 +63,13 @@ mtext(expression(paste(beta[4])),side=1,line=0.8,cex=0.7)
 abline(v=0,lty=2, col=cutLine.color, lwd=2)
 
 ###################################################################
-# Figure 2: Predicted drift vs Recovered drift
+# Panel 2: Predicted drift vs Recovered drift
 ###################################################################
 acc.bckg <- "#DECFF6"
 spd.bckg <- "#D2D4FF"
 predicted.color  <- "#150D84"
 recovered.color <- "#155CB3"
+
 #### Get mean posterior estimates and percentiles for plotting
 # Drift recovered
 means <- apply(drift, 2, mean)
@@ -73,10 +86,10 @@ errors_acc <- cbind(c(lower_percentiles[1:16], NA, lower_percentiles[17:32]),
 errors_spd <- cbind(c(lower_percentiles[33:48],NA, lower_percentiles[49:64]),
                     c(upper_percentiles[33:48],NA, upper_percentiles[49:64]))
 errors <- rbind(errors_acc,c(NA,NA),errors_spd)
+
 #### Make plot
 plot(full_x,fit_line, type="l", lwd=4, col=predicted.color, ann=F, axes=F,
      ylab="Drift rate", ylim=c(0,6),xaxs = "i", yaxs = "i", xlim=c(-3.5,10.3))
-# Gray background
 polygon(c(-3.5,3.4,3.4,-3.5),c(0,0,6.5,6.5),col = acc.bckg, border = acc.bckg, lwd = 1, lty = "solid")
 polygon(c(3.4,10.3,10.3,3.4),c(0,0,6.5,6.5),col = spd.bckg, border = spd.bckg, lwd = 1, lty = "solid")
 polygon(c(-0.04,0.04,0.04,-0.04),c(0,0,6.5,6.5),col = "gray75", border = "gray75", lwd = 3, lty = "solid")
@@ -94,10 +107,10 @@ text(-2,0.35,"Accuracy condition", cex=0.6)
 text(9,0.35,"Speed condition", cex=0.6)
 mtext("Drift rate", 2, line=0.8, cex=0.7, f=2)
 mtext("Stimulus configuration", 1, line=0.85, cex=0.7, f=2)
-#text(3.5,6.1,"Predicted and recovered drift rate per condition", f=2, cex=.85)
 lines(c(-3.2,-2.7),c(5.7,5.7), lwd=2, col=predicted.color)
 text(-1.35,5.7,"Predicted drift", cex=0.7, f=2)
 lines(c(-3.2,-2.7),c(5.25,5.25), lwd=1, col=recovered.color)
 text(-1.275,5.25,"Recovered drift", cex=0.7, f=2)
+###################################################################
 dev.off()
 
