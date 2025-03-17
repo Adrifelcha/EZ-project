@@ -14,7 +14,7 @@ for(archive in dir(here("src"))) {
 ### Simulation settings
 n.participants <-  40 
 n.trials       <- 160
-n.simulations  <- 50
+n.simulations  <- 100
 modelType      <- "ttest"
 
 ### JAGS variables 
