@@ -256,7 +256,7 @@ plot_beta_posteriors()
 dev.off()
 
 # PDF version
-pdf(file = here("output", "figures", "demoResults_Brightness_betas_paper.pdf"), width = 2, height = 1)
+pdf(file = here("output", "figures", "demoResults_Brightness_betas.pdf"), width = 2, height = 1)
 par(mfrow = c(1,2), mai=c(0,0.05,0,0.05), oma= c(1.1,0.3,1,0), bg=NA)
 plot_beta_posteriors()
 dev.off()
