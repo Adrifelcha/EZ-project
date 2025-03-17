@@ -23,14 +23,7 @@ The incompletely crossed design leads to five experimental conditions:
 
 ## Model Description
 
-We explore the variability in the drift rate parameter across conditions using a multiple linear regression model:
-
-\[
-\begin{align}
-\text{drift}^\text{pred}_k &= \mu+A_k(\gamma_1B_k+\gamma_2C_k+\gamma_3B_kC_k)+(1-A_k)\gamma_4\\
-\text{drift}_k &\sim \text{Normal}(\text{drift}^\text{pred}_k,\sigma_\text{drift})
-\end{align}
-\]
+We explore the variability in the drift rate parameter across conditions using a multiple linear regression model, with regression coefficients for the effects of change presence, change quality, and change type, as captured by the dummy variables A, B, and C.
 
 The predicted drift rate for each condition is determined by its unique configuration of the dummy variables A, B, and C. The model parameters have the following interpretations:
 
