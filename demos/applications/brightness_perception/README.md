@@ -1,4 +1,5 @@
 # Brightness Perception Demo Application
+## Metaregression model example
 
 This example showcases the advantages of implementing a proxy model with a meta-regression extension that involves a non-linear function. We analyze data from [Ratcliff and Rouder (1998)](https://journals.sagepub.com/doi/pdf/10.1111/1467-9280.00067), experiment 1, participant N.H.
 
