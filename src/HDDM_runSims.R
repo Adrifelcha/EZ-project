@@ -45,7 +45,8 @@
 
 HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, modelType = NA, criterion = NA, n.chains = 3, 
                          n.burnin=250, n.iter=2000, n.thin=1, Show=TRUE, forceSim = FALSE, fromPrior=TRUE, output.folder = NA,
-                         track_allParameters = FALSE, rhatCheck=TRUE, redo_if_bad_rhat=FALSE, init_drift_sd = 0.3){
+                         track_allParameters = FALSE, rhatCheck=TRUE, redo_if_bad_rhat=FALSE, init_drift_sd = 0.3,
+                         prevent_zero_accuracy = TRUE, fixedBeta = NA, withinSubject = FALSE, custom_truncation_list = NULL){
     
     # Start timing the entire simulation study
     grand_tic <- clock::date_now(zone="UTC")
@@ -226,7 +227,7 @@ HDDM_runSims <- function(nParticipants, nTrials, nDatasets = 10, priors = NA, mo
                 # Generate dataset with known parameters
                 design <- HDDM_setup(priors = priors, nPart = nParticipants, nTrials = nTrials, 
                                      modelType = modelType, X = X, criterion = criterion, 
-                                     fromPrior = fromPrior, Show = FALSE)
+                                     fromPrior = fromPrior, Show = FALSE, prevent_zero_accuracy = prevent_zero_accuracy)
                 
                 # For later datasets, use try() to handle potential errors
                 if(k > 100){
