@@ -1,4 +1,4 @@
-# Hierarchical Bayesian EZ Drift Diffusion Model!
+# EZ Bayesian Hierarchical Drift Diffusion Model!
 
 Welcome,
 
