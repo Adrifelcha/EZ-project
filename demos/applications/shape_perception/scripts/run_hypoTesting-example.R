@@ -1,40 +1,58 @@
-# Load necessary libraries/packages
+####################
+# Setup
+####################
+cat("\n\n===== SETUP =====\n")
+cat("Setting up environment and loading required packages...\n")
 source(here("src", "plot_VerticalHist.R"))
 source(here("src", "rhat.R"))
 library(R2jags)
 library(here)
 seed <- 15
 
-# Read the data file
+####################
+# Loading data
+####################
+cat("\n\n===== DATA LOADING =====\n")
+cat("Loading participant data...\n")
 data_raw <- read.csv(here("demos", "applications", "shape_perception", "data", "vpw08.csv"))
 
-# Change column names
+# Change column names to be more descriptive
 colnames(data_raw) <- c("sub", "change_quality", "change_type", "noChange", "response", "rt")
 
-# Clean up data
+####################
+# Data preprocessing
+####################
+cat("\n\n===== DATA PREPROCESSING =====\n")
+cat("Preprocessing data...\n")
 # Remove RTs larger than 3 seconds
 tmp <- data_raw[which(data_raw$rt<=3),]
 # Identify each condition
 change <- 1-tmp$noChange
 cond <- rep(0,nrow(tmp))
-cond[which(tmp$change_quality==0&tmp$change_type==0)] <- 1
-cond[which(tmp$change_quality==1&tmp$change_type==0)] <- 2
-cond[which(tmp$change_quality==0&tmp$change_type==1)] <- 3
-cond[which(tmp$change_quality==1&tmp$change_type==1)] <- 4
-cond[which(change==0)] <- 5
+cond[which(tmp$change_quality==0&tmp$change_type==0)] <- 1  # Qualitative, Convexity
+cond[which(tmp$change_quality==1&tmp$change_type==0)] <- 2  # Quantitative, Convexity
+cond[which(tmp$change_quality==0&tmp$change_type==1)] <- 3  # Qualitative, Concavity
+cond[which(tmp$change_quality==1&tmp$change_type==1)] <- 4  # Quantitative, Concavity
+cond[which(change==0)] <- 5                                 # No change
 
-# Prepare final data set to use for our analysis
+# Prepare final dataset
 data <- data.frame("sub" = tmp$sub, "cond" = cond, "change" = change, 
                    "change_quality" = tmp$change_quality, "change_type" = tmp$change_type,
                    "response" = tmp$response, "rt" = tmp$rt)
 
-# No. of observations
-nrow(data)
+cat(sprintf("\nProcessed %d observations from participant data\n", nrow(data)))
 
-######################################################################
-# A custom function to compute EZ summary statistics
-######################################################################
+####################
+# Computing summary statistics
+####################
+cat("\n\n===== SUMMARY STATISTICS =====\n")
+cat("Computing summary statistics for EZ-DDM...\n")
 
+# This function computes summary statistics per condition and subject:
+# - Number of trials
+# - Score (sum of correct responses)
+# - Mean reaction time
+# - Variance of reaction time
 ez_summaries <- function(data){
   # Identify condition and subject ID
   cond <- unique(data$cond)
@@ -60,22 +78,15 @@ ez_summaries <- function(data){
   return(as.data.frame(output))
 }
 
+cat("\nAggregating data by condition and subject...\n")
 ezdata <- ez_summaries(data)
 ezdata$acc_rate <- ezdata$score/ezdata$nTrials
 
-
-# Is there a change?
-# Yes (1) / No (0)
-X <- ezdata$change
-
-# Change quality
-# Quantitative (1) / Qualitative (0)
-Y <- ezdata$change_quality
-
-# Change type
-# Concavity (1) / Convexity (0)
-Z <- ezdata$change_type
-
+####################
+# Defining the JAGS model
+####################
+cat("\n\n===== MODEL DEFINITION =====\n")
+cat("Preparing JAGS model file...\n")
 
 modelFile <- here("output", "BUGS-models", "demo_shape_model.bug")
 model <- write("
@@ -114,10 +125,26 @@ model <- write("
                 }
     }", modelFile)
 
+cat(sprintf("\nJAGS model file created at %s\n", modelFile))
 
-    # General setup
-n.chains  <- 4;      n.iter    <- 2500
-n.burnin  <- 250;    n.thin    <- 1
+####################
+# Setting up JAGS parameters
+####################
+cat("\n\n===== MODEL SETUP =====\n")
+cat("Setting up JAGS parameters...\n")
+
+# Define design variables
+# Is there a change?
+# Yes (1) / No (0)
+X <- ezdata$change
+
+# Change quality
+# Quantitative (1) / Qualitative (0)
+Y <- ezdata$change_quality
+
+# Change type
+# Concavity (1) / Convexity (0)
+Z <- ezdata$change_type
 
 # Pass data to JAGS
 data_toJAGS <- list("nTrials"  =  ezdata$nTrials,
@@ -126,6 +153,12 @@ data_toJAGS <- list("nTrials"  =  ezdata$nTrials,
                     "correct"  =  ezdata$score,
                     "cond"     =  ezdata$cond,
                     "X" = X, "Y" = Y, "Z" = Z)
+
+# General setup for MCMC sampling
+n.chains  <- 4      # Number of parallel chains
+n.iter    <- 2500   # Total iterations per chain
+n.burnin  <- 250    # Initial samples to discard
+n.thin    <- 1      # Thinning factor for samples
 
 # Specify parameters to keep track of
 parameters <- c('gamma', 'drift_mu', 'drift_lambda', 'drift_sigma', 'drift_pred',
@@ -139,8 +172,11 @@ for(i in 1:n.chains){
     myinits[[i]] <- list(drift = rnorm(nrow(ezdata),0,1))
 }
 
-set.seed(seed)
-
+####################
+# Running JAGS model
+####################
+cat("\n\n===== MODEL FITTING =====\n")
+cat("Running JAGS model (this may take a while)...\n")
 start <- Sys.time()
 samples <- jags(data=data_toJAGS,
                 parameters.to.save=parameters,
@@ -149,33 +185,37 @@ samples <- jags(data=data_toJAGS,
                 n.burnin=100,  n.thin=n.thin,
                 DIC=T, inits=myinits)
 end <- Sys.time()
+cat(sprintf("\nJAGS model completed in %s\n", format(end - start)))
+
+##########################
+# Convergence diagnostics
+##########################
+cat("\n\n===== CONVERGENCE DIAGNOSTICS =====\n")
+cat("Checking MCMC convergence diagnostics...\n")
 
 rhats <- apply(samples$BUGSoutput$sims.array,3,getRhat)
 rule <- 1.05
 bad.Rhat <- which(rhats>rule)
 test.rhat <- length(bad.Rhat) > 0
-  if(test.rhat){
-          par(mfrow=c(1,1))
-          which.are.bad.Rhats <- names(bad.Rhat)
-          hist(rhats, breaks = 50)
-          abline(v=rule, col="red", lty=2)
-          legend("top",paste("Rhat > ",rule," | ",
-                             (round(nrow(bad.Rhat)/(length(as.vector(rhats))),5))*100,
-                             "% of chains | ", length(which.are.bad.Rhats), " chains", sep=""), lty=2, col="red", cex=0.4)
-          table(which.are.bad.Rhats)
-  }else{      paste("No Rhat greater than ", rule, sep="")       }
+if(test.rhat){
+    par(mfrow=c(1,1))
+    which.are.bad.Rhats <- names(bad.Rhat)
+    hist(rhats, breaks = 50)
+    abline(v=rule, col="red", lty=2)
+    legend("top",paste("Rhat > ",rule," | ",
+                       (round(nrow(bad.Rhat)/(length(as.vector(rhats))),5))*100,
+                       "% of chains | ", length(which.are.bad.Rhats), " chains", sep=""), lty=2, col="red", cex=0.4)
+    table(which.are.bad.Rhats)
+    cat("\n⚠️ WARNING: Some parameters have not converged (Rhat > 1.05)\n")
+} else {      
+    cat("\n✓ All parameters have converged (Rhat <= 1.05)\n")
+}
 
-  ##### Drift rate parameters
-# Recovered drift rates
-drift <- samples$BUGSoutput$sims.list$drift
-# Regression coefficients
-mu <- samples$BUGSoutput$sims.list$drift_mu
-gamma <- samples$BUGSoutput$sims.list$gamma
-# Fitted values / Predicted drift rates
-drift_pred <- samples$BUGSoutput$sims.list$drift_pred
-
-
-
+####################
+# Computing Bayes Factors
+####################
+cat("\n\n===== BAYES FACTORS =====\n")
+cat("Computing Bayes Factors for effects...\n")
 epsilon <- 0.1
 prior_constant <- pnorm(epsilon) - pnorm(-epsilon)
 for(i in 1:3){
@@ -183,17 +223,15 @@ for(i in 1:3){
     post_mass <- mean(g > -epsilon & g < epsilon)
     this.BF <- prior_constant/post_mass
     this.BF[post_mass==0] <- 0
-    cat("The B.F. for gamma", i, "in favor of an effect is", this.BF, "\n")
+    cat(sprintf("\nBayes Factor for gamma %d: %.2f\n", i, this.BF))
 }
 
+####################
+# Setting up visualization
+####################
+cat("\n\n===== VISUALIZATION SETUP =====\n")
+cat("Preparing color palettes for plotting...\n")
 
-##### Summary statistics computed from the recovered drift and boundary
-Pc   <- samples$BUGSoutput$sims.list$Pc
-PRT  <- samples$BUGSoutput$sims.list$PRT
-MRT  <- samples$BUGSoutput$sims.list$MRT
-
-
-##### Drift rate parameters
 # Recovered drift rates
 drift <- samples$BUGSoutput$sims.list$drift
 # Regression coefficients
@@ -201,12 +239,6 @@ mu <- samples$BUGSoutput$sims.list$drift_mu
 gamma <- samples$BUGSoutput$sims.list$gamma
 # Fitted values / Predicted drift rates
 drift_pred <- samples$BUGSoutput$sims.list$drift_pred
-
-##### Summary statistics computed from the recovered drift and boundary
-Pc   <- samples$BUGSoutput$sims.list$Pc
-PRT  <- samples$BUGSoutput$sims.list$PRT
-MRT  <- samples$BUGSoutput$sims.list$MRT
-
 
 # Custom function to select colors
 myCol <- function(r,g,b,sub,alpha=1){
@@ -241,3 +273,17 @@ b[,4] <- round(seq(34,49, length.out=9),0)
 r[,5] <- round(seq(99,255, length.out=9),0)
 g[,5] <- round(seq(25,40, length.out=9),0)
 b[,5] <- round(seq(25,40, length.out=9),0)
+
+cat("\n✓ Analysis complete!\n")
+
+####################
+# Saving all workspace objects
+####################
+cat("\n\n===== SAVING RESULTS =====\n")
+cat("Saving relevant workspace objects to a single file...\n")
+
+save_workspace_to <- here("output", "RData-results", "demo_shape_results.RData")
+# Save key analysis objects
+save(samples, ezdata, drift, gamma, mu, drift_pred, file=save_workspace_to)
+
+cat(sprintf("\n✓ Key analysis objects have been saved to %s\n", save_workspace_to))
