@@ -4,7 +4,7 @@
 ############## Adriana F. Chávez De la Peña ##############
 # Main settings
 nParticipants <- 40
-nTrialsPerCondition <- 40
+nTrialsPerCondition <- 80
 beta_levels <- c(0,0.2,0.4)
 
 ##########################################################
@@ -15,30 +15,28 @@ library(here)
 library(foreach)
 library(doParallel)
 ########| Load required R scripts
-source(here("src", "show_priors.R"))
-source(here("src", "generate_dataset.R"))
-source(here("src", "generate_trial.R"))
-source(here("src", "getStatistics.R"))
-source(here("src", "extractSamples.R"))
 
-skip_scripts <- c("plot_hypothesisTesting_paper.R", 
-                  "plot_betaDistributions_paper.R",
-                  "plot_hypothesisTesting_paper_mgkrp.R")
+skip_scripts <- c("README.md")
 cat("Sourcing scripts...\n")
-for(archive in dir(here("demos", "simulation-studies", "hypothesis_testing", "scripts"))){   
+for(archive in dir(here("src"))){   
     if(archive %in% skip_scripts){
         next
     }else{                
         cat(paste("Sourcing:", archive, "\n"))
-        source(here("demos", "simulation-studies", "hypothesis_testing", "scripts", archive))        
+        source(here("src", archive))        
     }    
 }
+
+
+source(here("demos", "simulation-studies", "hypothesis_testing", "src", "use_priors.R"))
+source(here("demos", "simulation-studies", "hypothesis_testing", "src", "HDDM_simBySeed.R"))
+source(here("demos", "simulation-studies", "hypothesis_testing", "src", "store_parallelOutput.R"))
 
 ##########################################################
 # SIMULATION SETTINGS
 ##########################################################
 # Create output directory if it doesn't exist
-output_dir <- here("demos", "simulations", "hypothesis_testing", "samples")
+output_dir <- here("demos", "simulation-studies", "hypothesis_testing", "samples")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 settings <- list(
@@ -78,11 +76,11 @@ cores       <-  detectCores()
 my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-resultado <- foreach(i = 1001:1010, 
+resultado <- foreach(i = 1:10, 
                     .errorhandling = "pass",
                     .combine = 'rbind'
                     ) %dopar% {
-                      W <- HDDM_simBySeed_fixEff(seed = i, settings, forceRun=TRUE,
+                      W <- HDDM_simBySeed_withinSubject(seed = i, settings, forceRun=TRUE,
                                                  redo_if_bad_rhat=TRUE, rhat_cutoff=1.05)
                     }
 stopCluster(cl = my.cluster)
@@ -98,8 +96,9 @@ resultado <- res1to1000
 #settings$nDatasets <- nrow(resultado)
 
 nrow(resultado)
+settings$nDatasets <- nrow(resultado)
 # Store the results
 # Default location: repo-root/output/RData-results
 # Look for filename starting with: simHypTesting_...RData
-store_parallelOutput(resultado, settings)
+store_BetaParallelOutput(output = resultado, settings = settings)
 
