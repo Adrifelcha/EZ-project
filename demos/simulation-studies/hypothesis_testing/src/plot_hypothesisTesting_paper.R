@@ -8,7 +8,7 @@
 #   2. An inset histogram showing the distribution of parameter estimates for
 #      three different true effect sizes (null, small, and medium)
 #################################################################################
-
+library(here)
 
 ########################################################################################
 # Part 1: Load simulation results from RData files  
@@ -113,14 +113,14 @@ x_lab <- seq(0, 1, length.out=7)
 beta_colors <- c("#192154", "#5E18F1", "#3C9C3B")
 
 # Initialize empty plot for ROC curve
-plot(p2[,2], p2[,1], type="l", ylim=c(0,1), xlim=c(0,1), ann=F, axes=F, lwd=4, col="red")
+plot(p2[,2], p2[,1], type="l", ylim=c(0,1), xlim=c(0,1), ann=F, axes=F, lwd=4, col="white")
 
 # Add ROC curves for each condition comparison
 # Add a line for the largest effect size
 lines(p2[,length(look.at)], p2[,1], col=beta_colors[length(look.at)], lwd=4)  
 
 # Add a line for the smallest, non-null effect size
-lines(p2[,2], p2[,1], col=beta_colors[2], lwd=4)  
+lines(p2[,2], p2[,1], col=beta_colors[2], lwd=4, lty=2)  
 
 # X-axis
 axis(1, x_lab, rep("", length(x_lab)), tck=-0.02, line=-0.3)  # Tick marks
@@ -145,7 +145,7 @@ text(0.85, 0.84, bquote(paste("True ", beta, " = ", .(format(true_betas[length(l
 old_par <- par(no.readonly = TRUE)
 
 # Create inset plot showing parameter distributions
-par(fig = c(0.2, 0.9, 0.2, 0.84), new = TRUE)  # Define inset position
+par(fig = c(0.22, 0.925, 0.1, 0.65), new = TRUE)  # Define inset position
 
 # Extract and plot null effect distribution
 getB <- estimates[["B"]]
@@ -176,10 +176,19 @@ axis(1, x_lab, rep("", length(x_lab)), tck=-0.04, line=0)
 axis(1, x_lab, round(x_lab, 1), cex.axis=axis.cex*0.7, lwd=0, line=-1.1)
 
 # Add legend to inset plot
-text(-0.1, max.Y*1.15, bquote(paste("True ", beta, " = ", .(format(true_betas[1], digits=1)))), cex=0.6, col=beta_colors[1])
-text(0.2, max.Y*1.2, bquote(paste("True ", beta, " = ", .(format(true_betas[2], digits=1)))), cex=0.6, col=beta_colors[2])
-text(0.54, max.Y*1.1, bquote(paste("True ", beta, " = ", .(format(true_betas[3], digits=1)))), cex=0.6, col=beta_colors[length(look.at)])
-mtext(expression(paste("mean posterior estimate ", beta)), 1, line=0.55, cex=0.7, f=2)
+text(-0.17, max.Y*1.05, "True", cex=0.5, col=beta_colors[1])
+text(-0.17, max.Y*0.9, bquote(bold(beta)[1] ~ "=" ~ .(format(true_betas[1], digits=1))), 
+     cex=0.5, col=beta_colors[1])
+
+text(0.06, max.Y*1.37, "True", cex=0.5, col=beta_colors[2])
+text(0.06, max.Y*1.22, bquote(bold(beta)[2] ~ "=" ~ .(format(true_betas[2], digits=1))), 
+     cex=0.5, col=beta_colors[2])
+
+text(0.57, max.Y*1.2, "True", cex=0.5, col=beta_colors[3])
+text(0.57, max.Y*1.05, bquote(bold(beta)[3] ~ "=" ~ .(format(true_betas[3], digits=1))), 
+     cex=0.5, col=beta_colors[3])
+
+mtext(expression(bold(paste("Mean posterior ", bold(beta), " estimated"))), 3, line=-0.2, cex=0.6)
 
 # Restore original plotting parameters
 par(old_par)
