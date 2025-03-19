@@ -27,14 +27,15 @@ for(archive in dir(here("src"))){
     }    
 }
 
-
-source(here("demos", "simulation-studies", "hypothesis_testing", "src", "use_priors.R"))
 source(here("demos", "simulation-studies", "hypothesis_testing", "src", "HDDM_simBySeed.R"))
-source(here("demos", "simulation-studies", "hypothesis_testing", "src", "store_parallelOutput.R"))
-
+source(here("demos", "simulation-studies", "hypothesis_testing", "src", "store_BetaParallelOutput.R"))
 ##########################################################
 # SIMULATION SETTINGS
 ##########################################################
+# Specify custom priors
+custom_priors <- list("nondt_sdev_lower" = 0.025, "drift_mean_mean" = 0.5,
+                      "nondt_mean_mean" = 0.4)
+
 # Create output directory if it doesn't exist
 output_dir <- here("demos", "simulation-studies", "hypothesis_testing", "samples")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
@@ -46,9 +47,9 @@ settings <- list(
     "nDatasets" = 1000,
     "beta_levels" = beta_levels,
     "n.chains" = 2,
-    "n.iter" = 2000,
+    "n.iter" = 4000,
     "n.burnin" = 500,
-    "n.thin" = 3,
+    "n.thin" = 1,
     "nCells" = length(beta_levels),
     "X" = rep(c(1,0),nParticipants),
     "P" = rep(1:nParticipants, each=2))
@@ -62,7 +63,7 @@ for(i in 1:settings$n.chains){
 jagsData <- list("nParticipants", "nTrialsPerCondition", "X", "P", "meanRT", "varRT", "correct")
 settings <- c(settings, list("modelFile" = here("output", "BUGS-models", "EZHBDDM_within-subject.bug"),
                              "jagsParameters" = jagsParameters,
-                             "priors" = default_priors(Show=FALSE),
+                             "priors" = JAGS_priors(Show = FALSE,custom_prior_list = custom_priors),
                              "jagsData" = jagsData,
                              "jagsInits" = jagsInits))
 
@@ -90,6 +91,9 @@ cat("Time taken:", difftime(Big_end, Big_start, units = "mins"), "minutes\n")
 #res1to20 <- resultado
 #res1to20B <- resultado
 #res1to1000 <- rbind(res1to200, resultado)
+
+#take_time <- c()
+take_time <- c(take_time, difftime(Big_end, Big_start, units = "mins"))
 
 #res1to200 <- rbind(res1to80, resultado)
 resultado <- res1to1000
