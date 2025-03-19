@@ -33,13 +33,20 @@ sample_data <- function(nPart, nTrials = NA, parameter_set,
           this.sub <- which(data[,1]==i)
           
           # Generate dataset for this participant using their specific parameters
-          accuracy = 0
+          # First generate the dataset once
+          temp <- sample_dataset(a = parameter_set$bound[i], 
+                                 v = parameter_set$drift[i], 
+                                 t = parameter_set$nondt[i], 
+                                 n = nTrials)
+          accuracy <- temp$accuracy
+          
+          # If prevent_zero_accuracy is TRUE and we got all zeros, keep trying
           while(sum(accuracy)==0 && prevent_zero_accuracy){
             temp <- sample_dataset(a = parameter_set$bound[i], 
-                                     v = parameter_set$drift[i], 
-                                     t = parameter_set$nondt[i], 
-                                     n = nTrials)
-            accuracy = temp$accuracy
+                                   v = parameter_set$drift[i], 
+                                   t = parameter_set$nondt[i], 
+                                   n = nTrials)
+            accuracy <- temp$accuracy
           }
           
           # Store reaction times and accuracy in the data matrix
@@ -74,14 +81,21 @@ sample_data <- function(nPart, nTrials = NA, parameter_set,
                 # Identify rows for current participant and condition
                 this.cell <- which(data[,1]==i & data[,2]==k)
                 
-                # Generate dataset ensuring non-zero accuracy
-                accuracy = 0
+                # Generate dataset ensuring non-zero accuracy if required
+                # First generate the dataset once
+                temp <- sample_dataset(a = parameter_set$bound[i], 
+                                       v = parameter_set$drift[j], 
+                                       t = parameter_set$nondt[i], 
+                                       n = nTrialsPerCondition)
+                accuracy <- temp$accuracy
+                
+                # If prevent_zero_accuracy is TRUE and we got all zeros, keep trying
                 while(sum(accuracy)==0 && prevent_zero_accuracy){
                   temp <- sample_dataset(a = parameter_set$bound[i], 
-                                           v = parameter_set$drift[j], 
-                                           t = parameter_set$nondt[i], 
-                                           n = nTrialsPerCondition)
-                  accuracy = temp$accuracy
+                                         v = parameter_set$drift[j], 
+                                         t = parameter_set$nondt[i], 
+                                         n = nTrialsPerCondition)
+                  accuracy <- temp$accuracy
                 }
                 
                 # Store accuracy and reaction times
