@@ -13,7 +13,7 @@ seed <- 15
 # Loading data
 ####################
 cat("\n\n===== DATA LOADING =====\n")
-cat("Loading participant data...\n")
+cat("Loading shape perception data...\n")
 data_raw <- read.csv(here("demos", "applications", "shape_perception", "data", "vpw08.csv"))
 
 # Change column names to be more descriptive
@@ -40,7 +40,7 @@ data <- data.frame("sub" = tmp$sub, "cond" = cond, "change" = change,
                    "change_quality" = tmp$change_quality, "change_type" = tmp$change_type,
                    "response" = tmp$response, "rt" = tmp$rt)
 
-cat(sprintf("\nProcessed %d observations from participant data\n", nrow(data)))
+cat(sprintf("\nTotal number of observations: %d, across %d participants with %d conditions\n", nrow(data), length(unique(data$sub)), length(unique(data$cond))))
 
 ####################
 # Computing summary statistics
