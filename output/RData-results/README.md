@@ -19,5 +19,13 @@ Files that start with `sim_` contain the results of a given simulation study
 
 Files that start with `simHypTesting_` contain the results of the hypothesis testing simulation study, which uses a within-subject t-test design on the drift rate parameter.
 
+## Demo application outputs
+
+Files that start with `demo_` contain the results of the demo application.
+
+    - demo_brightness_...: Results from fitting a Hierarchical Bayesian EZ-DDM with a metaregression extension on the drift rate and boundary separation parameters to the brightness perception dataset collected by Ratcliff and Rouder (1998).
+    - demo_shape_...: Results from fitting a Hierarchical Bayesian EZ-DDM with a multiple linear regression extension on the drift rate parameter to data from a shape perception study run by Vandekerckhove et al. (2007).
+
+## Other outputs
 
 
