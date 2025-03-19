@@ -55,16 +55,18 @@ HDDM_simBySeed_withinSubject <- function(seed, settings, forceRun=FALSE, redo_if
             # Sample parameters from prior distributions
             # betaweight is the effect size parameter we're manipulating
             parameter_set <- sample_parameters(priors = settings$priors, 
-                                              nPart = nParticipants, 
-                                              X = X, 
-                                              Show = FALSE, 
-                                              fixedBeta = b,
-                                              withinSubject = TRUE)
+                                               fromPrior = TRUE,
+                                               nPart = nParticipants, 
+                                               X = X, 
+                                               Show = FALSE, 
+                                               fixedBeta = b,
+                                               withinSubject = TRUE)
             
             # Generate simulated data based on these parameters
             rawData = sample_data(nPart = nParticipants, 
                                  nTrialsPerCondition = nTrialsPerCondition, 
-                                 parameter_set = parameter_set)
+                                 parameter_set = parameter_set,
+                                 prevent_zero_accuracy = FALSE)
             
             # Calculate summary statistics from raw data
             summData = getStatistics(rawData)
@@ -224,15 +226,3 @@ HDDM_simBySeed_withinSubject <- function(seed, settings, forceRun=FALSE, redo_if
   return(resultado)
 }
   
-#x <- HDDM_simBySeed_withinSubject(1,settings, forceRun=TRUE)
-#a = x$Diff
-#a[,"true.values"]
-#b = x$noDiff
-#b[,"true.values"]
-
-#x2 = resultado[1,]
-#a2 = x2$Diff
-#a2[,"true.values"]
-#b2 = x2$noDiff
-#b2[,"true.values"]
-
