@@ -1,9 +1,9 @@
 ---
-title: "Brightness perception - Metaregression model example"
+title: "Brightness perception: <br>Metaregression model example"
 author: "Adriana F. Chávez De la Peña and Joachim Vandekerckhove"
 date: "`r Sys.Date()`"
 output:
-  rmdformats::material:
+  rmdformats::readthedown:
     self_contained: true
     thumbnails: false
     lightbox: true
@@ -22,14 +22,23 @@ library(rmdformats)
 
 Data from [Ratcliff and Rouder (1998)](https://journals.sagepub.com/doi/pdf/10.1111/1467-9280.00067), experiment 1, participant N.H.:
 
-> ''...subjects were asked to decide **whether the overall brightness of pixel arrays displayed on a computer monitor was “high” or “low”** (Fig. 3a). The brightness of a display was controlled by the proportion of the pixels that were white. For each trial, the proportion of white pixels was chosen from one of two distributions, a high distribution or a low distribution, each with fixed mean and standard deviation (Fig. 3b). Feedback was given after each trial to tell the subject whether his or her decision had correctly indicated the distribution...''
+> ''...subjects were asked to decide **whether the overall brightness of pixel arrays displayed on a computer monitor was “high” or “low”** (...) The brightness of a display was controlled by the proportion of the pixels that were white...''
 >
 
-There are 66 cells in the design with two main factors:
+The experimental design considered **two main factors**:
 
-- **Accuracy vs Speed instructions**: Conditions 1-33 had an accuracy instruction, 34-66 a speed instruction. 
+- **Instructions**: Accuracy vs Speed. 
 
-- **More black vs More white pixels**: Conditions 1-16 and 34-49 had more black pixels; conditions 18-33 and 51-66 had more white, and conditions 17 and 50 were ambiguous and will not be used here because they can't provide accuracy measures.
+- **Stimulus configuration**: Majority black vs Majority white pixels.
+
+For a total of **66 cells in the design**.
+
+  - Cells 1-16 had more **black** pixels and instructions favored **accurate** responses.
+  - Cells 18-33 had more **white** pixels and instructions favored **accurate** responses.
+  - Cells 34-49 had more **black** pixels and instructions favored **speedy** responses.
+  - Cells 51-66 had more **white** pixels and instructions favored **speedy** responses.
+  
+Cells 17 and 50 had 50/50 black-and-white pixels. These cells are discarded because they can't provide accuracy measures.
 
 ```{r, message=FALSE}
 # Load necessary libraries/packages
@@ -131,9 +140,9 @@ MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
 PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
 \end{align*}
 
-### Meta-regression structure
+### Metaregression structure with a nonlinear regression on the drift rate
 
-The second component of the model is the meta-regression structure we build to explain the DDM parameters as a function of covariates of interest.
+The second component of the model is the metaregression structure we build to explain the DDM parameters as a function of covariates of interest.
 
 We incorporate an effect ($\beta$) of instruction (i.e., $x_i$, `Xi`) on the *bound parameter ($\alpha$)*. 
 
@@ -141,12 +150,12 @@ We incorporate an effect ($\beta$) of instruction (i.e., $x_i$, `Xi`) on the *bo
 \alpha &\sim \mbox{Normal}(\mu_\alpha+\beta X_i,\sigma_\alpha)
 \end{align*}
 
-We also include a nonlinear regression on the drift rate $\delta$ using instruction (i.e., $x_i$, `Xi`) and stimulus configuration (i.e., $x_s$, `Xs`) as predictors. For the later, we used the absolute value (i.e., $|x_s|$, `abs(Xs)`) to represent the task difficulty getting easier as the black/white balance departs from $50\%$.
+We also include a nonlinear regression on the drift rate $\nu$ using instruction (i.e., $x_i$, `Xi`) and stimulus configuration (i.e., $x_s$, `Xs`) as predictors. For the later, we used the absolute value (i.e., $|x_s|$, `abs(Xs)`) to represent the task difficulty getting easier as the black/white balance departs from $50\%$.
 
 \begin{align*}
 Z &= \Phi(\beta_1+\beta_2 |X_s|+\beta_3X_i|X_s|)\\
-\delta_\mbox{pred} &= \mu_\delta+\beta_0 Z+\beta_4 X_i\\
-\delta &\sim \mbox{Normal}(\delta_\mbox{pred},\sigma_\delta)
+\nu_\mbox{pred} &= \mu_\nu+\beta_0 Z+\beta_4 X_i\\
+\nu &\sim \mbox{Normal}(\nu_\mbox{pred},\sigma_\nu)
 \end{align*}
 
 In the present example, we focus on the regression parameters capturing the effects of instruction ($\beta_3$, `Beta3`, and $\beta_4$, `Beta4`).
@@ -218,6 +227,8 @@ model {
 ### Specify JAGS setup
 
 ```{r}
+set.seed(seed)
+
 # General setup
 n.chains  <- 4;      n.iter    <- 5000
 n.burnin  <- 250;    n.thin    <- 1
@@ -232,10 +243,6 @@ data_toJAGS <- list("nTrials"  =  df$nTrials,
 # Specify parameters to keep track of
 parameters <- c('beta3', 'beta4', 'drift', 'drift_pred',
                 "Pc_pred", "MRT_pred", "PRT_pred", "Pc", "PRT", "MRT")
-```
-
-```{r}
-set.seed(seed)
 
 # Prepare initial values
 myinits <- rep(list(list()), n.chains)
@@ -382,10 +389,11 @@ for(i in 1:J){
 ## Instruction effect on drift rate slope
 
 ```{r, fig.align='center'}
-line.color  <- "darkorange"
-hist(beta3, freq = FALSE, breaks = 50, col="lightblue3", border = "lightblue3", ann=F, axes = T)
+line.color  <- "#A94442"
+nBreaks <- 75
+hist(beta3, freq = FALSE, breaks = nBreaks, col="#9EA3A8", border = "#9EA3A8", ann=F, axes = T)
 lines(density(beta3), lwd=4, col=line.color)
-legend("topleft",c("Histogram","KDE"),col=c("lightblue3",line.color),lwd=4, cex=1.1, bty = "n")
+legend("topleft",c("Histogram","KDE"),col=c("#9EA3A8",line.color),lwd=4, cex=1.1, bty = "n")
 mtext("Instruction effect on drift rate slope", cex=1.2, f=2, side=3, line=0.8)
 mtext("Density",side=2,line=2.15)
 mtext("Beta 3",side=1,line=2)
@@ -396,9 +404,9 @@ box(col="black")
 ## Instruction main effect on drift rate
 
 ```{r, fig.align='center'}
-hist(beta4, freq = FALSE, breaks = 50, col="lightblue3", border = "lightblue3", ann=F, axes = T,xaxs = "i", yaxs = "i", xlim=c(0,1.6), ylim = c(0,2.2))
+hist(beta4, freq = FALSE, breaks = nBreaks, col="#9EA3A8", border = "#9EA3A8", ann=F, axes = T,xaxs = "i", yaxs = "i", xlim=c(0,1.6), ylim = c(0,2.2))
 lines(density(beta4), lwd=4, col=line.color)
-legend("topleft",c("Histogram","KDE"),col=c("lightblue3",line.color),lwd=4, cex=1.1, bty = "n")
+legend("topleft",c("Histogram","KDE"),col=c("#9EA3A8",line.color),lwd=4, cex=1.1, bty = "n")
 mtext("Instruction main effect on drift rate", cex=1.2, f=2, side=3, line=0.8)
 mtext("Density",side=2,line=2.15)
 mtext("Beta 4",side=1,line=2)
@@ -427,8 +435,8 @@ preds <- apply(drift_pred,2,mean)
 ```
 
 ```{r, echo=FALSE, fig.align='center', out.width="100%"}
-acc.bckg <- "#FCF2FF"
-spd.bckg <- "#F5FAF9"
+acc.bckg <- "#f7ddd7"
+spd.bckg <- "#faf0e1"
 
 ### Concatenate values by instruction and add a "jump" between pixel condition
 makeLines <- function(posterior_object){
@@ -522,8 +530,8 @@ err.rtVar.spd  <- c(pp.perc.rtVar[1,33:48], pp.perc.rtVar[2,48:33],
 par(pty="m", mfrow = c(1,1), mai=c(1.1,0.6,0.5,0), oma= c(0,0,0,0))
 data.color  <- "black"
 point.size <- 0.9
-error.color <- "#E69FF8"
-pred.color <- "#BE07C1"
+error.color <- "#F4A59B"
+pred.color <- "#495057"
 
 predAccuracy_plot <- function(accRate, est.accRate.Full, err.accRate.acc, err.accRate.spd){
     plot(full_x,est.accRate.Full, col="white", ann=F, axes=F, 
@@ -554,8 +562,8 @@ predAccuracy_plot(accRate, est.accRate.Full, err.accRate.acc, err.accRate.spd)
 
 ```{r, fig.align='center', out.width="100%", echo=FALSE}
 par(pty="m", mfrow = c(1,1), mai=c(1.1,0.6,0.5,0), oma= c(0,0,0,0))
-error.color <- "#6DFA9C"
-pred.color <- "#00A437"
+error.color <- "#E27D72"
+pred.color <- "#495057"
 point.size <- 0.9
 
 
@@ -592,8 +600,8 @@ predMeanRT_plot(est.rtMean.Full, meanRT, err.rtMean.acc, err.rtMean.spd)
 
 ```{r, fig.align='center', out.width="100%", echo=FALSE}
 par(pty="m", mfrow = c(1,1), mai=c(1.1,0.6,0.5,0), oma= c(0,0,0,0))
-error.color <- "#8CE0FF"
-pred.color <- "#095B79"
+error.color <- "#C85C54"
+pred.color <- "#495057"
 
 predVarRT_plot <- function(varRT, est.rtVar.Full, err.rtVar.acc, err.rtVar.spd){
     plot(full_x,est.rtVar.Full, col="white", ann=F, axes=F, ylim=c(0,0.4),
