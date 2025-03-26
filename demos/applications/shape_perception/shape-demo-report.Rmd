@@ -1,9 +1,9 @@
-
-title: "Shape perception - Applied hypothesis testing example"
+---
+title: "Shape perception: <br>Hypothesis testing example"
 author: "Adriana F. Chávez De la Peña and Joachim Vandekerckhove"
 date: "`r Sys.Date()`"
 output:
-  rmdformats::material:
+  rmdformats::readthedown:
     self_contained: true
     thumbnails: false
     lightbox: true
@@ -20,7 +20,23 @@ library(rmdformats)
 ```
 # Introduction
 
-Data from [Vandekerckhove, Panis and Wagemans (2007)](https://link.springer.com/article/10.3758/BF03193960)
+Data from nine participants in a shape perception study conducted by [Vandekerckhove, Panis and Wagemans (2007; see experiment 3)](https://link.springer.com/article/10.3758/BF03193960). In this task, participants were **instructed to compare pairs of irregular shapes shown sequentially to indicate whether they were "Same" or "Different".** 
+
+The experimental design included **three dichotomous factors**:
+
+1. **Change presence**: Was there a change between the shapes?
+2. **Change type**: If there was a change, was it a change in *convexity* or *concavity*?
+3. **Change quality**: If there was a change, was it a *qualitative* or *quantitative* change?
+
+The incompletely crossed design leads to five experimental conditions, distinguished by the configuration of three dummy variables $A$, $B$, and $C$:
+
+| Condition | Change (A) | Change quality (B) | Change type (C) |
+|-----------|------------|-------------------|----------------|
+| k = 1     | Yes (A = 1) | Qualitative (B = 0) | Convexity (C = 0) |
+| k = 2     | Yes (A = 1) | Quantitative (B = 1) | Convexity (C = 0) |
+| k = 3     | Yes (A = 1) | Qualitative (B = 0) | Concavity (C = 1) |
+| k = 4     | Yes (A = 1) | Quantitative (B = 1) | Concavity (C = 1) |
+| k = 5     | No (A = 0)  | n/a | n/a |
 
 
 ```{r, message=FALSE}
@@ -30,19 +46,29 @@ library(here)
 seed <- 15
 ```
 
-# Loading and prepare the data
+# Loading and cleaning the data
+
+### Load the data
 
 ```{r}
-# Read the data file
+# Load the data from nine participants
 data_raw <- read.csv(here("demos", "applications", "shape_perception", "data", "vpw08.csv"))
-
-# Change column names
 colnames(data_raw) <- c("sub", "change_quality", "change_type", "noChange", "response", "rt")
+head(data_raw)
+```
 
-# Clean up data
-# Remove RTs larger than 3 seconds
+```{r}
+# No. of observations
+nrow(data_raw)
+```
+
+### Clean the data
+
+```{r}
+# Create a copy of the data preserving only RTs <= 3 seconds
 tmp <- data_raw[which(data_raw$rt<=3),]
-# Identify each condition
+
+# Add a column with the condition index
 change <- 1-tmp$noChange
 cond <- rep(0,nrow(tmp))
 cond[which(tmp$change_quality==0&tmp$change_type==0)] <- 1
@@ -69,10 +95,7 @@ nrow(data)
 ### Write custom function `ez_summaries`
 
 ```{r}
-######################################################################
-# A custom function to compute EZ summary statistics
-######################################################################
-
+# Define a function to compute the summary statistics used by EZ-DDM
 ez_summaries <- function(data){
   # Identify condition and subject ID
   cond <- unique(data$cond)
@@ -121,31 +144,31 @@ MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
 PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
 \end{align*}
 
-### Meta-regression structure
+### Metaregression structure with dummy variables
 
-We model the variability in the drift rate $\drift$ parameter across conditions $k$ by fitting a multiple linear regression
+We model the variability in the drift rate $\nu$ parameter across conditions $k$ by fitting a multiple linear regression
 
 \vspace{-0.2in}
 
 \begin{align*}
-\drift^{pred}_k &= \mu_\drift+X_k(\gamma_1Z_k+\gamma_2Y_k+\gamma_3Y_kZ_k)+\gamma_4(1-X_k)\\
-\drift_k &\sim \mbox{Normal}(\drift^{pred}_k,\sigma_\drift)
+\nu^{pred}_k &= \mu_\nu+X_k(\gamma_1Z_k+\gamma_2Y_k+\gamma_3Y_kZ_k)+\gamma_4(1-X_k)\\
+\nu_k &\sim \mbox{Normal}(\nu^{pred}_k,\sigma_\nu)
 \end{align*}
 
-so that the drift rate predicted for every condition $\drift^{pred}_k$ depends on the configuration of the three dummy variables and their interaction with five different regression coefficients.
+so that the drift rate predicted for every condition $\nu^{pred}_k$ depends on the configuration of the three dummy variables and their interaction with five different regression coefficients.
 
 ```{r}
 # Is there a change?
 # Yes (1) / No (0)
-X <- ezdata$change
+A <- ezdata$change
 
 # Change quality
 # Quantitative (1) / Qualitative (0)
-Y <- ezdata$change_quality
+B <- ezdata$change_quality
 
 # Change type
 # Concavity (1) / Convexity (0)
-Z <- ezdata$change_type
+C <- ezdata$change_type
 ```
 
 
@@ -164,7 +187,7 @@ model <- write("
               }      
               
               for(j in 1:5){
-                  drift_pred[j] = drift_mu + X[j]*(gamma[1]*Y[j]+gamma[2]*Z[j]+gamma[3]*Y[j]*Z[j]) + (1-X[j])*gamma[4]
+                  drift_pred[j] = drift_mu + A[j]*(gamma[1]*B[j]+gamma[2]*C[j]+gamma[3]*B[j]*C[j]) + (1-A[j])*gamma[4]
               }
               
               ####### Sampling model
@@ -193,10 +216,11 @@ model <- write("
 
 # JAGS
 
-
 ### Specify JAGS setup
 
 ```{r}
+set.seed(seed)
+
 # General setup
 n.chains  <- 4;      n.iter    <- 2500
 n.burnin  <- 250;    n.thin    <- 1
@@ -207,15 +231,11 @@ data_toJAGS <- list("nTrials"  =  ezdata$nTrials,
                     "varRT"    =  ezdata$varRT,
                     "correct"  =  ezdata$score,
                     "cond"     =  ezdata$cond,
-                    "X" = X, "Y" = Y, "Z" = Z)
+                    "A" = A, "B" = B, "C" = C)
 
 # Specify parameters to keep track of
 parameters <- c('gamma', 'drift_mu', 'drift_lambda', 'drift_sigma', 'drift_pred',
                 'drift','bound', 'nondt', "Pc", "PRT", "MRT")
-```
-
-```{r}
-set.seed(seed)
 
 # Prepare initial values
 myinits <- rep(list(list()), n.chains)
@@ -327,20 +347,6 @@ PRT  <- samples$BUGSoutput$sims.list$PRT
 MRT  <- samples$BUGSoutput$sims.list$MRT
 ```
 
-## Compute Bayes Factors!
-
-```{r}
-epsilon <- 0.1
-prior_constant <- pnorm(epsilon) - pnorm(-epsilon)
-for(i in 1:3){
-    g <- gamma[,i]
-    post_mass <- mean(g > -epsilon & g < epsilon)
-    this.BF <- prior_constant/post_mass
-    this.BF[post_mass==0] <- 0
-    cat("The B.F. for gamma", i, "in favor of an effect is", this.BF, "\n")
-}
-```
-
 ### Obtain posterior predicted summary statistics
 
 ```{r}
@@ -398,6 +404,29 @@ b[,5] <- round(seq(25,40, length.out=9),0)
 
 # Results
 
+## Bayes Factors!
+
+```{r}
+epsilon <- 0.1
+prior_constant <- pnorm(epsilon) - pnorm(-epsilon)
+for(i in 1:3){
+    this.gamma <- gamma[,i]
+    post_mass <- mean(this.gamma > -epsilon & this.gamma < epsilon)
+    this.BF <- prior_constant/post_mass
+    this.BF[post_mass==0] <- 0
+    cat("The B.F. for gamma", i, " in favor of an effect is", this.BF, ".", sep="")
+    if(this.BF < 1){
+      cat(" Evidence in favor of the null effect!\n")
+    } else if (this.BF < 1.2){
+      cat(" Weak evidence in favor of the effect!\n")
+    } else if (this.BF < 5){
+      cat(" Moderate evidence in favor of the effect!\n")
+    } else {
+      cat(" Strong evidence in favor of the effect!\n")
+    }
+}
+```
+
 ## Drift predicted per condition
 
 ```{r, echo=FALSE}
@@ -450,7 +479,7 @@ makePlot = function(data, binWidth = 0.1){
     lines(binStarts[c(1,3)], means[c(1,3)], lwd=1, lty=2)
     lines(binStarts[c(2,4)], means[c(2,4)], lwd=1, lty=2)
     legend(0.5,1.9, c("Qualitative change", "Quantitative change"), col=c("#42B6EC", "#0D41D5"), pch=15, bty = "n", cex=1.2)
-    text(0.9,1.9,"Change quality", cex=1.5, f=2)
+    text(0.9,2,"Change quality", cex=1.5, f=2)
 
 }
 
@@ -522,9 +551,31 @@ abline(v=0,lty=2,col="gray50")
 
 
 
-# Posterior predictive checks
+## Posterior predictive checks
 
-```{r}
+```{r, echo=FALSE}
+# Number of trials per condition
+nTrials <- ezdata$nTrials
+# Number of posterior samples
+n <- nrow(Pc) 
+# Number of conditions
+J <- ncol(Pc)
+# Empty matrices to store posterior predictions
+pp_accRate <- matrix(NA, nrow=n, ncol=J)
+pp_meanRT  <- matrix(NA, nrow=n, ncol=J)
+pp_varRT   <- matrix(NA, nrow=n, ncol=J)
+# Obtain posterior predictions using sampling distributions
+#        and the summary statistics derived from the recovered
+#        drift and boundary parameters
+for(i in 1:J){
+  correct  <-  rbinom(n,nTrials[i],Pc[,i])
+  pp_accRate[,i] <- correct/nTrials[i]
+  pp_varRT[,i]   <- rnorm(n,1/PRT[,i], sqrt(2/((nTrials[i]-1) * PRT[,i] * PRT[,i])))
+  pp_meanRT[,i]  <- rnorm(n,MRT[,i],sqrt(1/(PRT[,i]*nTrials[i])))
+}
+```
+
+```{r, echo=FALSE}
 #####################
 #   Accuracy rate   #
 #####################
@@ -534,7 +585,7 @@ jitter.x <- runif(iter,-0.12,0.12)
 # Initialize plotting space
 layout(mat = matrix(c(1,1,2,2,3,3,
                       0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,1,1.5))
+par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,5,1.5))
 
 plot_ppAcc <- function(pp_accRate, ezdata){
      for(k in 1:5){
@@ -556,24 +607,16 @@ plot_ppAcc <- function(pp_accRate, ezdata){
           if(k==4){mtext("Quantitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
           if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")}
           if(k==1|k==4){ mtext("Accuracy rate", 2, line=2.5, cex=0.8) }
+          mtext("Accuracy rate per condition per participant",3,outer=TRUE, f=2, line=2, cex=1.8)
      }
 }
 
 plot_ppAcc(pp_accRate, ezdata)
 ```
 
+
+
 ```{r, echo=FALSE}
-png(file = "../../figures/shapeEx_postpred_AccRate.png", width = 7, height = 5, units="in",res=300) 
-  layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-  layout.show(n = 5)
-  par(pty="m", mai=c(0.45,0.5,0.4,0), oma= c(0,0,0,0.5), bg = NA)
-  plot_ppAcc(pp_accRate, ezdata)
-dev.off()
-```
-
-
-
-```{r}
 ################
 #   Mean RT    #
 ################
@@ -583,7 +626,7 @@ jitter.x <- runif(iter,-0.12,0.12)
 # Initialize plotting space
 layout(mat = matrix(c(1,1,2,2,3,3,
                       0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,1,1.5))
+par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,5,1.5))
 
 plot_ppMeanRT <- function(pp_meanRT, ezdata){
      minY <- min(pp_meanRT)
@@ -599,25 +642,24 @@ plot_ppMeanRT <- function(pp_meanRT, ezdata){
             polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
             points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
             points(i, ezdata$meanRT[which(ezdata$cond==k)][i], pch=8)
-          }
-          mtext(paste("Condition", k), f=2, line=-0.7, cex=0.9)
+          }          
+          mtext(paste("Condition", k), f=2, line=1.5, cex=0.9)
+          if(k==1){mtext("Qualitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==2){mtext("Quantitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==3){mtext("Qualitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==4){mtext("Quantitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")}
           if(k==1|k==4){ mtext("Mean RT (secs)", 2, line=2.5, cex=0.8) }
+          mtext("Mean RT per condition per participant",3,outer=TRUE, f=2, line=2, cex=1.8)
      }
 }
 
 plot_ppMeanRT(pp_meanRT, ezdata)
 ```
 
+
+
 ```{r, echo=FALSE}
-png(file = "../../figures/shapeEx_postpred_meanRT.png", width = 7, height = 5, units="in",res=300) 
-  layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-  par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,0,0.5), bg = NA)
-  plot_ppMeanRT(pp_meanRT, ezdata)
-dev.off()
-```
-
-
-```{r}
 ################
 #   Variance RT    #
 ################
@@ -627,7 +669,7 @@ jitter.x <- runif(iter,-0.12,0.12)
 # Initialize plotting space
 layout(mat = matrix(c(1,1,2,2,3,3,
                       0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,1,1.5))
+par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,5,1.5))
 
 plot_ppvarRT <- function(pp_varRT, ezdata){
      ppl_varRT <- log(pp_varRT)
@@ -645,102 +687,19 @@ plot_ppvarRT <- function(pp_varRT, ezdata){
             points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
             points(i, log(ezdata$varRT[which(ezdata$cond==k)][i]), pch=8)
           }
-          mtext(paste("Condition", k), f=2, line=-0.7, cex=0.9)
+          mtext(paste("Condition", k), f=2, line=1.5, cex=0.9)
+          if(k==1){mtext("Qualitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==2){mtext("Quantitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==3){mtext("Qualitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==4){mtext("Quantitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")}
           if(k==1|k==4){ mtext("RT variance (log-scale)", 2, line=2.5, cex=0.8) }
+          mtext("RT variance per condition per participant",3,outer=TRUE, f=2, line=2, cex=1.8)
      }
 }
 
 plot_ppvarRT(pp_varRT, ezdata)
 ```
 
-```{r, echo=FALSE}
-png(file = "../../figures/shapeEx_postpred_varRT.png", width = 7, height = 5, units="in",res=300) 
-  layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-  par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,0,0.5), bg = NA)
-  plot_ppvarRT(pp_meanRT, ezdata)
-dev.off()
-```
 
-```{r}
-png(file = "../../figures/shapeEx_postpred_Full.png", width = 8, height = 11, units="in",res=300) 
-layout(mat = matrix(1:15, ncol=3, byrow=FALSE))
-layout.show(n = 15)
-par(pty="m", mai=c(0.1,0.5,0,0), oma= c(2.4,3.4,2.5,0.4), bg=NA)
-
-
-for(k in 1:5){
-  plot(4.5, 10, col="white", ylim=c(0,1), xlim=c(0.5,9.5),ann=F,axes=F)
-  axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
-  axis(2,seq(0,1,0.1), seq(0,1,0.1),las=1, cex.axis=0.7)
-  for(i in 1:9){
-    this.Y <- pp_accRate[,seq(k,ncol(pp_accRate),5)[i]]
-    CI <- quantile(this.Y, probs = c(0.025,0.975))
-    polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
-    points(i+jitter.x,this.Y, col=myCol(r[,1],g[,1],b[,1],i,0.05), pch=16, cex=0.8)
-    points(i, ezdata$acc_rate[which(ezdata$cond==k)][i], pch=8)
-  }
-  mtext(paste("Condition", k), 2, f=2, line=6, cex=1)
-  mtext("Accuracy rate", 2, line=2.1, cex=0.6) 
-  if(k==1){
-    mtext("Accuracy rate", f=2, line=.5, cex=1)
-    mtext("Qualitative change", 2, f=2, line=5, cex=0.75, col="gray50")
-    mtext("in Convexity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
-  if(k==2){
-    mtext("Quantitative change", 2, f=2, line=5, cex=0.75, col="gray50")
-    mtext("in Convexity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
-  if(k==3){
-    mtext("Qualitative change", 2, f=2, line=5, cex=0.75, col="gray50")
-    mtext("in Concavity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
-  if(k==4){
-    mtext("Quantitative change", 2, f=2, line=5, cex=0.75, col="gray50")
-    mtext("in Concavity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
-  if(k==5){mtext("No change at all", 2, f=2, line=5, cex=0.75, col="gray50")
-    mtext("Participant",1,line=1.7,cex=0.8)
-    axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
-}
-
-
-minY <- min(pp_meanRT)
-maxY <- max(pp_meanRT)
-for(k in 1:5){
-  plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
-  axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
-  axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1, cex.axis=0.7)
-  for(i in 1:9){
-    this.Y <- pp_meanRT[,seq(k,ncol(pp_meanRT),5)[i]]
-    CI <- quantile(this.Y, probs = c(0.025,0.975))
-    polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
-    points(i+jitter.x,this.Y, col=myCol(r[,2],g[,2],b[,2],i,0.05), pch=16, cex=0.8)
-    points(i, ezdata$meanRT[which(ezdata$cond==k)][i], pch=8)
-  }
-  mtext("Mean RT (secs)", 2, line=2.1, cex=0.6) 
-  if(k==1){mtext("Mean RT (secs)", f=2, line=.5, cex=1)}
-  if(k==5){mtext("Participant",1,line=1.7,cex=0.8)
-           axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
-}
-
-
-ppl_varRT <- log(pp_varRT)
-minY <- min(ppl_varRT)
-maxY <- max(ppl_varRT)
-for(k in 1:5){
-  plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
-  axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
-  axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1, cex.axis=0.7)
-  for(i in 1:9){
-    this.Y <- ppl_varRT[,seq(k,ncol(ppl_varRT),5)[i]]
-    CI <- quantile(this.Y, probs = c(0.025,0.975))
-    polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
-    points(i+jitter.x,this.Y, col=myCol(r[,3],g[,3],b[,3],i,0.05), pch=16, cex=0.8)
-    points(i, log(ezdata$varRT[which(ezdata$cond==k)][i]), pch=8)
-  }
-  mtext("RT variance (log-scale)", 2, line=2.1, cex=0.6)
-  if(k==1){
-    mtext("RT variance (logs)", f=2, line=.5, cex=1)}
-  if(k==5){mtext("Participant",1,line=1.7,cex=0.8)
-    axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
-  
-}
-dev.off()
-```
 
