@@ -372,34 +372,35 @@ myCol <- function(r,g,b,sub,alpha=1){
        rgb(r[sub]/255,g[sub]/255,b[sub]/255,alpha)
 }
 
+# Mu coefficient
 r <- matrix(NA, ncol=5,nrow=9)
 g <- matrix(NA, ncol=5,nrow=9)
 b <- matrix(NA, ncol=5,nrow=9)
 
-# Paleta violeta
-r[,1] <- round(seq(124,234, length.out=9),0)
-g[,1] <- round(seq(33,46, length.out=9),0)
-b[,1] <- round(seq(135,255, length.out=9),0)
+# Mu coefficient - neutral scale of grays (intercept)
+r[,1] <- round(seq(180,220, length.out=9),0)
+g[,1] <- round(seq(180,220, length.out=9),0)
+b[,1] <- round(seq(180,220, length.out=9),0)
 
-# Paleta verde
-r[,2] <- round(seq(30,90, length.out=9),0)
-g[,2] <- round(seq(116,255, length.out=9),0)
-b[,2] <- round(seq(54,93, length.out=9),0)
+# Gamma 1 coefficient - warm amber/gold (quantitative vs qualitative change)
+r[,2] <- round(seq(230,255, length.out=9),0)
+g[,2] <- round(seq(170,210, length.out=9),0)
+b[,2] <- round(seq(90,130, length.out=9),0)
 
-# Paleta azul
-r[,3] <- round(seq(44,108, length.out=9),0)
-g[,3] <- round(seq(87,173, length.out=9),0)
-b[,3] <- round(seq(142,255, length.out=9),0)
+# Gamma 2 coefficient - muted burgundy/wine (concavity vs convexity)
+r[,3] <- round(seq(150,190, length.out=9),0)
+g[,3] <- round(seq(60,90, length.out=9),0)
+b[,3] <- round(seq(80,110, length.out=9),0)
 
-# Paleta amarillo
-r[,4] <- round(seq(123,255, length.out=9),0)
-g[,4] <- round(seq(104,210, length.out=9),0)
-b[,4] <- round(seq(34,49, length.out=9),0)
+# Gamma 3 coefficient - rusty terracotta (interaction effect)
+r[,4] <- round(seq(200,230, length.out=9),0)
+g[,4] <- round(seq(100,130, length.out=9),0)
+b[,4] <- round(seq(70,100, length.out=9),0)
 
-# Paleta rojo
-r[,5] <- round(seq(99,255, length.out=9),0)
-g[,5] <- round(seq(25,40, length.out=9),0)
-b[,5] <- round(seq(25,40, length.out=9),0)
+# Gamma 4 coefficient - steel blue-gray (change/no change)
+r[,5] <- round(seq(80,120, length.out=9),0)
+g[,5] <- round(seq(90,130, length.out=9),0)
+b[,5] <- round(seq(100,140, length.out=9),0)
 ```
 
 # Results
@@ -450,7 +451,7 @@ makePlot = function(data, binWidth = 0.1){
     xlim <- c(0.5,2.5)
     ylim <- c(-1.2,2.1)
     xlabs <- c("Change in Convexity", "Change in Concavity")
-    fillCol <- c("#42B6EC", "#0D41D5", "#42B6EC", "#0D41D5")
+    fillCol <- c("#E27D72", "#7F2E2E", "#E27D72", "#7F2E2E")
     CIcolor <- rep("#CAC7DA",4)
     
     plot(c(0, 5), DOYrange, type = "n", xlim=xlim, ylim=ylim,
@@ -478,8 +479,8 @@ makePlot = function(data, binWidth = 0.1){
     }
     lines(binStarts[c(1,3)], means[c(1,3)], lwd=1, lty=2)
     lines(binStarts[c(2,4)], means[c(2,4)], lwd=1, lty=2)
-    legend(0.5,1.9, c("Qualitative change", "Quantitative change"), col=c("#42B6EC", "#0D41D5"), pch=15, bty = "n", cex=1.2)
-    text(0.9,2,"Change quality", cex=1.5, f=2)
+    legend(0.5,1.9, c("Qualitative change", "Quantitative change"), col=c("#E27D72", "#7F2E2E"), pch=15, bty = "n", cex=1.2)
+    text(0.7,2,"Change quality", cex=1.5, f=2)
 
 }
 
@@ -503,12 +504,16 @@ line.gamma4  <- myCol(r[,5],g[,5],b[,5],2,1)
 curve.mu <- myCol(r[,1],g[,1],b[,1],5,0.5)
 line.mu  <- myCol(r[,1],g[,1],b[,1],2,1)
 
+title.cex <- 1
+title.line <- 1.3
+subtitle.cex <- 0.75
+subtitle.line <- -0.2
 max.Y <- c(max(density(gamma[,1])$y,density(gamma[,2])$y,density(gamma[,3])$y))
 hist(gamma[,1], freq = FALSE, breaks = 50, col=curve.gamma1, border = curve.gamma1, 
      ann=F, axes = T, ylim = c(0, max.Y), xlim=c(-1.5,1.5))
 lines(density(gamma[,1]), lwd=4, col=line.gamma1)
-mtext("Quantitative change", cex=0.75, f=2, side=3, line=1.2)
-mtext("(Main effect)", cex=0.75, f=2, side=3, line=0.1, col="gray30")
+mtext("Quantitative change", cex=title.cex, f=2, side=3, line=title.line)
+mtext("(Main effect)", cex=subtitle.cex, f=2, side=3, line=subtitle.line, col="gray30")
 mtext("Density",side=2,line=2.15, cex=0.8)
 mtext(expression(paste(gamma[1])),side=1,line=2.5, cex=1)
 abline(v=0,lty=2,col="gray50")
@@ -516,16 +521,16 @@ abline(v=0,lty=2,col="gray50")
 hist(gamma[,2], freq = FALSE, breaks = 50, col=curve.gamma2, border = curve.gamma2,
      ann=F, axes = T, ylim = c(0, max.Y), xlim=c(-1.5,1.55))
 lines(density(gamma[,2]), lwd=4, col=line.gamma2)
-mtext("Change in Concavity", cex=0.75, f=2, side=3, line=1.2)
-mtext("(Main effect)", cex=0.75, f=2, side=3, line=0.1, col="gray30")
+mtext("Change in Concavity", cex=title.cex, f=2, side=3, line=title.line)
+mtext("(Main effect)", cex=subtitle.cex, f=2, side=3, line=subtitle.line, col="gray30")
 mtext(expression(paste(gamma[2])),side=1,line=2.5, cex=1)
 abline(v=0,lty=2,col="gray50")
 
 hist(gamma[,3], freq = FALSE, breaks = 50, col=curve.gamma3, border = curve.gamma3, 
      ann=F, axes = T, ylim = c(0, max.Y), xlim=c(-1.5,1.5))
 lines(density(gamma[,3]), lwd=4, col=line.gamma3)
-mtext("Quantitative change in Concavity", cex=0.75, f=2, side=3, line=1.2)
-mtext("(Interaction effect)", cex=0.75, f=2, side=3, line=0.1, col="gray30")
+mtext("Quantitative change in Concavity", cex=title.cex, f=2, side=3, line=title.line)
+mtext("(Interaction effect)", cex=subtitle.cex, f=2, side=3, line=subtitle.line, col="gray30")
 mtext(expression(paste(gamma[3])),side=1,line=2.5, cex=1)
 abline(v=0,lty=2,col="gray50")
 
@@ -534,8 +539,8 @@ max.Y <- c(max(density(gamma[,4])$y,density(mu)$y))+0.1
 hist(gamma[,4], freq = FALSE, breaks = 50, col=curve.gamma4, border = curve.gamma4, 
      ann=F, axes = T, ylim=c(0, max.Y))
 lines(density(gamma[,4]), lwd=4, col=line.gamma4)
-mtext("Change NOT occuring", cex=0.75, f=2, side=3, line=0.5)
-mtext("(Main effect)", cex=0.75, f=2, side=3, line=-0.6, col="gray30")
+mtext("Change NOT occuring", cex=title.cex, f=2, side=3, line=title.line)
+mtext("(Main effect)", cex=subtitle.cex, f=2, side=3, line=subtitle.line, col="gray30")
 mtext("Density",side=2,line=2.15, cex=0.8)
 mtext(expression(paste(gamma[4])),side=1,line=2.5, cex=1)
 abline(v=0,lty=2,col="gray50")
@@ -543,8 +548,8 @@ abline(v=0,lty=2,col="gray50")
 hist(mu, freq = FALSE, breaks = 50, col=curve.mu, border = curve.mu, ann=F, 
      axes = T, ylim=c(0, max.Y))
 lines(density(mu), lwd=4, col=line.mu)
-mtext("Qualitative change in Convexity", cex=0.75, f=2, side=3, line=0.5)
-mtext("(Intercept; Baseline drift)", cex=0.75, f=2, side=3, line=-0.6, col="gray30")
+mtext("Qualitative change in Convexity", cex=title.cex, f=2, side=3, line=title.line)
+mtext("(Intercept; Baseline drift)", cex=subtitle.cex, f=2, side=3, line=subtitle.line, col="gray30")
 mtext(expression(paste(mu)),side=1,line=2.5, cex=1)
 abline(v=0,lty=2,col="gray50")
 ```
@@ -582,6 +587,9 @@ for(i in 1:J){
 iter <- nrow(pp_accRate)
 jitter.x <- runif(iter,-0.12,0.12)
 
+base.recangle.bg <- "#F2EFE9"    # Light cream/parchment color
+base.recangle.border <- "#C8B8A9" # Warm taupe/light brown
+
 # Initialize plotting space
 layout(mat = matrix(c(1,1,2,2,3,3,
                       0,4,4,5,5,0), nrow = 2, byrow = TRUE))
@@ -596,7 +604,7 @@ plot_ppAcc <- function(pp_accRate, ezdata){
           for(i in 1:9){
             this.Y <- pp_accRate[,seq(k,ncol(pp_accRate),5)[i]]
             CI <- quantile(this.Y, probs = c(0.025,0.975))
-            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
+            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col=base.recangle.bg, border=base.recangle.border)
             points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
             points(i, ezdata$acc_rate[which(ezdata$cond==k)][i], pch=8)
           }
@@ -639,7 +647,7 @@ plot_ppMeanRT <- function(pp_meanRT, ezdata){
           for(i in 1:9){
             this.Y <- pp_meanRT[,seq(k,ncol(pp_meanRT),5)[i]]
             CI <- quantile(this.Y, probs = c(0.025,0.975))
-            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
+            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col=base.recangle.bg, border=base.recangle.border)
             points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
             points(i, ezdata$meanRT[which(ezdata$cond==k)][i], pch=8)
           }          
@@ -683,7 +691,7 @@ plot_ppvarRT <- function(pp_varRT, ezdata){
           for(i in 1:9){
             this.Y <- ppl_varRT[,seq(k,ncol(ppl_varRT),5)[i]]
             CI <- quantile(this.Y, probs = c(0.025,0.975))
-            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
+            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col=base.recangle.bg, border=base.recangle.border)
             points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
             points(i, log(ezdata$varRT[which(ezdata$cond==k)][i]), pch=8)
           }
