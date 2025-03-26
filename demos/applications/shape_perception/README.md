@@ -1,7 +1,7 @@
 # Shape Perception Demo Application
 ## Hypothesis Testing Example
 
-This example showcases the implementation of our proxy model with a meta-regression extension that uses a multiple linear regression function for hypothesis testing. We re-analyze data from [Vandekerckhove, Panis and Wagemans (2007)](https://link.springer.com/article/10.3758/BF03193960), who studied nine participants in a shape perception experiment.
+This example showcases the implementation of our proxy model with a meta-regression extension that uses a multiple linear regression function for hypothesis testing. We re-analyze data from nine participants in a shape perception study conducted by [Vandekerckhove, Panis and Wagemans (2007)](https://link.springer.com/article/10.3758/BF03193960).
 
 ## Experimental Design
 
