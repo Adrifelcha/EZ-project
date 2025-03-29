@@ -1,6 +1,9 @@
 ###########################################################################################
 # Load results and define plotting variables
 ############################################################################################
+# Load packages
+library(here)
+# Load results
 results_at <- here("output", "RData-results", "demo_brightness_results.RData")
 if(file.exists(results_at)){
   load(results_at)
@@ -245,44 +248,65 @@ plot_posterior_predictive_checks <- function(title_line = 0, title_size = 0.5) {
 }
 
 ###################################################################
-# Generate all figures in both PNG and PDF formats
+# Generate all figures in PNG, PDF, and EPS formats
 ###################################################################
 
 # Figure 1: Beta posteriors
 # PNG version
-png(file = here("output", "figures", "demo_Brightness_betas_paper.png"), width = 2, height = 1, units="in", res=300)
+png(file = here("output", "figures", "paper_brightnessExample_betas.png"), width = 2, height = 1, units="in", res=300)
 par(mfrow = c(1,2), mai=c(0,0.05,0,0.05), oma= c(1.5,0.3,1.5,0), bg=NA)
 plot_beta_posteriors()
 dev.off()
 
 # PDF version
-pdf(file = here("output", "figures", "demo_Brightness_betas_paper.pdf"), width = 2, height = 1)
+pdf(file = here("output", "figures", "paper_brightnessExample_betas.pdf"), width = 2, height = 1)
+par(mfrow = c(1,2), mai=c(0,0.05,0,0.05), oma= c(1.1,0.3,1,0), bg=NA)
+plot_beta_posteriors()
+dev.off()
+
+# EPS version
+setEPS()
+postscript(file = here("output", "figures", "paper_brightnessExample_betas.eps"), width = 2, height = 1)
 par(mfrow = c(1,2), mai=c(0,0.05,0,0.05), oma= c(1.1,0.3,1,0), bg=NA)
 plot_beta_posteriors()
 dev.off()
 
 # Figure 2: Predicted drift vs Recovered drift
 # PNG version
-png(file = here("output", "figures", "demo_Brightness_driftPreds_paper.png"), width = 2.5, height = 1.25, units="in", res=300)
+png(file = here("output", "figures", "paper_brightnessExample_driftPreds.png"), width = 2.5, height = 1.25, units="in", res=300)
 par(pty="m", mfrow = c(1,1), mai=c(0,0,0,0), oma= c(1,1.2,1,0.1), bg=NA)
 plot_drift_predictions(arrow_length = 0.03, point_size = 0.4)
 dev.off()
 
 # PDF version
-pdf(file = here("output", "figures", "demo_Brightness_driftPreds_paper.pdf"), width = 2.5, height = 1.25)
+pdf(file = here("output", "figures", "paper_brightnessExample_driftPreds.pdf"), width = 2.5, height = 1.25)
+par(pty="m", mfrow = c(1,1), mai=c(0,0,0,0), oma= c(1,1.2,0.5,0.1), bg=NA)
+plot_drift_predictions(arrow_length = 0.01, point_size = 0.35)
+dev.off()
+
+# EPS version
+setEPS()
+postscript(file = here("output", "figures", "paper_brightnessExample_driftPreds.eps"), width = 2.5, height = 1.25)
 par(pty="m", mfrow = c(1,1), mai=c(0,0,0,0), oma= c(1,1.2,0.5,0.1), bg=NA)
 plot_drift_predictions(arrow_length = 0.01, point_size = 0.35)
 dev.off()
 
 # Figure 3: Posterior predictive checks
 # PNG version
-png(file = here("output", "figures", "demo_Brightness_PostPredChecks_paper.png"), width = 2.5, height = 2.5, units="in", res=300)
+png(file = here("output", "figures", "paper_brightnessExample_PostPredChecks.png"), width = 2.5, height = 2.5, units="in", res=300)
 par(pty="m", mfrow = c(3,1), mai=c(0.01,0,0.01,0), oma= c(2,2,1,0), bg=NA)
 plot_posterior_predictive_checks(title_line = 0, title_size = 0.5)
 dev.off()
 
 # PDF version
-pdf(file = here("output", "figures", "demo_Brightness_PostPredChecks_paper.pdf"), width = 2.5, height = 2.5)
+pdf(file = here("output", "figures", "paper_brightnessExample_PostPredChecks.pdf"), width = 2.5, height = 2.5)
+par(pty="m", mfrow = c(3,1), mai=c(0.01,0,0.01,0), oma= c(1.5,2,1,0), bg=NA)
+plot_posterior_predictive_checks(title_line = -0.1, title_size = 0.6)
+dev.off()
+
+# EPS version
+setEPS()
+postscript(file = here("output", "figures", "paper_brightnessExample_PostPredChecks.eps"), width = 2.5, height = 2.5)
 par(pty="m", mfrow = c(3,1), mai=c(0.01,0,0.01,0), oma= c(1.5,2,1,0), bg=NA)
 plot_posterior_predictive_checks(title_line = -0.1, title_size = 0.6)
 dev.off()
