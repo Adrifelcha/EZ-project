@@ -347,25 +347,6 @@ PRT  <- samples$BUGSoutput$sims.list$PRT
 MRT  <- samples$BUGSoutput$sims.list$MRT
 ```
 
-### Obtain posterior predicted summary statistics
-
-```{r}
-##### Drift rate parameters
-# Recovered drift rates
-drift <- samples$BUGSoutput$sims.list$drift
-# Regression coefficients
-mu <- samples$BUGSoutput$sims.list$drift_mu
-gamma <- samples$BUGSoutput$sims.list$gamma
-# Fitted values / Predicted drift rates
-drift_pred <- samples$BUGSoutput$sims.list$drift_pred
-
-##### Summary statistics computed from the recovered drift and boundary
-Pc   <- samples$BUGSoutput$sims.list$Pc
-PRT  <- samples$BUGSoutput$sims.list$PRT
-MRT  <- samples$BUGSoutput$sims.list$MRT
-```
-
-
 ```{r, echo=FALSE}
 # Custom function to select colors
 myCol <- function(r,g,b,sub,alpha=1){
