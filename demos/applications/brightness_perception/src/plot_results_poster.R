@@ -1,6 +1,9 @@
 ###########################################################################################
 # Load results and define plotting variables
 ############################################################################################
+# Load packages
+library(here)
+# Load results
 results_at <- here("output", "RData-results", "demo_brightness_results.RData")
 if(file.exists(results_at)){
   load(results_at)
