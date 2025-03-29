@@ -5,7 +5,8 @@ cat("\n\n===== SETUP =====\n")
 cat("Setting up environment and loading required packages...\n")
 library(R2jags)
 library(here)
-seed <- 15
+set.seed(15)
+source(here("src", "JAGS_getRhat.R"))
 
 ####################
 # Loading data
@@ -169,8 +170,6 @@ data_toJAGS <- list("nTrials"  =  df$nTrials,
 parameters <- c('beta3', 'beta4', 'drift', 'drift_pred',
                 "Pc_pred", "MRT_pred", "PRT_pred", "Pc", "PRT", "MRT")
 
-set.seed(seed)
-
 # Prepare initial values
 cat("\nPreparing initial values for MCMC chains...\n")
 myinits <- rep(list(list()), n.chains)
@@ -183,7 +182,6 @@ for(i in 1:n.chains){
 ####################
 cat("\n\n===== MODEL FITTING =====\n")
 cat("Running JAGS model (this may take a while)...\n")
-set.seed(seed)
 
 start <- Sys.time()
 samples <- jags(data=data_toJAGS,
@@ -201,7 +199,6 @@ cat(sprintf("\nJAGS model completed in %s\n", format(end - start)))
 ##########################
 cat("\n\n===== CONVERGENCE DIAGNOSTICS =====\n")
 cat("Checking MCMC convergence diagnostics...\n")
-source(here("src", "JAGS_getRhat.R"))
 
 rhats <- apply(samples$BUGSoutput$sims.array,3,getRhat)
 rule <- 1.05
@@ -250,7 +247,6 @@ MRT  <- samples$BUGSoutput$sims.list$MRT
 ####################
 cat("\n\n===== POSTERIOR PREDICTIONS =====\n")
 cat("Generating posterior predictions...\n")
-set.seed(seed)
 
 # Number of trials per condition
 nTrials <- df$nTrials
@@ -284,37 +280,10 @@ fit_x <- c(x_values[1:16],NA,x_values[17:32])
 full_x <- c(fit_x,NA,fit_x+6.8)
 
 ####################
-# Final posterior predictions
-####################
-cat("\n\n===== FINAL PREDICTIONS =====\n")
-cat("Generating final posterior predictions...\n")
-set.seed(seed)
-
-# Number of trials per condition
-nTrials <- df$nTrials
-# Number of posterior samples
-n <- nrow(Pc) 
-# Number of conditions
-J <- ncol(Pc)
-# Empty matrices to store posterior predictions
-pp_accRate <- matrix(NA, nrow=n, ncol=J)
-pp_meanRT  <- matrix(NA, nrow=n, ncol=J)
-pp_varRT   <- matrix(NA, nrow=n, ncol=J)
-# Obtain posterior predictions using sampling distributions
-#        and the summary statistics derived from the recovered
-#        drift and boundary parameters
-for(i in 1:J){
-  correct  <-  rbinom(n,nTrials[i],Pc[,i])
-  pp_accRate[,i] <- correct/nTrials[i]
-  pp_varRT[,i]   <- rnorm(n,1/PRT[,i], sqrt(2/((nTrials[i]-1) * PRT[,i] * PRT[,i])))
-  pp_meanRT[,i]  <- rnorm(n,MRT[,i],sqrt(1/(PRT[,i]*nTrials[i])))
-}
-
-cat("\n✓ Analysis complete! \n")
-
-####################
 # Saving all workspace objects
 ##########################
+cat("\n✓ Analysis complete! \n")
+
 cat("\n\n===== SAVING RESULTS =====\n")
 cat("Saving all workspace objects to a single file...\n")
 
@@ -322,4 +291,4 @@ save_workspace_to <- here("output", "RData-results", "demo_brightness_results.RD
 # Save only specific objects
 save(samples, df, drift, beta3, beta4, file=save_workspace_to)
 
-cat(sprintf("\n✓ All workspace objects have been saved to %s\n", save_workspace_to))
+cat(sprintf("\n✓ All workspace objects have been saved to %s\n", save_workspace_to), "\n")
