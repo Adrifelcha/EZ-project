@@ -289,6 +289,10 @@ cat("Saving all workspace objects to a single file...\n")
 
 save_workspace_to <- here("output", "RData-results", "demo_brightness_results.RData")
 # Save only specific objects
-save(samples, df, drift, beta3, beta4, file=save_workspace_to)
+save(samples, df, drift, beta3, beta4, drift_pred, 
+     accRate_hat, rtMean_hat, rtVar_hat,
+     Pc, PRT, MRT, pp_accRate, pp_meanRT, pp_varRT, 
+     x_values, fit_x, full_x,
+     file=save_workspace_to)
 
 cat(sprintf("\n✓ All workspace objects have been saved to %s\n", save_workspace_to), "\n")
