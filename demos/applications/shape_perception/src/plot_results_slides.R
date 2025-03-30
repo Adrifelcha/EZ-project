@@ -33,6 +33,9 @@ curve.gamma4 <- "#E4D4BE"
 line.gamma4  <- "#AC7529"
 curve.mu <- "#E4B6BE"
 line.mu  <- "#AC2975"
+base.recangle.bg <- "#F2EFE9"    
+base.recangle.border <- "#C8B8A9" 
+
 
 binWidth = 0.1
 binStarts <- c(0.9,1.1,1.9,2.1)
@@ -248,9 +251,178 @@ plot_drift_prediction <- function(){
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Figure 5 to 7: Posterior predictions of accuracy rate, mean RT, and RT variance
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-plot_posterior_predictions <- function(){
+# Accuracy rate
+plot_ppAcc <- function(){
+     iter <- nrow(pp_accRate)
+     jitter.x <- runif(iter,-0.12,0.12)
 
+     layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+     par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,5,1.5))
+     for(k in 1:5){
+          plot(4.5, 10, col="white", ylim=c(0,1), xlim=c(0.5,9.5),ann=F,axes=F)
+          axis(1,seq(1,9,length.out=9),paste("i =",1:9), line=-0.65)
+          axis(2,seq(0,1,0.1), seq(0,1,0.1),las=1)
+          mtext("Participant",1,line=1.7,cex=0.8)
+          for(i in 1:9){
+            this.Y <- pp_accRate[,seq(k,ncol(pp_accRate),5)[i]]
+            CI <- quantile(this.Y, probs = c(0.025,0.975))
+            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col=base.recangle.bg, border=base.recangle.border)
+            points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
+            points(i, ezdata$acc_rate[which(ezdata$cond==k)][i], pch=8)
+          }
+          mtext(paste("Condition", k), f=2, line=1.5, cex=0.9)
+          if(k==1){mtext("Qualitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==2){mtext("Quantitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==3){mtext("Qualitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==4){mtext("Quantitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==1|k==4){ mtext("Accuracy rate", 2, line=2.5, cex=0.8) }
+          mtext("Accuracy rate per condition per participant",3,outer=TRUE, f=2, line=2, cex=1.8)
+     }
 }
+# Mean RT
+plot_ppMeanRT <- function(){
+     iter <- nrow(pp_varRT)
+     jitter.x <- runif(iter,-0.12,0.12)
+     minY <- min(pp_meanRT)
+     maxY <- max(pp_meanRT)
+     layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+     par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,5,1.5))
+     for(k in 1:5){
+          plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
+          axis(1,seq(1,9,length.out=9),paste("i =",1:9), line=-0.65)
+          axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1)
+          mtext("Participant",1,line=1.7,cex=0.8)
+          for(i in 1:9){
+            this.Y <- pp_meanRT[,seq(k,ncol(pp_meanRT),5)[i]]
+            CI <- quantile(this.Y, probs = c(0.025,0.975))
+            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col=base.recangle.bg, border=base.recangle.border)
+            points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
+            points(i, ezdata$meanRT[which(ezdata$cond==k)][i], pch=8)
+          }          
+          mtext(paste("Condition", k), f=2, line=1.5, cex=0.9)
+          if(k==1){mtext("Qualitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==2){mtext("Quantitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==3){mtext("Qualitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==4){mtext("Quantitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==1|k==4){ mtext("Mean RT (secs)", 2, line=2.5, cex=0.8) }
+          mtext("Mean RT per condition per participant",3,outer=TRUE, f=2, line=2, cex=1.8)
+     }
+}
+# RT Variance
+plot_ppvarRT <- function(){
+     iter <- nrow(pp_meanRT)
+     jitter.x <- runif(iter,-0.12,0.12)
+     ppl_varRT <- log(pp_varRT)
+     minY <- min(ppl_varRT)
+     maxY <- max(ppl_varRT)
+     layout(mat = matrix(c(1,1,2,2,3,3, 0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+     par(pty="m", mai=c(0.45,0.5,0.25,0), oma= c(0,0,5,1.5))
+     for(k in 1:5){
+          plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
+          axis(1,seq(1,9,length.out=9),paste("i =",1:9), line=-0.65)
+          axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1)
+          mtext("Participant",1,line=1.7,cex=0.8)
+          for(i in 1:9){
+            this.Y <- ppl_varRT[,seq(k,ncol(ppl_varRT),5)[i]]
+            CI <- quantile(this.Y, probs = c(0.025,0.975))
+            polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col=base.recangle.bg, border=base.recangle.border)
+            points(i+jitter.x,this.Y, col=myCol(r[,k],g[,k],b[,k],i,0.05), pch=16, cex=0.8)
+            points(i, log(ezdata$varRT[which(ezdata$cond==k)][i]), pch=8)
+          }
+          mtext(paste("Condition", k), f=2, line=1.5, cex=0.9)
+          if(k==1){mtext("Qualitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==2){mtext("Quantitative change in Convexity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==3){mtext("Qualitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==4){mtext("Quantitative change in Concavity", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==5){mtext("No change at all", f=2, line=.5, cex=0.7, col="gray35")}
+          if(k==1|k==4){ mtext("RT variance (log-scale)", 2, line=2.5, cex=0.8) }
+          mtext("RT variance per condition per participant",3,outer=TRUE, f=2, line=2, cex=1.8)
+     }
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# All posterior predictions
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+plot_all_postpred_checks <- function(){
+     iter <- nrow(pp_meanRT)
+     jitter.x <- runif(iter,-0.12,0.12)
+     layout(mat = matrix(1:15, ncol=3, byrow=FALSE))     
+     par(pty="m", mai=c(0.1,0.5,0,0), oma= c(2.4,3.4,2.5,0.4), bg=NA)
+
+     for(k in 1:5){
+          plot(4.5, 10, col="white", ylim=c(0,1), xlim=c(0.5,9.5),ann=F,axes=F)
+          axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
+          axis(2,seq(0,1,0.1), seq(0,1,0.1),las=1, cex.axis=0.7)
+          for(i in 1:9){
+               this.Y <- pp_accRate[,seq(k,ncol(pp_accRate),5)[i]]
+               CI <- quantile(this.Y, probs = c(0.025,0.975))
+               polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
+               points(i+jitter.x,this.Y, col=myCol(r[,1],g[,1],b[,1],i,0.05), pch=16, cex=0.8)
+               points(i, ezdata$acc_rate[which(ezdata$cond==k)][i], pch=8)
+          }
+          mtext(paste("Condition", k), 2, f=2, line=6, cex=1)
+          mtext("Accuracy rate", 2, line=2.1, cex=0.6) 
+          if(k==1){
+          mtext("Accuracy rate", f=2, line=.5, cex=1)
+          mtext("Qualitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+          mtext("in Convexity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+          if(k==2){
+          mtext("Quantitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+          mtext("in Convexity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+          if(k==3){
+          mtext("Qualitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+          mtext("in Concavity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+          if(k==4){
+          mtext("Quantitative change", 2, f=2, line=5, cex=0.75, col="gray50")
+          mtext("in Concavity", 2, f=2, line=4.1, cex=0.75, col="gray50")}
+          if(k==5){mtext("No change at all", 2, f=2, line=5, cex=0.75, col="gray50")
+          mtext("Participant",1,line=1.7,cex=0.8)
+          axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
+     }
+
+     minY <- min(pp_meanRT)
+     maxY <- max(pp_meanRT)
+     for(k in 1:5){
+          plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
+          axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
+          axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1, cex.axis=0.7)
+          for(i in 1:9){
+               this.Y <- pp_meanRT[,seq(k,ncol(pp_meanRT),5)[i]]
+               CI <- quantile(this.Y, probs = c(0.025,0.975))
+               polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
+               points(i+jitter.x,this.Y, col=myCol(r[,2],g[,2],b[,2],i,0.05), pch=16, cex=0.8)
+               points(i, ezdata$meanRT[which(ezdata$cond==k)][i], pch=8)
+          }
+          mtext("Mean RT (secs)", 2, line=2.1, cex=0.6) 
+          if(k==1){mtext("Mean RT (secs)", f=2, line=.5, cex=1)}
+          if(k==5){mtext("Participant",1,line=1.7,cex=0.8)
+                    axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, tick=FALSE, cex.axis=0.8)}
+     }
+
+     ppl_varRT <- log(pp_varRT)
+     minY <- min(ppl_varRT)
+     maxY <- max(ppl_varRT)
+     for(k in 1:5){
+          plot(4.5, 10, col="white", ylim=c(minY,maxY), xlim=c(0.5,9.5),ann=F,axes=F)
+          axis(1,seq(1,9,length.out=9),rep("",9), line=-0.65)
+          axis(2,seq(minY,maxY,length.out=10), round(seq(minY,maxY,length.out=10),1),las=1, cex.axis=0.7)
+          for(i in 1:9){
+               this.Y <- ppl_varRT[,seq(k,ncol(ppl_varRT),5)[i]]
+               CI <- quantile(this.Y, probs = c(0.025,0.975))
+               polygon(x=c(i-0.4,i+0.4,i+0.4,i-0.4),y=c(CI[1],CI[1],CI[2],CI[2]), col="gray85", border="gray70")
+               points(i+jitter.x,this.Y, col=myCol(r[,3],g[,3],b[,3],i,0.05), pch=16, cex=0.8)
+               points(i, log(ezdata$varRT[which(ezdata$cond==k)][i]), pch=8)
+          }
+          mtext("RT variance (log-scale)", 2, line=2.1, cex=0.6)
+          if(k==1){      mtext("RT variance (log-scale)", f=2, line=.5, cex=1)                 }
+          if(k==5){      mtext("Participant",1,line=1.7,cex=0.8)
+                         axis(1,seq(1,9,length.out=9),paste("p", 1:9, sep=""), line=-1, 
+                         tick=FALSE, cex.axis=0.8)                                             }     
+     }
+}
+
 
 ###########################################################################################
 # Store plots to output folder
@@ -286,5 +458,35 @@ plot_drift_prediction()
 dev.off()
 pdf(file = here("output", "figures", "slides_shapeExample_driftPredictions.pdf"), width = 7, height = 3)
 plot_drift_prediction()
+dev.off()
+
+# Posterior predictions - Accuracy rate
+png(file = here("output", "figures", "slides_shapeExample_ppAcc.png"), width = 7, height = 5, units="in", res=300)
+plot_ppAcc()
+dev.off()
+pdf(file = here("output", "figures", "slides_shapeExample_ppAcc.pdf"), width = 7, height = 5)
+plot_ppAcc()
+dev.off()
+# Posterior predictions - Mean RT
+png(file = here("output", "figures", "slides_shapeExample_ppMeanRT.png"), width = 7, height = 5, units="in", res=300)
+plot_ppMeanRT()
+dev.off()
+pdf(file = here("output", "figures", "slides_shapeExample_ppMeanRT.pdf"), width = 7, height = 5)
+plot_ppMeanRT()
+dev.off()
+# Posterior predictions - RT variance
+png(file = here("output", "figures", "slides_shapeExample_ppvarRT.png"), width = 7, height = 5, units="in", res=300)
+plot_ppvarRT()
+dev.off()
+pdf(file = here("output", "figures", "slides_shapeExample_ppvarRT.pdf"), width = 7, height = 5)
+plot_ppvarRT()
+dev.off()
+
+# All posterior predictions
+png(file = here("output", "figures", "slides_shapeExample_allPostpredChecks.png"), width = 10, height = 10, units="in", res=300)
+plot_all_postpred_checks()
+dev.off()
+pdf(file = here("output", "figures", "slides_shapeExample_allPostpredChecks.pdf"), width = 10, height = 10)
+plot_all_postpred_checks()
 dev.off()
 
