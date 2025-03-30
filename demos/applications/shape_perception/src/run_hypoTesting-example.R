@@ -247,11 +247,6 @@ for(i in 1:J){
 cat("\n\n===== PLOTTING PREPARATION =====\n")
 cat("Preparing plotting variables...\n")
 
-# Custom function to select colors
-myCol <- function(r,g,b,sub,alpha=1){
-       rgb(r[sub]/255,g[sub]/255,b[sub]/255,alpha)
-}
-
 r <- matrix(NA, ncol=5,nrow=9)
 g <- matrix(NA, ncol=5,nrow=9)
 b <- matrix(NA, ncol=5,nrow=9)
@@ -288,11 +283,13 @@ cat("\n\n===== BAYES FACTORS =====\n")
 cat("Computing Bayes Factors for effects...\n")
 epsilon <- 0.1
 prior_constant <- pnorm(epsilon) - pnorm(-epsilon)
+BayesFactors <- c()
 for(i in 1:3){
-    g <- gamma[,i]
-    post_mass <- mean(g > -epsilon & g < epsilon)
+    this.gamma   <- gamma[,i]
+    post_mass <- mean(this.gamma > -epsilon & this.gamma < epsilon)
     this.BF <- prior_constant/post_mass
     this.BF[post_mass==0] <- 0
+    BayesFactors <- c(BayesFactors, this.BF)
     cat(sprintf("\nBayes Factor for gamma %d: %.2f\n", i, this.BF))
 }
 
@@ -306,6 +303,6 @@ cat("Saving relevant workspace objects to a single file...\n")
 
 save_workspace_to <- here("output", "RData-results", "demo_shape_results.RData")
 # Save key analysis objects
-save(samples, ezdata, drift, gamma, mu, drift_pred, file=save_workspace_to)
+save(samples, ezdata, drift, gamma, mu, drift_pred, r, g, b, BayesFactors, file=save_workspace_to)
 
 cat(sprintf("\n✓ All workspace objects have been saved to %s\n", save_workspace_to), "\n")
