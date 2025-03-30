@@ -303,6 +303,6 @@ cat("Saving relevant workspace objects to a single file...\n")
 
 save_workspace_to <- here("output", "RData-results", "demo_shape_results.RData")
 # Save key analysis objects
-save(samples, ezdata, drift, gamma, mu, drift_pred, r, g, b, BayesFactors, file=save_workspace_to)
+save(samples, ezdata, drift, gamma, mu, drift_pred, r, g, b, BayesFactors, pp_accRate, pp_meanRT, pp_varRT, file=save_workspace_to)
 
 cat(sprintf("\n✓ All workspace objects have been saved to %s\n", save_workspace_to), "\n")
