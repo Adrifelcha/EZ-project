@@ -1,0 +1,5 @@
+# Ignore all .txt files in a specific folder
+demos/simulation-studies/hypothesis_testing/samples/*.txt
+
+# Ignore all .RData files in the same folder
+demos/simulation-studies/hypothesis_testing/samples/*.RData
