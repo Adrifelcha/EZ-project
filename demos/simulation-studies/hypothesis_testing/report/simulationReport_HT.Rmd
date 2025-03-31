@@ -1,0 +1,139 @@
+---
+title: "EZBHDDM: Short exercise on hypothesis testing"
+author: "Adriana F. Chávez De la Peña"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: true
+    cards: false
+    highlight: tango
+    fig_width: 12 
+    fig_height: 8 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(rmdformats)
+```
+
+# Introduction
+
+\begin{align*}
+\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
+\end{align*}
+
+## The EZBHDDM
+
+\begin{align*}
+Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
+\dot{T} &\sim \mbox{Binomial}(PC,N)\\
+\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
+\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
+PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
+MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
+PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\end{align*}
+
+## Model Types included in this template
+
+1. `hierarchical`
+
+2. `metaregression`
+
+3 .`ttest`
+
+# Custom functions
+
+## Simulation setup functions
+
+```{r, echo=FALSE}
+for(archive in dir("../../code/functions/")){    source(paste("../../code/functions/",archive,sep=""))     }
+for(archive in dir("../../code/scripts/")){    
+  if(length(which(grepl("HDDM",archive)))!=0){  source(paste("../../code/scripts/",archive,sep="")) }    
+}
+source("./scripts/HDDM_simFixedEffect.R")
+source("./scripts/writefixEffJAGSmodel.R")
+```
+
+
+```{r}
+setwd("../../../../../../Dropbox/achavezd/samples/tmp2/")
+
+betaNoDiff <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label= "Null")
+
+betaDiff1 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.1, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff1")
+
+betaDiff2 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.2, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff2")
+
+betaDiff3 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.3, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff3")
+
+betaDiff4 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.4, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff4")
+
+betaDiff5 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0.5, 
+                         priors = NA, n.chains = 4, Show = TRUE, forceSim = FALSE, fromPrior = FALSE, label="Diff5")
+
+
+```
+
+```{r}
+par(pty="m",mai=c(0.7,0.25,0,0), oma= c(0,0,1,1.5))
+
+plot_post_b0 <- function(betaNoDiff, betaDiff){
+        beta.0 <- betaNoDiff$estimates[,"betaweight"]
+        beta.1 <- betaDiff$estimates[,"betaweight"]
+        mpb0 <- mean(beta.0)
+        mpb1 <- mean(beta.1)
+        ci.b0 <- quantile(beta.0,probs = c(0.025,0.975))
+        ci.b1 <- quantile(beta.1,probs = c(0.025,0.975))
+        ci.b0.x <- density(beta.0)$x[which(density(beta.0)$x>ci.b0[1]&density(beta.0)$x<ci.b0[2])]
+        ci.b0.y <- density(beta.0)$y[which(density(beta.0)$x>ci.b0[1]&density(beta.0)$x<ci.b0[2])]
+        ci.b1.x <- density(beta.1)$x[which(density(beta.1)$x>ci.b1[1]&density(beta.1)$x<ci.b1[2])]
+        ci.b1.y <- density(beta.1)$y[which(density(beta.1)$x>ci.b1[1]&density(beta.1)$x<ci.b1[2])]
+        curve0 <-"#AEBBD0"
+        line0 <- "#4B8CF4"
+        curve1 <-"#E4C99A"
+        line1 <- "#C47F07"
+        maxY <- max(density(beta.0)$y,density(beta.1)$y)*1.15
+        ci0 <- rgb(162/255,175/255,255/255,0.4)
+        ci1 <- rgb(250/255,128/255,105/255,0.4)
+        hist(beta.0, freq = FALSE, breaks = 40, col=curve0, border = "black", ylim = c(0,maxY),
+             ann=F, axes = F, xlim=c(-0.2,0.7))
+        hist(beta.1, freq = FALSE, breaks = 40, col=curve1, border = "black", add=TRUE, ylim = c(0,maxY))
+        axis(1,seq(-0.2,0.7,0.05),seq(-0.2,0.7,0.05))
+        lines(density(beta.0), lwd=4, col="black")
+        lines(density(beta.1), lwd=4, col="black")
+        polygon(x=c(ci.b0.x,rev(ci.b0.x)),c(rep(0,length(ci.b0.y)),rev(ci.b0.y)), col=ci0, border=line0,lwd=3)
+        polygon(x=c(ci.b1.x,rev(ci.b1.x)),c(rep(0,length(ci.b1.y)),rev(ci.b1.y)), col=ci1, border=line1,lwd=3)
+        abline(v=c(0,0.5), lwd=3, lty=3)
+        points(mpb0,0,pch=15,col="#1637DC", cex=1.5)
+        points(mpb1,0,pch=15,col="#FF5700", cex=1.5)
+        legend(0.48,7.7, expression(paste("True ", beta, " = ", 0.5)), cex=1.3, col="black", adj=0.1, bty="n")
+        legend(-0.24,7.7, expression(paste("True ", beta, " = ", 0)), cex=1.3, col="black", adj=0.1, bty="n")
+        legend(-0.1,1.2, paste("Average = ",round(mpb0,4)), cex=0.7, bg="#ABB3D8", adj=0.1, box.col = "#1637DC")
+        legend(0.4,1.2, paste("Average = ",round(mpb1,4)), cex=0.7, bg="#E2A384", adj=0.1, box.col = "#FF5700")
+        text(0.17,6, paste("95% mean posteriors"), cex=0.9, f=2, col=line0)
+        text(0.17,5.5, paste("[", round(ci.b0[1],2),",",round(ci.b0[2],2),"]"), cex=0.8, col=line0, f=2)
+        text(0.3,4.8, paste("95% mean posteriors"), cex=0.9, f=2, col=line1)
+        text(0.3,4.3, paste("[", round(ci.b1[1],2),",",round(ci.b1[2],2),"]"), cex=0.8, col=line1, f=2)
+        mtext(expression(paste("Mean posterior ", beta)),1,line=2.5, cex=1.1)
+}
+
+plot_post_b0(betaNoDiff, betaDiff)
+```
+
+
+```{r, echo=FALSE}
+png(file = "../../figures/hypoTest_meanPosts.png", width = 6, height = 3.5, units="in",res=300)
+par(pty="m", mai=c(0.7,0.25,0,0), oma= c(0,0,1,1.5), bg=NA)
+plot_post_b0(betaNoDiff, betaDiff)
+dev.off()
+```
