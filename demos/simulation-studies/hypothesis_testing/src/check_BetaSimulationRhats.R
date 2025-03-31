@@ -56,10 +56,7 @@ check_BetaSimulationRhats <- function(resultsFile, threshold = 1.05,
   
   # If problematic R-hat values found, create diagnostic information
   if (has_convergence_issues) {
-    # Get names of problematic parameters
-    bad_param_indices <- unique(bad_rhats[, 2])
-    bad_param_names <- colnames(rhats_data)[bad_param_indices]
-    
+  
     # Count occurrences of each problematic parameter
     param_counts <- table(colnames(rhats_data)[bad_rhats[, 2]])
     
