@@ -146,5 +146,6 @@ check_BetaSimulationRhats <- function(resultsFile, threshold = 1.05,
 }
 
 # Example usage:
-# check_SimulationRhats("output/RData-results/simHypTesting_P30T20_B.RData")
-# check_SimulationRhats("output/RData-results/simHypTesting_P30T20_B1.RData") 
+#check_BetaSimulationRhats("output/RData-results/simHypTesting_P40T80_B.RData")
+#check_BetaSimulationRhats("output/RData-results/simHypTesting_P40T80_B1.RData") 
+#check_BetaSimulationRhats("output/RData-results/simHypTesting_P40T80_B2.RData") 
