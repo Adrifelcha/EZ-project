@@ -1,5 +1,14 @@
-# Ignore all .txt files in a specific folder
+# Ignore all .txt files created when parallel seeds are run
 demos/simulation-studies/hypothesis_testing/samples/*.txt
 
-# Ignore all .RData files in the same folder
+# Ignore all .RData files storing seed-specific results
 demos/simulation-studies/hypothesis_testing/samples/*.RData
+
+# Ignore all .RData files in the output folder
+output/RData-results/*.RData
+
+# Ignore all .eps files in the output folder
+output/figures/*.eps
+
+# Ignore all .png files in the output folder
+output/figures/*.png
