@@ -9,7 +9,7 @@
 # Each row is stored in a seed-specific .RData file.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
-load_seedOutput <- function(directory = NA) {
+load_seedOutput <- function(directory = NA, object_name = "resultado") {
   # Validate directory
   if(is.na(directory)) {
     stop("Directory not specified")
@@ -32,6 +32,7 @@ load_seedOutput <- function(directory = NA) {
   
   # Initialize empty list to store combined output
   recover_output <- list()
+  first_file <- TRUE
   
   # Load each file and combine outputs
   for(archive in files) {
@@ -42,14 +43,33 @@ load_seedOutput <- function(directory = NA) {
     temp_env <- new.env()
     load(archive, envir = temp_env)
     
-    # Check if the loaded file contains an 'output' object
-    if(!exists("output", envir = temp_env)) {
-      warning("File does not contain an 'output' object: ", archive)
+    # Check if the loaded file contains the expected object
+    if(!exists(object_name, envir = temp_env)) {
+      warning("File does not contain a '", object_name, "' object: ", archive)
       next
     }
     
-    # Combine with existing output
-    recover_output <- rbind(recover_output, temp_env$output)
+    # Get the object from the environment
+    file_output <- get(object_name, envir = temp_env)
+    
+    # If this is the first valid file, initialize the output structure
+    if(first_file) {
+      recover_output <- file_output
+      first_file <- FALSE
+    } else {
+      # For subsequent files, rbind the appropriate components
+      recover_output <- list(
+        "noDiff" = rbind(recover_output$noDiff, file_output$noDiff),
+        "Diff" = rbind(recover_output$Diff, file_output$Diff),
+        "settings" = recover_output$settings,  # Keep settings from first file
+        "reps" = rbind(recover_output$reps, file_output$reps)
+      )
+    }
+  }
+  
+  if(first_file) {
+    warning("No valid files were found with object '", object_name, "'")
+    return(list())
   }
   
   cat("Successfully combined", length(files), "seed-specific output files\n")
