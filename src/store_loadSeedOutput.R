@@ -30,13 +30,12 @@ load_seedOutput <- function(directory = NA, object_name = "resultado") {
     return(NULL)
   }
   
-  # Initialize empty list to store combined output
-  recover_output <- list()
-  first_file <- TRUE
+  # Initialize list to store all seed results
+  all_seed_results <- list()
   
-  # Load each file and combine outputs
-  for(archive in files) {
-    
+  # Load each file and collect results
+  for(i in seq_along(files)) {
+    archive <- files[i]
     cat("Loading file:", basename(archive), "\n")    
     
     # Load the file into a temporary environment to avoid namespace conflicts
@@ -50,29 +49,51 @@ load_seedOutput <- function(directory = NA, object_name = "resultado") {
     }
     
     # Get the object from the environment
-    file_output <- get(object_name, envir = temp_env)
-    
-    # If this is the first valid file, initialize the output structure
-    if(first_file) {
-      recover_output <- file_output
-      first_file <- FALSE
-    } else {
-      # For subsequent files, rbind the appropriate components
-      recover_output <- list(
-        "noDiff" = rbind(recover_output$noDiff, file_output$noDiff),
-        "Diff" = rbind(recover_output$Diff, file_output$Diff),
-        "settings" = recover_output$settings,  # Keep settings from first file
-        "reps" = rbind(recover_output$reps, file_output$reps)
-      )
-    }
+    all_seed_results[[i]] <- get(object_name, envir = temp_env)
   }
   
-  if(first_file) {
+  if(length(all_seed_results) == 0) {
     warning("No valid files were found with object '", object_name, "'")
     return(list())
   }
   
-  cat("Successfully combined", length(files), "seed-specific output files\n")
+  # Create matrix-like structure expected by store_BetaParallelOutput
+  # We're building a matrix where each row corresponds to a seed
+  # and columns are the components of the results
   
-  return(recover_output)
+  # Get the number of valid seeds
+  n_seeds <- length(all_seed_results)
+  
+  # Create a matrix with n_seeds rows and 2 columns (for noDiff and Diff)
+  result_matrix <- matrix(list(), nrow = n_seeds, ncol = 2)
+  colnames(result_matrix) <- c("noDiff", "Diff")
+  
+  # Store settings from first file
+  settings <- all_seed_results[[1]]$settings
+  
+  # Create a data frame for the reps information
+  reps_data <- data.frame(
+    bad_JAGS = numeric(n_seeds),
+    bad_Rhat = numeric(n_seeds)
+  )
+  
+  # Fill the matrix with results from each seed
+  for(i in seq_len(n_seeds)) {
+    result_matrix[i, "noDiff"] <- list(all_seed_results[[i]]$noDiff)
+    result_matrix[i, "Diff"] <- list(all_seed_results[[i]]$Diff)
+    reps_data[i, ] <- all_seed_results[[i]]$reps
+  }
+  
+  # Create the final output structure
+  resultado <- structure(
+    result_matrix,
+    settings = settings,
+    reps = reps_data
+  )
+  
+  attr(resultado, "n_seeds") <- n_seeds
+  
+  cat("Successfully combined", n_seeds, "seed-specific output files\n")
+  
+  return(resultado)
 }
