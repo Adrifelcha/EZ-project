@@ -42,6 +42,10 @@ store_BetaParallelOutput <- function(output, settings, saveTo = NA){
       clock <- rep(NA, nDatasets)   # JAGS runtime
       clock2 <- rep(NA, nDatasets)  # Total runtime
       
+      # Initialize arrays to store re-run information
+      rerun_jags <- rep(NA, nDatasets)  # Count of JAGS failures
+      rerun_rhat <- rep(NA, nDatasets)  # Count of Rhat failures
+      
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # Extract parameter names from the first dataset to use as array dimensions
       #################################################################################################
@@ -92,6 +96,12 @@ store_BetaParallelOutput <- function(output, settings, saveTo = NA){
           # Store timing information
           clock[k] <- as.numeric(out[[k]][thisH, "jags.time"])
           clock2[k] <- as.numeric(out[[k]][thisH, "total.time"])
+          
+          # Extract re-run information if available
+          if("reps" %in% names(output[k,])) {
+            rerun_jags[k] <- output[k,"reps"]$bad_JAGS
+            rerun_rhat[k] <- output[k,"reps"]$bad_Rhat
+          }
       }
    
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,7 +115,11 @@ store_BetaParallelOutput <- function(output, settings, saveTo = NA){
           "jagsTime" = clock,               # JAGS runtime
           "totalTime" = clock2,             # Total runtime
           "settings" = settings,            # Simulation settings
-          "beta_chain" = betaChains  # Beta parameter chains
+          "beta_chain" = betaChains,        # Beta parameter chains
+          "reruns" = data.frame(            # New: add re-run information
+              jags = rerun_jags,
+              rhat = rerun_rhat
+          )
       )
       
       # Create the output file name with participant and trial counts
