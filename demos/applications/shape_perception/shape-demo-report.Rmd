@@ -182,6 +182,7 @@ model <- write("
               drift_mu ~ dnorm(0,1)   # Baseline
               drift_lambda ~ dgamma(2,1)
               drift_sigma = pow(drift_lambda, -0.5)
+              nondt ~ dexp(1)
               for(i in 1:4){
                   gamma[i] ~ dnorm(0,1)   
               }      
@@ -194,7 +195,6 @@ model <- write("
               for (k in 1:length(nTrials)) {
                   # Person-by-condition parameters for DM parameters
                   bound[k] ~ dgamma(2,1)
-                  nondt[k] ~ dexp(1)
                   drift[k] ~ dnorm(drift_pred[cond[k]],drift_lambda)
           
                   # Forward equations from EZ Diffusion
@@ -203,7 +203,7 @@ model <- write("
                   PRT[k] = 2 * pow(drift[k], 3) / bound[k] * pow(ey[k] + 1, 2) / (2 * -bound[k] * 
                            drift[k] * ey[k] - ey[k] * ey[k] + 1)
                   MDT[k] = (bound[k] / (2 * drift[k])) * (1 - ey[k]) / (1 + ey[k])
-                  MRT[k] = MDT[k] + nondt[k]
+                  MRT[k] = MDT[k] + nondt
           
                   # Sampling distributions for summary statistics
                   correct[k] ~ dbin(Pc[k], nTrials[k])
