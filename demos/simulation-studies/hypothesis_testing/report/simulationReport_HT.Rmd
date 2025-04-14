@@ -1,5 +1,5 @@
 ---
-title: "EZBHDDM: Short exercise on hypothesis testing"
+title: "EZBHDDM: Within-subject simulation study on hypothesis testing"
 author: "Adriana F. Chávez De la Peña"
 date: "`r Sys.Date()`"
 output:
@@ -18,49 +18,66 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 library(rmdformats)
+library(here)
+# Explicitly tell here where this file is located relative to project root
+here::i_am("demos/simulation-studies/hypothesis_testing/report/simulationReport_HT.Rmd")
+```
+
+
+```{r, echo=FALSE}
+library(here)
+
+for(archive in dir(here("src"))){    
+    if(archive == "README.md") next
+    source(paste(here("src/"),archive,sep=""))     }
+for(archive in dir(here("demos", "simulation-studies", "hypothesis_testing", "src"))){ 
+     source(paste(here("demos", "simulation-studies", "hypothesis_testing", "src", archive),sep=""))     }
 ```
 
 # Introduction
 
-\begin{align*}
-\mathbf{Y} \sim \mbox{DDM}\bigl(\alpha, \nu, \tau \bigl)
-\end{align*}
-
-## The EZBHDDM
+In this simulation study, paired choice and response time observations are generated from the three-parameter DDM with different parameter values for each participant, and a within-participant t-test design on the drift rate:
 
 \begin{align*}
-Y &\Rightarrow \{\dot{T}, \dot{M}, \dot{V}\}\\
-\dot{T} &\sim \mbox{Binomial}(PC,N)\\
-\dot{V} &\sim \mbox{Normal}(\frac{1}{PRT},\frac{N-1}{2(PRT)^2})\\
-\dot{M} &\sim \mbox{Normal}(MRT, PRT \times N)\\
-PC &= \frac{1}{\exp(-\alpha\nu)+1}\\
-MRT &= \tau + \frac{\alpha}{2\nu}\frac{\exp(-\alpha\nu)-1}{\exp(-\alpha\nu)+1}\\
-PRT &= \frac{\alpha}{2\nu^3}\{\frac{1-2\alpha\nu\exp(-\alpha\nu)-\exp(-\alpha\nu)^2}{(\exp(-\alpha\nu)+1)^2}\}
+\mathbf{Y}_{i,k} &\sim \mbox{DDM}\bigl(\nu_{i,k}, \alpha_{i}, \tau_{i} \bigl)\\
+i &\in \{1, ..., P\}\\
+k &\in \{1, 2\}\\
 \end{align*}
 
-## Model Types included in this template
+So for every participant $i$, two conditions $k$ are generated, with different drift rates $\nu_{i,k}$, boundary separation $\alpha_{i}$, and non-decision time $\tau_{i}$.
 
-1. `hierarchical`
+Upon generating the data, we compute the EZ-DDM summary statistics (i.e., the mean accuracy rate and the mean and variance of the response times observed) to fit a Bayesian Hierarchical EZ-DDM with the following higher-level structure:
 
-2. `metaregression`
+\begin{align*}
+\nu_{i,k} &\sim \mbox{Normal}\left(\mu_\nu+\beta_{k}\mbox{X}_{k}, \sigma_\nu\right)\\
+\alpha_{i} &\sim \mbox{Normal}\left(\mu_\alpha, \sigma_\alpha\right)\\
+\tau_{i} &\sim \mbox{Normal}\left(\mu_\tau, \sigma_\tau\right)\\
+\end{align*}
 
-3 .`ttest`
+# Simulation-study results
 
-# Custom functions
+Results from this simulation study are stored in the directory `output/RData-results/`.
 
-## Simulation setup functions
+## Rhat check
 
-```{r, echo=FALSE}
-for(archive in dir("../../code/functions/")){    source(paste("../../code/functions/",archive,sep=""))     }
-for(archive in dir("../../code/scripts/")){    
-  if(length(which(grepl("HDDM",archive)))!=0){  source(paste("../../code/scripts/",archive,sep="")) }    
-}
-source("./scripts/HDDM_simFixedEffect.R")
-source("./scripts/writefixEffJAGSmodel.R")
+We first check the Rhat convergence diagnostic for all the chains.
+
+```{r}
+check_BetaSimulationRhats(here("output/RData-results/simHypTesting_P40T80_B.RData"))
+```
+
+```{r}
+check_BetaSimulationRhats(here("output/RData-results/simHypTesting_P40T80_B1.RData")) 
+```
+
+```{r}
+check_BetaSimulationRhats(here("output/RData-results/simHypTesting_P40T80_B2.RData")) 
 ```
 
 
-```{r}
+
+
+```{r, eval=FALSE}
 setwd("../../../../../../Dropbox/achavezd/samples/tmp2/")
 
 betaNoDiff <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, nDatasets = 1000, beta.effect = 0, 
@@ -84,7 +101,7 @@ betaDiff5 <- HDDM_simFixedEffect(nParticipants = 40, nTrialsPerCondition = 160, 
 
 ```
 
-```{r}
+```{r, eval=FALSE}
 par(pty="m",mai=c(0.7,0.25,0,0), oma= c(0,0,1,1.5))
 
 plot_post_b0 <- function(betaNoDiff, betaDiff){
@@ -131,7 +148,7 @@ plot_post_b0(betaNoDiff, betaDiff)
 ```
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 png(file = "../../figures/hypoTest_meanPosts.png", width = 6, height = 3.5, units="in",res=300)
 par(pty="m", mai=c(0.7,0.25,0,0), oma= c(0,0,1,1.5), bg=NA)
 plot_post_b0(betaNoDiff, betaDiff)
