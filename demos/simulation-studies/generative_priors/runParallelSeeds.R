@@ -51,9 +51,9 @@ for(nPart in settings$participant_levels){
 
 # Add JAGS objects to settings
 settings <- c(settings, list("jagsParameters" = list(jagsParameters, jagsParameters),
-                             "modelFile" = matrix(c(rep(c("./EZHBDDM_BetaDrift.bug",
-                                                          "./EZHBDDM_BetaNondt.bug",
-                                                          "./EZHBDDM_BetaBound.bug"),2)), 
+                             "modelFile" = matrix(c(rep(c(here("output", "BUGS-models", "EZHBDDM_genPriors_BetaDrift.bug"),
+                                                          here("output", "BUGS-models", "EZHBDDM_genPriors_BetaNondt.bug"),
+                                                          here("output", "BUGS-models", "EZHBDDM_genPriors_BetaBound.bug")),2)), 
                                                     byrow = TRUE, ncol = 3),
                              "priors" = list(JAGS_priors(Show=FALSE, "ttest", custom_prior_list = NULL), 
                                              JAGS_priors(Show=FALSE, "metaregression", custom_prior_list = NULL)),
