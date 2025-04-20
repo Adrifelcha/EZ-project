@@ -160,15 +160,15 @@ makeROCPlot <- function(){
           par(old_par)
 }
 
-postscript(here("output", "figures", "paper_hypothesisAppendix_ROC.eps"), horizontal = FALSE, onefile = FALSE, paper = "special",
+postscript(here("output", "figures", "in-paper", "paper_hypothesisAppendix_ROC.eps"), horizontal = FALSE, onefile = FALSE, paper = "special",
            width = 3.5, height = 3)
 makeROCPlot()
 dev.off()
 
-png(here("output", "figures", "paper_hypothesisAppendix_ROC.png"), width = 3.5, height = 3, units = "in", res = 300)
+png(here("output", "figures", "in-paper", "paper_hypothesisAppendix_ROC.png"), width = 3.5, height = 3, units = "in", res = 300)
 makeROCPlot()
 dev.off()
 
-pdf(here("output", "figures", "paper_hypothesisAppendix_ROC.pdf"), width = 3.5, height = 3)
+pdf(here("output", "figures", "in-paper", "paper_hypothesisAppendix_ROC.pdf"), width = 3.5, height = 3)
 makeROCPlot()
 dev.off()
