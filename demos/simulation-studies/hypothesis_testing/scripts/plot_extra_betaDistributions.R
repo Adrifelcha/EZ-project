@@ -61,14 +61,14 @@ plot_betaDistributions <- function(){
      mtext(expression(paste("Mean posterior ", beta)),1,line=2.5, cex=1.1)
 }
 
-pdf(here("output", "figures", "paper_hypothesisAppendix_Betas.pdf"), width = 6, height = 3.5)
+pdf(here("output", "figures", "in-paper", "paper_hypothesisAppendix_Betas.pdf"), width = 6, height = 3.5)
 plot_betaDistributions()
 dev.off()
 
-png(here("output", "figures", "paper_hypothesisAppendix_Betas.png"), width = 6, height = 3.5, units = "in", res = 300)
+png(here("output", "figures", "in-paper", "paper_hypothesisAppendix_Betas.png"), width = 6, height = 3.5, units = "in", res = 300)
 plot_betaDistributions()
 dev.off()
 
-postscript(here("output", "figures", "paper_hypothesisAppendix_Betas.eps"), horizontal = FALSE, onefile = FALSE, paper = "special", width = 6, height = 3.5)
+postscript(here("output", "figures", "in-paper", "paper_hypothesisAppendix_Betas.eps"), horizontal = FALSE, onefile = FALSE, paper = "special", width = 6, height = 3.5)
 plot_betaDistributions()
 dev.off()

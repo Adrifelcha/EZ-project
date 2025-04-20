@@ -429,64 +429,64 @@ plot_all_postpred_checks <- function(){
 ###########################################################################################
 
 # Main results
-png(file = here("output", "figures", "slides_shapeExample_mainResults.png"), width = 10, height = 6, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_mainResults.png"), width = 10, height = 6, units="in", res=300)
 plot_main_results()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_mainResults.pdf"), width = 10, height = 6)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_mainResults.pdf"), width = 10, height = 6)
 plot_main_results()
 dev.off()
 
 # All posterior distributions
-png(file = here("output", "figures", "slides_shapeExample_allPosteriors.png"), width = 10, height = 6, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_allPosteriors.png"), width = 10, height = 6, units="in", res=300)
 plot_all_posteriors()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_allPosteriors.pdf"), width = 10, height = 6)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_allPosteriors.pdf"), width = 10, height = 6)
 plot_all_posteriors()
 dev.off()
 
 # Main posterior distributions (Gamma 1, 2, 3)
-png(file = here("output", "figures", "slides_shapeExample_mainGammaPosteriors.png"), width = 7, height = 3, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_mainGammaPosteriors.png"), width = 7, height = 3, units="in", res=300)
 plot_mainGamma_posteriors()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_mainGammaPosteriors.pdf"), width = 7, height = 3)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_mainGammaPosteriors.pdf"), width = 7, height = 3)
 plot_mainGamma_posteriors()
 dev.off()
 
 # Drift rate predictions per condition
-png(file = here("output", "figures", "slides_shapeExample_driftPredictions.png"), width = 7, height = 3, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_driftPredictions.png"), width = 7, height = 3, units="in", res=300)
 plot_drift_prediction()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_driftPredictions.pdf"), width = 7, height = 3)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_driftPredictions.pdf"), width = 7, height = 3)
 plot_drift_prediction()
 dev.off()
 
 # Posterior predictions - Accuracy rate
-png(file = here("output", "figures", "slides_shapeExample_ppAcc.png"), width = 7, height = 5, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_ppAcc.png"), width = 7, height = 5, units="in", res=300)
 plot_ppAcc()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_ppAcc.pdf"), width = 7, height = 5)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_ppAcc.pdf"), width = 7, height = 5)
 plot_ppAcc()
 dev.off()
 # Posterior predictions - Mean RT
-png(file = here("output", "figures", "slides_shapeExample_ppMeanRT.png"), width = 7, height = 5, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_ppMeanRT.png"), width = 7, height = 5, units="in", res=300)
 plot_ppMeanRT()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_ppMeanRT.pdf"), width = 7, height = 5)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_ppMeanRT.pdf"), width = 7, height = 5)
 plot_ppMeanRT()
 dev.off()
 # Posterior predictions - RT variance
-png(file = here("output", "figures", "slides_shapeExample_ppvarRT.png"), width = 7, height = 5, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_ppvarRT.png"), width = 7, height = 5, units="in", res=300)
 plot_ppvarRT()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_ppvarRT.pdf"), width = 7, height = 5)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_ppvarRT.pdf"), width = 7, height = 5)
 plot_ppvarRT()
 dev.off()
 
 # All posterior predictions
-png(file = here("output", "figures", "slides_shapeExample_allPostpredChecks.png"), width = 10, height = 10, units="in", res=300)
+png(file = here("output", "figures", "results-presentation", "slides_shapeExample_allPostpredChecks.png"), width = 10, height = 10, units="in", res=300)
 plot_all_postpred_checks()
 dev.off()
-pdf(file = here("output", "figures", "slides_shapeExample_allPostpredChecks.pdf"), width = 10, height = 10)
+pdf(file = here("output", "figures", "results-presentation", "slides_shapeExample_allPostpredChecks.pdf"), width = 10, height = 10)
 plot_all_postpred_checks()
 dev.off()
 
