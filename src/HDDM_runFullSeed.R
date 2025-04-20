@@ -63,7 +63,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
           # Second column: binary predictor (0 or 1) for t-test designs
           # Third column: continuous predictor (0 to 1) for metaregression
           X <- cbind(rep(NA, p), (0:(p-1))%%2, (0:(p-1))/p)
-          colnames(X) <- settings$design_levels
+          colnames(X) <- c("hierarchical", "ttest", "metaregression")
           
           # Loop through all trial count levels
           for(t in settings$trial_levels){
@@ -136,7 +136,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             }
                             
                             # Check if R-hat values indicate good convergence
-                            count_bad_rhats <- sum(runJags$rhats[settings$jagsParameters[[d]]] > rhat_cutoff)
+                            count_bad_rhats <- sum(runJags$rhats[settings$jagsParameters[[d]]] > rhat_cutoff, na.rm = TRUE)
                             
                             # Exit loop if R-hat check is disabled or all R-hats are good
                             if((!redo_if_bad_rhat) | (count_bad_rhats == 0)){ 
@@ -232,7 +232,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                         }
                         
                         # Check if R-hat values indicate good convergence
-                        count_bad_rhats <- sum(runJags$rhats[settings$jagsParameters[[d]]] > rhat_cutoff)
+                        count_bad_rhats <- sum(runJags$rhats[settings$jagsParameters[[d]]] > rhat_cutoff, na.rm = TRUE)
                         
                         # Exit loop if R-hat check is disabled or all R-hats are good
                         if((!redo_if_bad_rhat) | (count_bad_rhats == 0)){ 
@@ -272,12 +272,17 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
         paste(settings$output.folder, "seed-", seed, "_end.txt", sep=""))
   
   # Create and save output object
-  output <- list(
-      "hierarchical" = out_H,                              # Results from hierarchical models
-      "betaEffect" = out_Beta,                             # Results from models with predictor effects
-      "reps" = data.frame("bad_JAGS" = redo_JAGS,          # Count of JAGS errors
-                          "bad_Rhat" = redo_Rhat)          # Count of R-hat issues
-  )
+  # Start by storing the number of JAGS errors and R-hat issues
+  output <- list("reps" = data.frame("bad_JAGS" = redo_JAGS,          # Count of JAGS errors
+                                     "bad_Rhat" = redo_Rhat))         # Count of R-hat issues
+  # Add the results from the hierarchical models (if any)
+  if("hierarchical" %in% settings$design_levels){
+    output <- c(output, list("hierarchical" = out_H))
+  }
+  # Add the results from the regression structured models (if any)
+  if("ttest" %in% settings$design_levels | "metaregression" %in% settings$design_levels){
+    output <- c(output, list("betaEffect" = out_Beta))
+  }
   
   # Save results to file
   save(output, file=fileName)  
@@ -285,4 +290,6 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
   # Return results
   return(output)
 }
-  
+
+#x <- HDDM_runFullSeed(seed = 1, settings = settings, 
+#                      forceRun = TRUE, redo_if_bad_rhat = TRUE, rhat_cutoff = 1.05)
