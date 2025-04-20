@@ -92,10 +92,10 @@ for(model in settings$design_levels){
 # Run Parallel Seeds
 ################################################################
 cores       <-  detectCores()
-my.cluster  <-  makeCluster(cores[1]-3)
+my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-output <- foreach(seed = 1:4, 
+output <- foreach(seed = 1:250, 
                   .errorhandling = "pass",
                   .combine = 'rbind'
                   ) %dopar% {
