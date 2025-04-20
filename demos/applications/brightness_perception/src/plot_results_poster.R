@@ -28,7 +28,7 @@ makeLines <- function(posterior_object){
   return(full_line)
 }
 
-pdf(file = here("output", "figures", "poster_brightnessExample.pdf"), width = 4, height = 3.2)
+pdf(file = here("output", "figures", "results-presentation", "poster_brightnessExample.pdf"), width = 4, height = 3.2)
 ###################################################################
 # Panel 1: Beta posteriors
 ###################################################################
