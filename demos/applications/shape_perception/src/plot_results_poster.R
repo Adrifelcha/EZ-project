@@ -18,7 +18,7 @@ colnames(driftPred) <- c("QualConvex","QuantConvex","QualConcav","QuantConcav")
 
 axisCol <- "black"
 
-pdf(file = here("output", "figures", "poster_shapeExample.pdf"), width = 4, height = 3.2) # Width and height of the plot in 
+pdf(file = here("output", "figures", "results-presentation", "poster_shapeExample.pdf"), width = 4, height = 3.2) # Width and height of the plot in 
 par(bg=NA, mai=c(0.3,0.05,0,0.05), oma= c(0,1,0.2,0.1))
 layout(matrix(c(1,2,3,4,4,4), nrow = 2, ncol = 3, byrow = TRUE), heights = c(1,1.5), widths = c(1,1,1))
 
