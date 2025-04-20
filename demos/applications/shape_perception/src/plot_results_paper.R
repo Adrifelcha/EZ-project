@@ -194,17 +194,17 @@ plot_gamma_posteriors_and_drift <- function() {
 width <- 5
 height <- 2.5
 
-png(file = here("output", "figures", "paper_shapeExample_gammas.png"), width = width, height = height, units="in", res=300)
+png(file = here("output", "figures", "in-paper", "paper_shapeExample_gammas.png"), width = width, height = height, units="in", res=300)
 plot_gamma_posteriors_and_drift()
 dev.off()
 
 # PDF version
-pdf(file = here("output", "figures", "paper_shapeExample_gammas.pdf"), width = width, height = height)
+pdf(file = here("output", "figures", "in-paper", "paper_shapeExample_gammas.pdf"), width = width, height = height)
 plot_gamma_posteriors_and_drift()
 dev.off()
 
 # EPS version
 setEPS()
-postscript(file = here("output", "figures", "paper_shapeExample_gammas.eps"), width = width, height = height)
+postscript(file = here("output", "figures", "in-paper", "paper_shapeExample_gammas.eps"), width = width, height = height)
 plot_gamma_posteriors_and_drift()
 dev.off()
