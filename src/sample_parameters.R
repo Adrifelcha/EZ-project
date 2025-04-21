@@ -20,7 +20,7 @@
 
 sample_parameters <- function(priors, nPart, modelType = "hierarchical", X = NULL, 
                              criterion = NA, fromPrior = TRUE, Show = TRUE, 
-                             fixedBeta = NA, withinSubject = FALSE) {
+                             fixedBeta = NA, withinSubject = FALSE, generative_uniforms = NULL) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
   # Sample hierarchical parameters (means and standard deviations)
@@ -48,15 +48,33 @@ sample_parameters <- function(priors, nPart, modelType = "hierarchical", X = NUL
   } else {
         # Sample from uniform distributions when not using priors
         # These ranges approximate the 95% density of the default priors
-        bound_mean <- runif(1, 1.5, 4)
-        drift_mean <- runif(1, -5, 5)
-        nondt_mean <- runif(1, 0.15, 0.5)
-
-        bound_sdev <- 0.3        
-        nondt_sdev <- 0.06
-        if(!withinSubject) {
-          drift_sdev <- 0.5
+        if(is.null(generative_uniforms)) {
+        cat("No generative uniform distributions specified. Fill in the generative_uniforms list.")
+        return(list(
+              "bound_mean" = c(NA, NA), "nondt_mean" = c(NA, NA), "drift_mean" = c(NA, NA),
+              "bound_sdev" = c(NA, NA), "nondt_sdev" = c(NA, NA), "drift_sdev" = c(NA, NA)))
+      } else {
+        bound_mean <- runif(1, generative_uniforms$bound_mean[1], generative_uniforms$bound_mean[2])
+        drift_mean <- runif(1, generative_uniforms$drift_mean[1], generative_uniforms$drift_mean[2])
+        nondt_mean <- runif(1, generative_uniforms$nondt_mean[1], generative_uniforms$nondt_mean[2])
+        if(length(generative_uniforms$bound_sdev) == 2) {
+          bound_sdev <- runif(1, generative_uniforms$bound_sdev[1], generative_uniforms$bound_sdev[2])
+        } else {
+          bound_sdev <- generative_uniforms$bound_sdev
         }
+        if(length(generative_uniforms$nondt_sdev) == 2) {
+          nondt_sdev <- runif(1, generative_uniforms$nondt_sdev[1], generative_uniforms$nondt_sdev[2])
+        } else {
+          nondt_sdev <- generative_uniforms$nondt_sdev
+        }
+        if(length(generative_uniforms$drift_sdev) == 2) {
+          drift_sdev <- runif(1, generative_uniforms$drift_sdev[1], generative_uniforms$drift_sdev[2])
+        } else {
+          if(!withinSubject) {
+            drift_sdev <- generative_uniforms$drift_sdev
+          }
+        }
+      }
   }
 
   # Within-subject design uses a fixed standard deviation for the population drift rate
