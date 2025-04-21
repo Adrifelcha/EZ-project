@@ -104,5 +104,7 @@ output <- foreach(seed = 1:250,
                   }
 stopCluster(cl = my.cluster)
 
-resultado <- load_seedOutput(here("demos", "simulation-studies", "generative_priors", "samples"), 
-                             object_name = "output")
+output <- load_seedOutput(directory = here("demos", "simulation-studies", "generative_priors", "samples"), 
+                          object_name = "output")
+
+store_parallelOutput(output, settings, saveTo = here("output", "RData-results", "generative_priors", "results"))
