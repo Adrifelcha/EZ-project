@@ -103,3 +103,6 @@ output <- foreach(seed = 1:250,
                                           forceRun = TRUE, redo_if_bad_rhat = TRUE, rhat_cutoff = 1.05)
                   }
 stopCluster(cl = my.cluster)
+
+resultado <- load_seedOutput(here("demos", "simulation-studies", "generative_priors", "samples"), 
+                             object_name = "output")
