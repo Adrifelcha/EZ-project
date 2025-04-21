@@ -101,7 +101,7 @@ cores       <-  detectCores()
 my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-output <- foreach(seed = 1:4, 
+resultado <- foreach(seed = 1:4, 
                   .errorhandling = "pass",
                   .combine = 'rbind'
                   ) %dopar% {
@@ -116,5 +116,6 @@ stopCluster(cl = my.cluster)
 
 
 settings$nDatasets <- nrow(output)
+resultado <- load_seedOutput(here("demos", "simulation-studies", "generative_uniforms", "samples"))
 #store_parallelOutput(output, settings, saveTo = "./results/")
 #makeSimStudyPlot("./results/simStudy_Meta_drift.RData", plotType = 2)
