@@ -48,9 +48,9 @@ sample_parameters <- function(priors, nPart, modelType = "hierarchical", X = NUL
   } else {
         # Sample from uniform distributions when not using priors
         # These ranges approximate the 95% density of the default priors
-        bound_mean <- runif(1, 1.5, 3)
-        drift_mean <- runif(1, -3, 3)
-        nondt_mean <- runif(1, 0.2, 0.6)
+        bound_mean <- runif(1, 1.5, 4)
+        drift_mean <- runif(1, -5, 5)
+        nondt_mean <- runif(1, 0.15, 0.5)
 
         bound_sdev <- 0.3        
         nondt_sdev <- 0.06
