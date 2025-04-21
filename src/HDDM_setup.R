@@ -21,12 +21,14 @@
 ###################################################################################
 
 HDDM_setup <-function(priors, nPart, nTrials, modelType=NA, X=NA, criterion=NA, fromPrior=TRUE, Show=TRUE, 
-                      nTrialsPerCondition=NA, prevent_zero_accuracy=TRUE, fixedBeta=NA, withinSubject=FALSE){
+                      nTrialsPerCondition=NA, prevent_zero_accuracy=TRUE, fixedBeta=NA, withinSubject=FALSE,
+                      generative_uniforms=NULL){
 
     # Step 1: Obtain parameter values to be used as ground truth in simulation studies    
     parameter_set <- sample_parameters(priors = priors, nPart = nPart, modelType = modelType, X = X, 
                                        criterion = criterion, fromPrior = fromPrior, Show = Show, 
-                                       fixedBeta = fixedBeta, withinSubject = withinSubject)
+                                       fixedBeta = fixedBeta, withinSubject = withinSubject, 
+                                       generative_uniforms = generative_uniforms)
 
     # Step 2: Generate hierarchical DDM data from the parameter set, using simulation settings
     rawData = sample_data(nPart = nPart, nTrials = nTrials, parameter_set = parameter_set, 
