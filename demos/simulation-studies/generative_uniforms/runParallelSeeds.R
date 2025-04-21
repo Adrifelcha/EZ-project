@@ -27,9 +27,9 @@ dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Fixed simulation design variables
 settings <- list("fromPrior" = FALSE, 
-                 "output.folder" = file.path(output_dir, "/"), 
-                 "participant_levels" = c(20,40,80,160,320), 
-                 "trial_levels" = c(20,40,80,160,320),
+                 "output.folder" = file.path(output_dir, "/"),
+                 "participant_levels" = c(20,40),#,80,160,320),
+                 "trial_levels" = c(20,40),#,80,160,320),
                  "nDatasets" = 1000,
                  "criterion_levels" = c("drift", "nondt", "bound"),
                  "design_levels" = c("ttest","metaregression"),
@@ -62,7 +62,7 @@ custom_priors_list <- list(
 settings <- c(settings, list("jagsParameters" = list(jagsParameters, jagsParameters),
                              "modelFile" = matrix(c(rep(c(here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaDrift.bug"),
                                                           here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaNondt.bug"),
-                                                          here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaBound.bug")),2)), 
+                                                          here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaBound.bug")),2)),
                                                     byrow = TRUE, ncol = 3),
                              "priors" = list(JAGS_priors(Show=FALSE, "ttest", custom_prior_list = custom_priors_list), 
                                              JAGS_priors(Show=FALSE, "metaregression", custom_prior_list = custom_priors_list)),
@@ -81,12 +81,16 @@ rownames(settings$modelFile) <- settings$design_levels
 # Write JAGS models
 ##########################################################
 # Define custom truncation list
+custom_truncation_list <- list(
+        "bound_mean" = c(0.1, ""), "nondt_mean" = c(0.05, ""), "drift_mean" = c("", ""),
+        "bound_sdev" = c(0.01, ""), "nondt_sdev" = c(0.01, ""), "drift_sdev" = c(0.01, ""),
+        "drift" = c(-5, 5), "bound" = c(0.1, ""), "nondt" = c(0.05, ""), "betaweight" = c("-3", "3"))
 
 for(model in settings$design_levels){
     for(crit in settings$criterion_levels){
         JAGS_writeModel(priors = settings$priors[[2]], modelType = model, 
                         criterion = crit, modelFile = settings$modelFile[model,crit],
-                        custom_truncation_list = NULL)
+                        custom_truncation_list = custom_truncation_list)
     }
 }
 
@@ -97,23 +101,20 @@ cores       <-  detectCores()
 my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-output <- foreach(i = 201:1000, 
+output <- foreach(seed = 1:4, 
                   .errorhandling = "pass",
                   .combine = 'rbind'
                   ) %dopar% {
-                    Z <- HDDM_runFullSeed(seed = i, settings, forceRun = TRUE)
+                    Z <- HDDM_runFullSeed(seed = seed,
+                                          settings = settings,
+                                          forceRun = TRUE,
+                                          redo_if_bad_rhat = TRUE, 
+                                          rhat_cutoff = 1.05)
                   }
 stopCluster(cl = my.cluster)
 
-#output1to200 <- output
-this.output <- output
-output <- rbind(output1to200,this.output)
-#output <- rbind(output1to119,output)
-#output1to119 <- output
+
 
 settings$nDatasets <- nrow(output)
-source("../../../code/functions/store_parallelOutput.R")
-store_parallelOutput(output, settings, saveTo = "./results/")
-makeSimStudyPlot("./results/simStudy_Meta_drift.RData", plotType = 2)
-
-
+#store_parallelOutput(output, settings, saveTo = "./results/")
+#makeSimStudyPlot("./results/simStudy_Meta_drift.RData", plotType = 2)
