@@ -275,7 +275,8 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
   # Create and save output object
   # Start by storing the number of JAGS errors and R-hat issues
   output <- list("reps" = data.frame("bad_JAGS" = redo_JAGS,          # Count of JAGS errors
-                                     "bad_Rhat" = redo_Rhat))         # Count of R-hat issues
+                                     "bad_Rhat" = redo_Rhat),         # Count of R-hat issues
+                "settings" = settings)
   # Add the results from the hierarchical models (if any)
   if("hierarchical" %in% settings$design_levels){
     output <- c(output, list("hierarchical" = out_H))
