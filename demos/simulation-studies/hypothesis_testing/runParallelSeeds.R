@@ -77,7 +77,7 @@ cores       <-  detectCores()
 my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-resultado <- foreach(i = 1:10, 
+resultado <- foreach(i = 1:settings$nDatasets, 
                     .errorhandling = "pass",
                     .combine = 'rbind'
                     ) %dopar% {
@@ -92,17 +92,12 @@ cat("Time taken:", difftime(Big_end, Big_start, units = "mins"), "minutes\n")
 #res1to20B <- resultado
 #res1to1000 <- rbind(res1to200, resultado)
 
-#take_time <- c()
 take_time <- c(take_time, difftime(Big_end, Big_start, units = "mins"))
 
-#res1to200 <- rbind(res1to80, resultado)
-resultado <- res1to1000
-#settings$nDatasets <- nrow(resultado)
-
-nrow(resultado)
 settings$nDatasets <- nrow(resultado)
 # Store the results
 # Default location: repo-root/output/RData-results
 # Look for filename starting with: simHypTesting_...RData
+#resultado <- load_seedOutput(here("demos", "simulation-studies", "hypothesis_testing", "samples"))
 store_BetaParallelOutput(output = resultado, settings = settings)
 
