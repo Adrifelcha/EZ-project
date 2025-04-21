@@ -48,24 +48,13 @@ jagsInits <- list()
 for(i in settings$participant_levels){
     jagsInits <- c(jagsInits, list(JAGS_inits(n.chains = settings$n.chains, nParticipants = i, custom_sd = 0.1)))
 }
-# Prepare specific prior distribution parameters
-custom_priors_list <- list(
-                      "bound_mean_mean" = 2.25,    "bound_mean_sdev" = 1.00,
-                      "drift_mean_mean" = 0.00,    "drift_mean_sdev" = 3.00,
-                      "nondt_mean_mean" = 0.55,    "nondt_mean_sdev" = 0.25,
-                      "bound_sdev_lower" = 0.01,   "bound_sdev_upper" = 2.00,
-                      "drift_sdev_lower" = 0.01,   "drift_sdev_upper" = 2.00,
-                      "nondt_sdev_lower" = 0.01,   "nondt_sdev_upper" = 0.50,
-                      "betaweight_mean" = 0,       "betaweight_sdev" = 1)
 
 # Add JAGS objects to settings
 settings <- c(settings, list("jagsParameters" = list(jagsParameters, jagsParameters),
                              "modelFile" = matrix(c(rep(c(here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaDrift.bug"),
                                                           here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaNondt.bug"),
                                                           here("output", "BUGS-models", "EZHBDDM_genUniforms_BetaBound.bug")),2)),
-                                                    byrow = TRUE, ncol = 3),
-                             "priors" = list(JAGS_priors(Show=FALSE, "ttest", custom_prior_list = custom_priors_list), 
-                                             JAGS_priors(Show=FALSE, "metaregression", custom_prior_list = custom_priors_list)),
+                                                    byrow = TRUE, ncol = 3),                             
                              "jagsData" = list(JAGS_passData("ttest"), JAGS_passData("metaregression")),
                              "jagsInits" = jagsInits))
 # Change names so they can be called more easily
@@ -80,6 +69,21 @@ rownames(settings$modelFile) <- settings$design_levels
 ##########################################################
 # Write JAGS models
 ##########################################################
+# Prepare specific prior distribution parameters
+custom_priors_list <- list(
+                      "bound_mean_mean" = 2.5,    "bound_mean_sdev" = 1.00,
+                      "drift_mean_mean" = 0.00,    "drift_mean_sdev" = 3.00,
+                      "nondt_mean_mean" = 0.55,    "nondt_mean_sdev" = 0.25,
+                      "bound_sdev_lower" = 0.01,   "bound_sdev_upper" = 2.00,
+                      "drift_sdev_lower" = 0.01,   "drift_sdev_upper" = 2.00,
+                      "nondt_sdev_lower" = 0.01,   "nondt_sdev_upper" = 0.50,
+                      "betaweight_mean" = 0,       "betaweight_sdev" = 1)
+
+# Add JAGS objects to settings
+settings <- c(settings, list("priors" = list(JAGS_priors(Show=FALSE, "ttest", custom_prior_list = custom_priors_list), 
+                                             JAGS_priors(Show=FALSE, "metaregression", custom_prior_list = custom_priors_list))))
+names(settings$priors) <- settings$design_levels
+
 # Define custom truncation list
 custom_truncation_list <- list(
         "bound_mean" = c(0.1, ""), "nondt_mean" = c(0.05, ""), "drift_mean" = c("", ""),
@@ -93,6 +97,12 @@ for(model in settings$design_levels){
                         custom_truncation_list = custom_truncation_list)
     }
 }
+
+
+generative_uniforms <- list(
+        "bound_mean" = c(0.1, 4), "nondt_mean" = c(0.05, 0.5), "drift_mean" = c(-5, 5),
+        "bound_sdev" = c(0.01, 2), "nondt_sdev" = c(0.01, 0.5), "drift_sdev" = c(0.01, 2))
+settings <- c(settings, list("generative_uniforms" = generative_uniforms))
 
 ################################################################
 # Define simulation functions
