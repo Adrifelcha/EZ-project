@@ -52,8 +52,8 @@ load_seedOutput <- function(directory = NA, object_name = "resultado") {
   # Get the number of valid seeds
   n_seeds <- length(all_seed_results)
  
-  # Detect simulation-study type
-  detect <- all_seed_results[[1]]   # Use first seed as reference
+  # Detect simulation-study type based on the last seed
+  detect <- all_seed_results[[n_seeds]]   # Use first seed as reference
   settings <- detect$settings       # Extract settings information
 
   # Create matrix-like structure expected by store_BetaParallelOutput
