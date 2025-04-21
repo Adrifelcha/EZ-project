@@ -87,7 +87,8 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             set.seed(this.seed)
                             
                             # Generate dataset with known parameters
-                            design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE)
+                            design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE,
+                                                 generative_uniforms = settings$generative_uniforms)
                             
                             # Attempt to run JAGS with error handling
                             z <- try(runJags <- HDDM_runJAGS(
