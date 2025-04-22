@@ -1,14 +1,14 @@
 store_parallelOutput <- function(output, settings, saveTo = "./"){
   #################################################################################
   # Identify relevant properties of the simulation study
-  #################################################################################
-   nDatasets            <- settings$nDatasets
+  #################################################################################   
    nCells               <- settings$nCells
    output.folder        <- settings$output.folder
    allP   <- settings$participant_levels
    allT   <- settings$trial_levels
    allD   <- settings$design_levels
    allC   <- settings$criterion_levels
+   nDatasets  <- nrow(output)
    
    # Is a simple Hierarchial study included?
    Hierarchical <- "hierarchical" %in% settings$design_levels
