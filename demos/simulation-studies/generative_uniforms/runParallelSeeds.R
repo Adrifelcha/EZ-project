@@ -6,17 +6,10 @@ library(here)
 library(foreach)
 library(doParallel)
 
-########| Load required R scripts
-skip_scripts <- c("README.md")
-cat("Sourcing scripts...\n")
-for(archive in dir(here("src"))){
-    if(archive %in% skip_scripts){
-        next
-    }else{
-        cat(paste("Sourcing:", archive, "\n"))
-        source(here("src", archive))
-    }
-}
+
+# Call the function within the src directory
+source(here("src", "loading", "load_allFunctions.R"))
+load_allCustomFunctions()
 
 ##########################################################
 # SIMULATION SETTINGS
