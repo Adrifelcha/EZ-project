@@ -6,17 +6,10 @@ library(here)
 library(foreach)
 library(doParallel)
 
-########| Load required R scripts
-skip_scripts <- c("README.md")
-cat("Sourcing scripts...\n")
-for(archive in dir(here("src"))){   
-    if(archive %in% skip_scripts){
-        next
-    }else{                
-        cat(paste("Sourcing:", archive, "\n"))
-        source(here("src", archive))        
-    }    
-}
+
+# Call the function within the src directory
+source(here("src", "loading", "load_allFunctions.R"))
+load_allCustomFunctions()
 
 ##########################################################
 # SIMULATION SETTINGS
@@ -107,9 +100,4 @@ stopCluster(cl = my.cluster)
 output <- load_seedOutput(directory = here("demos", "simulation-studies", "generative_priors", "samples"), 
                           object_name = "output")
 
-
-resultado <- load_seedOutput(directory = here("demos", "simulation-studies", "hypothesis_testing", "samples"), 
-                           object_name = "resultado")
-
-
-store_parallelOutput(output, settings, saveTo = here("output", "RData-results"))
+store_parallelOutput(output = output, settings = settings, saveTo = here("output", "RData-results"))
