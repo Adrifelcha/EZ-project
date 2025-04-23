@@ -6,6 +6,9 @@
 nParticipants <- 40
 nTrialsPerCondition <- 80
 beta_levels <- c(0,0.2,0.4)
+forceRun <- FALSE
+redo_if_bad_rhat <- TRUE
+rhat_cutoff <- 1.05
 
 ##########################################################
 # LOAD FUNCTIONS/PACKAGES
@@ -14,20 +17,11 @@ beta_levels <- c(0,0.2,0.4)
 library(here)
 library(foreach)
 library(doParallel)
-########| Load required R scripts
 
-skip_scripts <- c("README.md")
-cat("Sourcing scripts...\n")
-for(archive in dir(here("src"))){   
-    if(archive %in% skip_scripts){
-        next
-    }else{                
-        cat(paste("Sourcing:", archive, "\n"))
-        source(here("src", archive))        
-    }    
-}
+# Call the function within the src directory
+source(here("src", "loading", "load_allFunctions.R"))
+load_allCustomFunctions()
 
-source(here("demos", "simulation-studies", "hypothesis_testing", "src", "HDDM_simBySeed.R"))
 source(here("demos", "simulation-studies", "hypothesis_testing", "src", "store_BetaParallelOutput.R"))
 ##########################################################
 # SIMULATION SETTINGS
@@ -81,23 +75,19 @@ resultado <- foreach(i = 1:settings$nDatasets,
                     .errorhandling = "pass",
                     .combine = 'rbind'
                     ) %dopar% {
-                      W <- HDDM_simBySeed_withinSubject(seed = i, settings, forceRun=TRUE,
-                                                 redo_if_bad_rhat=TRUE, rhat_cutoff=1.05)
+                      W <- HDDM_simBySeed_withinSubject(seed = i, settings, forceRun = forceRun,
+                                                        redo_if_bad_rhat = redo_if_bad_rhat,
+                                                        rhat_cutoff = rhat_cutoff)
                     }
 stopCluster(cl = my.cluster)
 Big_end <- Sys.time()
 cat("Time taken:", difftime(Big_end, Big_start, units = "mins"), "minutes\n")
 
-#res1to20 <- resultado
-#res1to20B <- resultado
-#res1to1000 <- rbind(res1to200, resultado)
+# Load the results from the seed-specific .RData files
+resultado <- load_seedOutput(here("demos", "simulation-studies", "hypothesis_testing", "samples"))
 
-take_time <- c(take_time, difftime(Big_end, Big_start, units = "mins"))
-
+# Make sure the number of datasets is correct
 settings$nDatasets <- nrow(resultado)
-# Store the results
-# Default location: repo-root/output/RData-results
-# Look for filename starting with: simHypTesting_...RData
-#resultado <- load_seedOutput(here("demos", "simulation-studies", "hypothesis_testing", "samples"))
-store_BetaParallelOutput(output = resultado, settings = settings)
 
+# Store the results to repo-root/output/RData-results
+store_BetaParallelOutput(output = resultado, settings = settings)
