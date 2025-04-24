@@ -101,7 +101,13 @@ load_seedOutput <- function(directory = NA, object_name = "resultado") {
   
   attr(resultado, "n_seeds") <- n_seeds
   
+  # Add settings as a separate element in the returned list
+  final_output <- list(
+    results = resultado,
+    settings = settings
+  )
+  
   cat("Successfully combined", n_seeds, "seed-specific output files\n")
   
-  return(resultado)
+  return(final_output)
 }
