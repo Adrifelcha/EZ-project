@@ -146,19 +146,22 @@ sample_from_uniforms <- function(generative_uniforms) {
                   "bound_mean" = c(NA, NA), "nondt_mean" = c(NA, NA), "drift_mean" = c(NA, NA),
                   "bound_sdev" = c(NA, NA), "nondt_sdev" = c(NA, NA), "drift_sdev" = c(NA, NA)))
       } else {
-        # Sample hierarchical means from uniform distributions
-        hierarchical_parameters <- list(
-          "bound_mean" = runif(1, generative_uniforms$bound_mean[1], generative_uniforms$bound_mean[2]),
+        # Bound and nondt can't have 0 values, so we need to scale the distribution
+        # So that when the hierarchical mean is close to 0, the population distribution has low variance
+        scale_bound_distribution <- runif(1,0, 1)
+        scale_nondt_distribution <- runif(1,0, 1)
+        hierarchical_parameters <- list(          
+          "bound_mean" = qunif(scale_bound_distribution, generative_uniforms$bound_mean[1], generative_uniforms$bound_mean[2]),
           "drift_mean" = runif(1, generative_uniforms$drift_mean[1], generative_uniforms$drift_mean[2]),
-          "nondt_mean" = runif(1, generative_uniforms$nondt_mean[1], generative_uniforms$nondt_mean[2])
+          "nondt_mean" = qunif(scale_nondt_distribution, generative_uniforms$nondt_mean[1], generative_uniforms$nondt_mean[2])
         )
         
         # Sample hierarchical standard deviations from uniform distributions or use fixed values
         if(length(generative_uniforms$bound_sdev) == 2) {
-          bound_sdev <- runif(1, generative_uniforms$bound_sdev[1], generative_uniforms$bound_sdev[2])
+          bound_sdev <- qunif(scale_bound_distribution, generative_uniforms$bound_sdev[1], generative_uniforms$bound_sdev[2])
         } else {    bound_sdev <- generative_uniforms$bound_sdev      }
         if(length(generative_uniforms$nondt_sdev) == 2) {
-          nondt_sdev <- runif(1, generative_uniforms$nondt_sdev[1], generative_uniforms$nondt_sdev[2])
+          nondt_sdev <- qunif(scale_nondt_distribution, generative_uniforms$nondt_sdev[1], generative_uniforms$nondt_sdev[2])
         } else {    nondt_sdev <- generative_uniforms$nondt_sdev      }
         if(length(generative_uniforms$drift_sdev) == 2) {
           drift_sdev <- runif(1, generative_uniforms$drift_sdev[1], generative_uniforms$drift_sdev[2])
