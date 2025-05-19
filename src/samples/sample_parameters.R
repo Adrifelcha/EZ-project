@@ -148,8 +148,9 @@ sample_from_uniforms <- function(generative_uniforms) {
       } else {
         # Bound and nondt can't have 0 values, so we need to scale the distribution
         # So that when the hierarchical mean is close to 0, the population distribution has low variance
-        scale_bound_distribution <- runif(1,0, 1)
-        scale_nondt_distribution <- runif(1,0, 1)
+        # We use a variant of the probability integral transform to scale the distribution
+        scale_bound_distribution <- runif(1,0,1)
+        scale_nondt_distribution <- runif(1,0,1)
         hierarchical_parameters <- list(          
           "bound_mean" = qunif(scale_bound_distribution, generative_uniforms$bound_mean[1], generative_uniforms$bound_mean[2]),
           "drift_mean" = runif(1, generative_uniforms$drift_mean[1], generative_uniforms$drift_mean[2]),
