@@ -93,6 +93,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                             generative_uniforms = settings$generative_uniforms)
                             
                             # Attempt to run JAGS with error handling
+                            start_time <- Sys.time()
                             z <- try(runJags <- HDDM_runJAGS(
                                 summaryData = design$sumData, 
                                 nTrials = t, 
@@ -107,7 +108,10 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                 modelFile = settings$modelFile[d,c], 
                                 Show = Show, 
                                 track_allParameters = FALSE))
-                            
+                            end_time <- Sys.time()
+                            if(Show){
+                                cat("Time taken: ", difftime(end_time, start_time, units = "secs"), " seconds\n")
+                            }
                             # If JAGS error occurs, retry with different seed
                             if(inherits(z, "try-error")){ 
                                   cat("Repeating cell", cell, "of", settings$nCells, "due to a JAGS error \n")
