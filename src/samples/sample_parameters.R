@@ -55,11 +55,13 @@ sample_parameters <- function(priors, nPart, modelType = "hierarchical", X = NUL
       # Sample non-hierarchical parameters
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
       # Initialize parameters
-      bound <- sample_bound(nPart, bound_mean, bound_sdev, X, criterion)      
-      nondt <- sample_nondt(nPart, nondt_mean, nondt_sdev, X, criterion)
       betaweight <- sample_betaweight(fixedBeta = fixedBeta, criterion = criterion)
-      drift <- sample_drift(nPart, drift_mean, drift_sdev, betaweight, X, withinSubject, criterion)  
-
+      bound <- sample_bound(nPart = nPart, bound_mean = bound_mean, bound_sdev = bound_sdev, 
+                            betaweight = betaweight, X = X, criterion = criterion)      
+      nondt <- sample_nondt(nPart = nPart, nondt_mean = nondt_mean, nondt_sdev = nondt_sdev, 
+                            betaweight = betaweight, X = X, criterion = criterion)      
+      drift <- sample_drift(nPart = nPart, drift_mean = drift_mean, drift_sdev = drift_sdev, 
+                            betaweight = betaweight, X = X, withinSubject = withinSubject, criterion = criterion)  
       # Create parameter set list with all generated values
       parameter_set <- list(
         "bound_mean" = bound_mean, "drift_mean" = drift_mean, "nondt_mean" = nondt_mean, 
@@ -208,7 +210,7 @@ return(drift)
 
 # Individual-level non-decision times
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-sample_nondt <- function(nPart, nondt_mean, nondt_sdev, X, criterion = NA) {
+sample_nondt <- function(nPart, nondt_mean, nondt_sdev, betaweight, X, criterion = NA) {
     if(criterion == "nondt") {
                 nondt <- rnorm(nPart, nondt_mean + (betaweight*X), nondt_sdev)
     } else {
@@ -219,7 +221,7 @@ return(nondt)
 
 # Individual-level boundary separation
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-sample_bound <- function(nPart, bound_mean, bound_sdev, X, criterion = NA) {
+sample_bound <- function(nPart, bound_mean, bound_sdev, betaweight, X, criterion = NA) {
     if(criterion == "bound") {
                 bound <- rnorm(nPart, bound_mean + (betaweight*X), bound_sdev)
     } else {
