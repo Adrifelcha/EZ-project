@@ -23,7 +23,7 @@
 sample_data <- function(nPart, nTrials = NA, parameter_set, 
                         nTrialsPerCondition = NA, prevent_zero_accuracy = TRUE){
   
-  design <- identify_design(nPart, nTrialsPerCondition)
+  design <- identify_design(nPart, nTrials, nTrialsPerCondition, parameter_set)
             data <- design$data
             nObs <- design$nObs
             nCols <- design$nCols
@@ -73,7 +73,7 @@ return(data)
 # Identify relevant design parameters based
 # on whether this is a within-subject design
 ##############################################
-identify_design <- function(nPart, nTrialsPerCondition, parameter_set){
+identify_design <- function(nPart, nTrials, nTrialsPerCondition, parameter_set){
       withinSubject <- !is.na(nTrialsPerCondition)
       if(withinSubject){
           nObs <- nPart*nTrialsPerCondition*2
