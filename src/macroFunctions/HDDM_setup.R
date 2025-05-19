@@ -33,7 +33,6 @@ HDDM_setup <-function(priors, nPart, nTrials, modelType=NA, X=NA, criterion=NA, 
     # Step 2: Generate hierarchical DDM data from the parameter set, using simulation settings
     rawData = sample_data(nPart = nPart, nTrials = nTrials, parameter_set = parameter_set, 
                           nTrialsPerCondition = nTrialsPerCondition, prevent_zero_accuracy = prevent_zero_accuracy)
-    
 
     # Step 3: Calculate EZ summary statistics from the raw data
     summData = getStatistics(data = rawData) 
