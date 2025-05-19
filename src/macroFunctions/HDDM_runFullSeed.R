@@ -19,7 +19,7 @@
 #   * reps: Count of repeated simulations due to errors or poor convergence
 ###################################################################################
 
-HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, rhat_cutoff=NA){
+HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, rhat_cutoff=NA, Show=FALSE){
   # Start timing the entire simulation study
   grand_tic <- clock::date_now(zone="UTC")
   
@@ -89,7 +89,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             # Generate dataset with known parameters
                             design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                             modelType = d, X = X[,d], criterion = c, 
-                                            fromPrior = settings$fromPrior, Show = FALSE, 
+                                            fromPrior = settings$fromPrior, Show = Show, 
                                             generative_uniforms = settings$generative_uniforms)
                             
                             # Attempt to run JAGS with error handling
@@ -105,7 +105,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                 n.iter = settings$n.iter, 
                                 n.thin = settings$n.thin, 
                                 modelFile = settings$modelFile[d,c], 
-                                Show = FALSE, 
+                                Show = Show, 
                                 track_allParameters = FALSE))
                             
                             # If JAGS error occurs, retry with different seed
@@ -128,7 +128,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                       n.iter = settings$n.iter, 
                                       n.thin = settings$n.thin, 
                                       modelFile = settings$modelFile[d,c], 
-                                      Show = FALSE, 
+                                      Show = Show, 
                                       track_allParameters = FALSE))
                                   
                                   # Increment error counter and break if too many errors
@@ -188,7 +188,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                         # Generate dataset with known parameters (no criterion needed for hierarchical)
                         design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                             modelType = d, X = X[,d], criterion = NA, 
-                                            fromPrior = settings$fromPrior, Show = FALSE, 
+                                            fromPrior = settings$fromPrior, Show = Show, 
                                             generative_uniforms = settings$generative_uniforms)
 
                         # Attempt to run JAGS with error handling
@@ -204,7 +204,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             n.iter = settings$n.iter, 
                             n.thin = settings$n.thin, 
                             modelFile = settings$modelFile[d,1],  # Use first model file for hierarchical
-                            Show = FALSE, 
+                            Show = Show, 
                             track_allParameters = FALSE))
                         
                         # If JAGS error occurs, retry with different seed
@@ -227,7 +227,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                   n.iter = settings$n.iter, 
                                   n.thin = settings$n.thin, 
                                   modelFile = settings$modelFile[d,1], 
-                                  Show = FALSE, 
+                                  Show = Show, 
                                   track_allParameters = FALSE))
                               
                               # Increment error counter and break if too many errors
