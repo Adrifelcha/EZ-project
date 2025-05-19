@@ -216,7 +216,7 @@ sample_nondt <- function(nPart, nondt_mean, nondt_sdev, betaweight, X, criterion
     # Ensure that the non-decision time is not negative
     while(need_nondt){
         if(criterion == "nondt") {
-                    nondt <- rnorm(nPart, nondt_mean + (betaweight*X), nondt_sdev)
+                nondt <- rnorm(nPart, nondt_mean + (betaweight*X), nondt_sdev)
         } else {
                 nondt <- rnorm(nPart, nondt_mean, nondt_sdev)
         }
