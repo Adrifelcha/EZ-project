@@ -23,7 +23,11 @@
 HDDM_setup <-function(priors, nPart, nTrials, modelType=NA, X=NA, criterion=NA, fromPrior=TRUE, Show=TRUE, 
                       nTrialsPerCondition=NA, prevent_zero_accuracy=TRUE, fixedBeta=NA, withinSubject=FALSE,
                       generative_uniforms=NULL){
-
+    if(Show){
+        local_settings = list("nPart" = nPart, "nTrials" = nTrials, "modelType" = modelType, 
+                              "criterion" = criterion)
+        show_design(local_settings, withinSubjectDesign = withinSubject)
+    }
     # Step 1: Obtain parameter values to be used as ground truth in simulation studies    
     parameter_set <- sample_parameters(priors = priors, nPart = nPart, modelType = modelType, X = X, 
                                        criterion = criterion, fromPrior = fromPrior, Show = Show, 
