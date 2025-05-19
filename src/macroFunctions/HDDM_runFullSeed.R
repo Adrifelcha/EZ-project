@@ -87,8 +87,10 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             set.seed(this.seed)
                             
                             # Generate dataset with known parameters
-                            design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE,
-                                                 generative_uniforms = settings$generative_uniforms)
+                            design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
+                                            modelType = d, X = X[,d], criterion = c, 
+                                            fromPrior = settings$fromPrior, Show = FALSE, 
+                                            generative_uniforms = settings$generative_uniforms)
                             
                             # Attempt to run JAGS with error handling
                             z <- try(runJags <- HDDM_runJAGS(
@@ -184,8 +186,11 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                         set.seed(this.seed)
                         
                         # Generate dataset with known parameters (no criterion needed for hierarchical)
-                        design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], criterion = NA, settings$fromPrior, Show = FALSE)
-                        
+                        design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
+                                            modelType = d, X = X[,d], criterion = NA, 
+                                            fromPrior = settings$fromPrior, Show = FALSE, 
+                                            generative_uniforms = settings$generative_uniforms)
+
                         # Attempt to run JAGS with error handling
                         z <- try(runJags <- HDDM_runJAGS(
                             summaryData = design$sumData, 
