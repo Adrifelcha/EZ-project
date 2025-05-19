@@ -5,7 +5,7 @@ cat("\n\n===== SETUP =====\n")
 cat("Setting up environment and loading required packages...\n")
 library(R2jags)
 library(here)
-source(here("src", "JAGS_getRhat.R"))
+source(here("src", "run-JAGS", "JAGS_getRhat.R"))
 set.seed(15)
 
 ####################
