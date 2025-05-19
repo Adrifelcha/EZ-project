@@ -35,8 +35,7 @@ settings <- c(settings,
               list("nCells" = prod(length(settings$participant_levels),length(settings$trial_levels))*(3*2)))
 
 # Prepare JAGS objects
-jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "bound", "nondt",
-                    "drift_sdev", "nondt_sdev", "bound_sdev", "drift", "betaweight")
+jagsParameters <- c("bound_mean", "drift_mean", "nondt_mean", "betaweight")
 jagsInits <- list()
 for(i in settings$participant_levels){
     jagsInits <- c(jagsInits, list(JAGS_inits(n.chains = settings$n.chains, nParticipants = i, custom_sd = 0.1)))
@@ -80,7 +79,7 @@ names(settings$priors) <- settings$design_levels
 custom_truncation_list <- list(
         "bound_mean" = c(0.1, ""), "nondt_mean" = c(0.05, ""), "drift_mean" = c("", ""),
         "bound_sdev" = c(0.01, ""), "nondt_sdev" = c(0.01, ""), "drift_sdev" = c(0.01, ""),
-        "drift" = c("", ""), "bound" = c(0.0001, ""), "nondt" = c(0.05, ""), "betaweight" = c("-3", "3"))
+        "drift" = c("", ""), "bound" = c(0.0001, ""), "nondt" = c(0.0001, ""), "betaweight" = c("-3", "3"))
 
 for(model in settings$design_levels){
     for(crit in settings$criterion_levels){
@@ -92,7 +91,7 @@ for(model in settings$design_levels){
 
 
 generative_uniforms <- list(
-        "bound_mean" = c(0.5, 4), "nondt_mean" = c(0.1, 0.4), "drift_mean" = c(-3, 3),
+        "bound_mean" = c(1, 4), "nondt_mean" = c(0.1, 0.4), "drift_mean" = c(-3, 3),
         "bound_sdev" = c(0.1, 1.5), "nondt_sdev" = c(0.01, 0.17), "drift_sdev" = c(0.1, 1.5))
 
 settings <- c(settings, list("generative_uniforms" = generative_uniforms))
@@ -104,7 +103,7 @@ cores       <-  detectCores()
 my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-resultado <- foreach(seed = 1:36, 
+resultado <- foreach(seed = 1:8, 
                   .errorhandling = "pass",
                   .combine = 'rbind'
                   ) %dopar% {
@@ -112,7 +111,8 @@ resultado <- foreach(seed = 1:36,
                                           settings = settings,
                                           forceRun = TRUE,
                                           redo_if_bad_rhat = TRUE, 
-                                          rhat_cutoff = 1.05)
+                                          rhat_cutoff = 1.05,
+                                          Show = FALSE)
                   }
 stopCluster(cl = my.cluster)
 
