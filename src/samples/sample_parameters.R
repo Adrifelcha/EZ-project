@@ -211,10 +211,22 @@ return(drift)
 # Individual-level non-decision times
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 sample_nondt <- function(nPart, nondt_mean, nondt_sdev, betaweight, X, criterion = NA) {
-    if(criterion == "nondt") {
-                nondt <- rnorm(nPart, nondt_mean + (betaweight*X), nondt_sdev)
-    } else {
+    need_nondt <- TRUE
+    count_reps <- 0
+    # Ensure that the non-decision time is not negative
+    while(need_nondt){
+        if(criterion == "nondt") {
+                    nondt <- rnorm(nPart, nondt_mean + (betaweight*X), nondt_sdev)
+        } else {
                 nondt <- rnorm(nPart, nondt_mean, nondt_sdev)
+        }
+        if(sum(nondt < 0) > 0) {   need_nondt <- TRUE
+                                   count_reps <- count_reps + 1
+        } else {                   need_nondt <- FALSE        }
+        if(count_reps > 100) {
+            cat("Warning: Non-decision time is still negative after 1000 repetitions. Returning NA.")
+            return(NA)
+        }
     }
 return(nondt)
 }
@@ -222,10 +234,22 @@ return(nondt)
 # Individual-level boundary separation
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 sample_bound <- function(nPart, bound_mean, bound_sdev, betaweight, X, criterion = NA) {
-    if(criterion == "bound") {
-                bound <- rnorm(nPart, bound_mean + (betaweight*X), bound_sdev)
-    } else {
-                bound <- rnorm(nPart, bound_mean, bound_sdev)
+    need_bound <- TRUE
+    count_reps <- 0
+    # Ensure that the boundary is not negative
+    while(need_bound){
+        if(criterion == "bound") {
+                    bound <- rnorm(nPart, bound_mean + (betaweight*X), bound_sdev)
+        } else {
+                    bound <- rnorm(nPart, bound_mean, bound_sdev)
+        }
+        if(sum(bound < 0) > 0) {   need_bound <- TRUE
+                                   count_reps <- count_reps + 1
+        } else {                   need_bound <- FALSE        }
+        if(count_reps > 100) {
+            cat("Warning: Boundary is still negative after 1000 repetitions. Returning NA.")
+            return(NA)
+        }
     }
 return(bound)
 }
@@ -250,6 +274,10 @@ show_parameters <- function(parameter_set){
       if(!is.null(parameter_set$betaweight)){
         cat("Betaweight:   ", parameter_set$betaweight,"\n")
       }
-        
+      cat("Individual drift range: ", min(parameter_set$drift), " to ", max(parameter_set$drift), "\n")
+      cat("Individual non-decision time range: ", min(parameter_set$nondt), " to ", max(parameter_set$nondt), "\n")
+      cat("Negative non-decision time parameters: ", sum(parameter_set$nondt < 0), "\n")
+      cat("Individual boundary range: ", min(parameter_set$bound), " to ", max(parameter_set$bound), "\n")
+      cat("Negative boundary parameters: ", sum(parameter_set$bound < 0), "\n")
       cat("=============================================\n")
 }
