@@ -87,7 +87,7 @@ cat("Time taken:", difftime(Big_end, Big_start, units = "mins"), "minutes\n")
 resultado <- load_seedOutput(here("demos", "simulation-studies", "hypothesis_testing", "samples"))
 
 # Make sure the number of datasets is correct
-settings$nDatasets <- nrow(resultado)
+settings$nDatasets <- nrow(resultado$results)
 
 # Store the results to repo-root/output/RData-results
-store_BetaParallelOutput(output = resultado, settings = settings)
+store_BetaParallelOutput(output = resultado$results, settings = settings)
