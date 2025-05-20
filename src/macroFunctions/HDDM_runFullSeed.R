@@ -19,10 +19,11 @@
 #   * reps: Count of repeated simulations due to errors or poor convergence
 ###################################################################################
 
-HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, rhat_cutoff=NA, Show=FALSE){
+HDDM_runFullSeed <- function(seed, settings, forceRun, 
+                             prevent_zero_accuracy=TRUE,
+                             redo_if_bad_rhat=FALSE, rhat_cutoff=NA, Show=FALSE){
   # Start timing the entire simulation study
-  grand_tic <- clock::date_now(zone="UTC")
-  
+  grand_tic <- clock::date_now(zone="UTC")  
   # Set master random seed for reproducibility
   set.seed(seed)
   
@@ -94,6 +95,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                 design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                                 modelType = d, X = X[,d], criterion = c, 
                                                 fromPrior = settings$fromPrior, Show = Show, 
+                                                prevent_zero_accuracy = prevent_zero_accuracy,
                                                 generative_uniforms = settings$generative_uniforms)
                                 
                                 # Attempt to run JAGS with error handling
@@ -123,7 +125,11 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                     set.seed(this.seed)
                                     
                                     # Generate new dataset and try again
-                                    design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE)
+                                    design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
+                                                modelType = d, X = X[,d], criterion = c, 
+                                                fromPrior = settings$fromPrior, Show = Show, 
+                                                prevent_zero_accuracy = prevent_zero_accuracy,
+                                                generative_uniforms = settings$generative_uniforms)
                                     z <- try(runJags <- HDDM_runJAGS(
                                         summaryData = design$sumData, 
                                         nTrials = t, 
@@ -201,6 +207,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                         design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                             modelType = d, X = X[,d], criterion = NA, 
                                             fromPrior = settings$fromPrior, Show = Show, 
+                                            prevent_zero_accuracy = prevent_zero_accuracy,
                                             generative_uniforms = settings$generative_uniforms)                         
 
                         # Attempt to run JAGS with error handling
@@ -226,7 +233,11 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                               set.seed(this.seed)
                               
                               # Generate new dataset and try again
-                              design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], criterion = NA, settings$fromPrior, Show = FALSE)
+                              design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
+                                                    modelType = d, X = X[,d], criterion = NA, 
+                                                    fromPrior = settings$fromPrior, Show = Show, 
+                                                    prevent_zero_accuracy = prevent_zero_accuracy,
+                                                    generative_uniforms = settings$generative_uniforms)
                               z <- try(runJags <- HDDM_runJAGS(
                                   summaryData = design$sumData, 
                                   nTrials = t, 
