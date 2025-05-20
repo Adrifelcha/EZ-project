@@ -127,7 +127,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun,
                                     # Generate new dataset and try again
                                     design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                                 modelType = d, X = X[,d], criterion = c, 
-                                                fromPrior = settings$fromPrior, Show = Show, 
+                                                fromPrior = settings$fromPrior, Show = FALSE, 
                                                 prevent_zero_accuracy = prevent_zero_accuracy,
                                                 generative_uniforms = settings$generative_uniforms)
                                     z <- try(runJags <- HDDM_runJAGS(
@@ -235,7 +235,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun,
                               # Generate new dataset and try again
                               design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                                     modelType = d, X = X[,d], criterion = NA, 
-                                                    fromPrior = settings$fromPrior, Show = Show, 
+                                                    fromPrior = settings$fromPrior, Show = FALSE, 
                                                     prevent_zero_accuracy = prevent_zero_accuracy,
                                                     generative_uniforms = settings$generative_uniforms)
                               z <- try(runJags <- HDDM_runJAGS(
