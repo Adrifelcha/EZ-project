@@ -119,8 +119,11 @@ stopCluster(cl = my.cluster)
 
 
 
-settings$nDatasets <- nrow(resultado)
+
 resultado <- load_seedOutput(directory = here("demos", "simulation-studies", "generative_uniforms", "samples"),
                              object_name = "output")
-store_parallelOutput(output = resultado$results, settings = resultado$settings, saveTo = here("output", "RData-results", "generative_uniforms"))
-#makeSimStudyPlot("./results/simStudy_Meta_drift.RData", plotType = 2)
+settings$nDatasets <- nrow(resultado$results)
+# Store the results to repo-root/output/RData-results
+store_parallelOutput(output = resultado$results, saveTo = here("output", "RData-results"),
+                     settings = settings, simStudyName = "genUniform")
+makeSimStudyPlot(here("output", "RData-results", "sim_genUniform_Meta_drift.RData"), plotType = 2)
