@@ -81,79 +81,83 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                         # Display progress information
                         cat("Running cell", cell, "of", settings$nCells, "\n")
                         
+                        nIter <- settings$n.iter
+                        nBurnin <- settings$n.burnin
+                        nThin <- settings$n.thin
+
                         # Keep generating and analyzing datasets until R-hat criteria are met
                         while(rhat_not_verified){
-                            # Set seed for this attempt
-                            set.seed(this.seed)
-                            
-                            # Generate dataset with known parameters
-                            design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
-                                            modelType = d, X = X[,d], criterion = c, 
-                                            fromPrior = settings$fromPrior, Show = Show, 
-                                            generative_uniforms = settings$generative_uniforms)
-                            
-                            # Attempt to run JAGS with error handling
-                            start_time <- Sys.time()
-                            z <- try(runJags <- HDDM_runJAGS(
-                                summaryData = design$sumData, 
-                                nTrials = t, 
-                                X = X[,d], 
-                                jagsData = settings$jagsData[[d]], 
-                                jagsParameters = settings$jagsParameters[[d]], 
-                                jagsInits = settings$jagsInits[[as.character(p)]], 
-                                n.chains = settings$n.chains, 
-                                n.burnin = settings$n.burnin, 
-                                n.iter = settings$n.iter, 
-                                n.thin = settings$n.thin, 
-                                modelFile = settings$modelFile[d,c], 
-                                Show = Show, 
-                                track_allParameters = FALSE))
-                            end_time <- Sys.time()
-                            if(Show){
-                                cat("Time taken: ", difftime(end_time, start_time, units = "secs"), " seconds\n")
-                            }
-                            # If JAGS error occurs, retry with different seed
-                            if(inherits(z, "try-error")){ 
-                                  cat("Repeating cell", cell, "of", settings$nCells, "due to a JAGS error \n")
-                                  this.seed <- this.seed + 10000  # Change seed by 10,000
-                                  set.seed(this.seed)
-                                  
-                                  # Generate new dataset and try again
-                                  design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE)
-                                  z <- try(runJags <- HDDM_runJAGS(
-                                      summaryData = design$sumData, 
-                                      nTrials = t, 
-                                      X = X[,d], 
-                                      jagsData = settings$jagsData[[d]], 
-                                      jagsParameters = settings$jagsParameters[[d]], 
-                                      jagsInits = settings$jagsInits[[as.character(p)]], 
-                                      n.chains = settings$n.chains, 
-                                      n.burnin = settings$n.burnin, 
-                                      n.iter = settings$n.iter, 
-                                      n.thin = settings$n.thin, 
-                                      modelFile = settings$modelFile[d,c], 
-                                      Show = Show, 
-                                      track_allParameters = FALSE))
-                                  
-                                  # Increment error counter and break if too many errors
-                                  redo_JAGS <- redo_JAGS + 1
-                                  if(redo_JAGS > 5){ 
-                                      break  # Give up after 5 attempts
-                                  }
-                            }
-                            
-                            # Check if R-hat values indicate good convergence
-                            count_bad_rhats <- sum(runJags$rhats[settings$jagsParameters[[d]]] > rhat_cutoff, na.rm = TRUE)
-                            
-                            # Exit loop if R-hat check is disabled or all R-hats are good
-                            if((!redo_if_bad_rhat) | (count_bad_rhats == 0)){ 
-                                rhat_not_verified <- FALSE
-                            } else { 
-                                # Otherwise, try again with different seed
-                                cat("Repeating cell", cell, "of", settings$nCells, "due to bad Rhats \n")
-                                this.seed <- this.seed + 10000
-                                redo_Rhat <- redo_Rhat + 1
-                            }
+                                # Set seed for this attempt
+                                set.seed(this.seed)
+                                
+                                # Generate dataset with known parameters
+                                design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
+                                                modelType = d, X = X[,d], criterion = c, 
+                                                fromPrior = settings$fromPrior, Show = Show, 
+                                                generative_uniforms = settings$generative_uniforms)
+                                
+                                # Attempt to run JAGS with error handling
+                                start_time <- Sys.time()
+                                z <- try(runJags <- HDDM_runJAGS(
+                                    summaryData = design$sumData, 
+                                    nTrials = t, 
+                                    X = X[,d], 
+                                    jagsData = settings$jagsData[[d]], 
+                                    jagsParameters = settings$jagsParameters[[d]], 
+                                    jagsInits = settings$jagsInits[[as.character(p)]], 
+                                    n.chains = settings$n.chains, 
+                                    n.burnin = nBurnin, 
+                                    n.iter = nIter, 
+                                    n.thin = nThin, 
+                                    modelFile = settings$modelFile[d,c], 
+                                    Show = Show, 
+                                    track_allParameters = FALSE))
+                                end_time <- Sys.time()
+                                if(Show){
+                                    cat("Time taken: ", difftime(end_time, start_time, units = "secs"), " seconds\n")
+                                }
+                                # If JAGS error occurs, retry with different seed
+                                if(inherits(z, "try-error")){ 
+                                    cat("Repeating cell", cell, "of", settings$nCells, "due to a JAGS error \n")
+                                    this.seed <- this.seed + 10000  # Change seed by 10,000
+                                    set.seed(this.seed)
+                                    
+                                    # Generate new dataset and try again
+                                    design <- HDDM_setup(settings$priors[[d]], p, t, d, X[,d], c, settings$fromPrior, Show = FALSE)
+                                    z <- try(runJags <- HDDM_runJAGS(
+                                        summaryData = design$sumData, 
+                                        nTrials = t, 
+                                        X = X[,d], 
+                                        jagsData = settings$jagsData[[d]], 
+                                        jagsParameters = settings$jagsParameters[[d]], 
+                                        jagsInits = settings$jagsInits[[as.character(p)]], 
+                                        n.chains = settings$n.chains, 
+                                        n.burnin = nBurnin, 
+                                        n.iter = nIter, 
+                                        n.thin = nThin, 
+                                        modelFile = settings$modelFile[d,c], 
+                                        Show = Show, 
+                                        track_allParameters = FALSE))
+                                    
+                                    # Increment error counter and break if too many errors
+                                    redo_JAGS <- redo_JAGS + 1
+                                    if(redo_JAGS > 5){ 
+                                        break  # Give up after 5 attempts
+                                    }
+                                }
+                                
+                                # Check if R-hat values indicate good convergence
+                                count_bad_rhats <- sum(runJags$rhats[settings$jagsParameters[[d]]] > rhat_cutoff, na.rm = TRUE)
+                                
+                                # Exit loop if R-hat check is disabled or all R-hats are good
+                                if((!redo_if_bad_rhat) | (count_bad_rhats == 0)){ 
+                                    rhat_not_verified <- FALSE
+                                } else { 
+                                    # Otherwise, try again with different seed
+                                    cat("Repeating cell", cell, "of", settings$nCells, "due to bad Rhats \n")
+                                    this.seed <- this.seed + 10000
+                                    redo_Rhat <- redo_Rhat + 1
+                                }                               
                         } # Close while() loop for R-hat verification
                         
                         # Store results for this regression structured design cell
@@ -184,6 +188,10 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                     # Display progress information
                     cat("Running cell", cell, "of", settings$nCells, "\n")
                     
+                    nIter <- settings$n.iter
+                    nBurnin <- settings$n.burnin
+                    nThin <- settings$n.thin
+
                     # Keep generating and analyzing datasets until R-hat criteria are met
                     while(rhat_not_verified){
                         # Set seed for this attempt
@@ -193,7 +201,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                         design <- HDDM_setup(priors = settings$priors[[d]], nPart = p, nTrials = t, 
                                             modelType = d, X = X[,d], criterion = NA, 
                                             fromPrior = settings$fromPrior, Show = Show, 
-                                            generative_uniforms = settings$generative_uniforms)
+                                            generative_uniforms = settings$generative_uniforms)                         
 
                         # Attempt to run JAGS with error handling
                         z <- try(runJags <- HDDM_runJAGS(
@@ -204,9 +212,9 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             jagsParameters = settings$jagsParameters[[d]], 
                             jagsInits = settings$jagsInits[[as.character(p)]], 
                             n.chains = settings$n.chains, 
-                            n.burnin = settings$n.burnin, 
-                            n.iter = settings$n.iter, 
-                            n.thin = settings$n.thin, 
+                            n.burnin = nBurnin, 
+                            n.iter = nIter, 
+                            n.thin = nThin, 
                             modelFile = settings$modelFile[d,1],  # Use first model file for hierarchical
                             Show = Show, 
                             track_allParameters = FALSE))
@@ -227,9 +235,9 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                                   jagsParameters = settings$jagsParameters[[d]], 
                                   jagsInits = settings$jagsInits[[as.character(p)]], 
                                   n.chains = settings$n.chains, 
-                                  n.burnin = settings$n.burnin, 
-                                  n.iter = settings$n.iter, 
-                                  n.thin = settings$n.thin, 
+                                  n.burnin = nBurnin, 
+                                  n.iter = nIter, 
+                                  n.thin = nThin, 
                                   modelFile = settings$modelFile[d,1], 
                                   Show = Show, 
                                   track_allParameters = FALSE))
@@ -252,6 +260,11 @@ HDDM_runFullSeed <- function(seed, settings, forceRun, redo_if_bad_rhat=FALSE, r
                             cat("Repeating cell", cell, "of", settings$nCells, "due to bad Rhats \n")
                             this.seed <- this.seed + 10000
                             redo_Rhat <- redo_Rhat + 1
+                        }
+                        if(redo_JAGS>0){
+                                   nIter <- nIter * 2
+                                   nBurnin <- nBurnin * 2
+                                   nThin <- nThin * 2
                         }
                     } # Close while() loop for R-hat verification
                     
