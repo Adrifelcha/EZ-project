@@ -1,4 +1,4 @@
-store_parallelOutput <- function(output, settings, saveTo = "./"){
+store_parallelOutput <- function(output, settings, saveTo = "./", simStudyName = "genUniform"){
   #################################################################################
   # Identify relevant properties of the simulation study
   #################################################################################   
@@ -9,6 +9,7 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
    allD   <- settings$design_levels
    allC   <- settings$criterion_levels
    nDatasets  <- nrow(output)
+
    
    # Is a simple Hierarchial study included?
    Hierarchical <- "hierarchical" %in% settings$design_levels
@@ -61,10 +62,13 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
    # Fill the empty storage objects
    ###############################################################################################################################
    i <- 1
-   for(p in allP){
-       # No. parameters depend on No. of participants
-       nParamsH <- 6+(3*p)
-       nParamsB <- nParamsH+1
+   for(p in allP){       
+       # No. parameters depend on No. of participants       
+       if(Hierarchical){      nParamsH <- length(unlist(settings$jagsParameters["hierarchical"]))     }
+       if(BetaEffect){                
+            if(Ttest){ nParamsB <- length(unlist(settings$jagsParameters["ttest"]))     
+            }else{     nParamsB <- length(unlist(settings$jagsParameters["metaregression"]))     }       
+       }       
        
        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
        # Fill the empty lists created above with empty arrays to store output
@@ -95,7 +99,7 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
            Bnames_estimates <- sub(".*\\.", "", sub('.*mean.estimates.','',names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"mean.estimates"]))))
            Bnames_rhats     <- sub(".*\\.", "", names(unlist(outB[[1]][which(outB[[1]][,"p"]==p)[1],"rhats"])))
            # Create empty arrays to store True values
-           emptyObj_Btrue <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
+           emptyObj_Btrue <- array(NA, dim=c(nDatasets,length(Bnames_true),length(allT)), 
                                dimnames = list(paste("seed", 1:nDatasets), Bnames_true, paste("T",allT,sep="")))
            # Create empty arrays for estimates and errors
            emptyObj_B <- array(NA, dim=c(nDatasets,nParamsB,length(allT)), 
@@ -267,37 +271,37 @@ store_parallelOutput <- function(output, settings, saveTo = "./"){
                                                  "recovered" = meanPosts_Meta_nondt,
                                                  "estimates_sdev" = sdevPosts_Meta_nondt,
                                                  "rhats" = rhats_Meta_nondt)
-                     save(simStudy_Meta_nondt, file=paste(saveTo,"/simStudy_Meta_nondt.RData",sep=""))          }
+                     save(simStudy_Meta_nondt, file=paste(saveTo,"/sim_",simStudyName,"_Meta_nondt.RData",sep=""))          }
             if("drift" %in% settings$criterion_levels){
                      simStudy_Meta_drift <- list("true" = trueVals_Meta_drift,
                                                  "recovered" = meanPosts_Meta_drift,
                                                  "estimates_sdev" = sdevPosts_Meta_drift,
                                                  "rhats" = rhats_Meta_drift)
-                     save(simStudy_Meta_drift, file=paste(saveTo,"/simStudy_Meta_drift.RData",sep=""))           }
+                     save(simStudy_Meta_drift, file=paste(saveTo,"/sim_",simStudyName,"_Meta_drift.RData",sep=""))           }
             if("bound" %in% settings$criterion_levels){
                      simStudy_Meta_bound <- list("true" = trueVals_Meta_bound,
                                                  "recovered" = meanPosts_Meta_bound,
                                                  "estimates_sdev" = sdevPosts_Meta_bound,
                                                  "rhats" = rhats_Meta_bound)
-                     save(simStudy_Meta_bound, file=paste(saveTo,"/simStudy_Meta_bound.RData",sep=""))           }
+                     save(simStudy_Meta_bound, file=paste(saveTo,"/sim_",simStudyName,"_Meta_bound.RData",sep=""))           }
    }
    if(Ttest){
                      simStudy_Ttst_nondt <- list("true" = trueVals_Ttst_nondt,
                                                  "recovered" = meanPosts_Ttst_nondt,
                                                  "estimates_sdev" = sdevPosts_Ttst_nondt,
                                                  "rhats" = rhats_Ttst_nondt)
-                     save(simStudy_Ttst_nondt, file=paste(saveTo,"/simStudy_Ttest_nondt.RData", sep=""))
+                     save(simStudy_Ttst_nondt, file=paste(saveTo,"/sim_",simStudyName,"_Ttest_nondt.RData", sep=""))
                      
                      simStudy_Ttest_drift <- list("true" = trueVals_Ttst_drift,
                                                   "recovered" = meanPosts_Ttst_drift,
                                                   "estimates_sdev" = sdevPosts_Ttst_drift,
                                                   "rhats" = rhats_Ttst_drift)
-                     save(simStudy_Ttest_drift, file=paste(saveTo,"/simStudy_Ttest_drift.RData",sep=""))
+                     save(simStudy_Ttest_drift, file=paste(saveTo,"/sim_",simStudyName,"_Ttest_drift.RData",sep=""))
                      
                      simStudy_Ttest_bound <- list("true" = trueVals_Ttst_bound, 
                                                   "recovered" = meanPosts_Ttst_bound,
                                                   "estimates_sdev" = sdevPosts_Ttst_bound,
                                                   "rhats" = rhats_Ttst_bound)
-                     save(simStudy_Ttest_bound, file=paste(saveTo,"/simStudy_Ttest_bound.RData",sep=""))
+                     save(simStudy_Ttest_bound, file=paste(saveTo,"/sim_",simStudyName,"_Ttest_bound.RData",sep=""))
    }
 } 
