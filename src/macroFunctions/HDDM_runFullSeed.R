@@ -149,7 +149,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun,
                                     redo_JAGS <- redo_JAGS + 1
                                     if(redo_JAGS > 5){ 
                                         break  # Give up after 5 attempts
-                                    }
+                                    }                                   
                                 }
                                 
                                 # Check if R-hat values indicate good convergence
@@ -163,7 +163,12 @@ HDDM_runFullSeed <- function(seed, settings, forceRun,
                                     cat("Repeating cell", cell, "of", settings$nCells, "due to bad Rhats \n")
                                     this.seed <- this.seed + 10000
                                     redo_Rhat <- redo_Rhat + 1
-                                }                               
+                                }       
+                                if(redo_Rhat>0){
+                                            nIter <- nIter * 2
+                                            nBurnin <- nBurnin * 2
+                                            nThin <- nThin * 2
+                                }                        
                         } # Close while() loop for R-hat verification
                         
                         # Store results for this regression structured design cell
@@ -272,7 +277,7 @@ HDDM_runFullSeed <- function(seed, settings, forceRun,
                             this.seed <- this.seed + 10000
                             redo_Rhat <- redo_Rhat + 1
                         }
-                        if(redo_JAGS>0){
+                        if(redo_Rhat>0){
                                    nIter <- nIter * 2
                                    nBurnin <- nBurnin * 2
                                    nThin <- nThin * 2
