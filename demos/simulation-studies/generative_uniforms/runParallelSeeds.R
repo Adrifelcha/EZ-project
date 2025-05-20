@@ -103,7 +103,7 @@ cores       <-  detectCores()
 my.cluster  <-  makeCluster(cores[1]-4)
 
 registerDoParallel(cl = my.cluster)
-resultado <- foreach(seed = 1:8, 
+resultado <- foreach(seed = c(5,6,7,8), 
                   .errorhandling = "pass",
                   .combine = 'rbind'
                   ) %dopar% {
@@ -112,6 +112,7 @@ resultado <- foreach(seed = 1:8,
                                           forceRun = TRUE,
                                           redo_if_bad_rhat = TRUE, 
                                           rhat_cutoff = 1.05,
+                                          prevent_zero_accuracy = FALSE,
                                           Show = FALSE)
                   }
 stopCluster(cl = my.cluster)
