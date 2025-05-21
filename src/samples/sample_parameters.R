@@ -145,12 +145,13 @@ sample_from_uniforms <- function(generative_uniforms) {
       if(is.null(generative_uniforms)) {
             cat("No generative uniform distributions specified. Fill in the generative_uniforms list.")
             return(list(
-                  "bound_mean" = c(NA, NA), "nondt_mean" = c(NA, NA), "drift_mean" = c(NA, NA),
-                  "bound_sdev" = c(NA, NA), "nondt_sdev" = c(NA, NA), "drift_sdev" = c(NA, NA)))
-      } else {
-        # Bound and nondt can't have 0 values, so we need to scale the distribution
-        # So that when the hierarchical mean is close to 0, the population distribution has low variance
-        # We use a variant of the probability integral transform to scale the distribution
+                  "bound_mean" = c(NA, NA), "nondt_mean" = c(NA, NA), "drift_mean" = c(NA, NA)))
+            cat("You may also include in the generative_uniforms list the hierarchical standard deviations:")
+            cat("bound_sdev, nondt_sdev, drift_sdev")
+      } else {        
+        ##########################################################
+        # Sample HIERARCHICAL MEANS
+        ##########################################################
         scale_bound_distribution <- runif(1,0,1)
         scale_nondt_distribution <- runif(1,0,1)
         hierarchical_parameters <- list(          
@@ -158,18 +159,33 @@ sample_from_uniforms <- function(generative_uniforms) {
           "drift_mean" = runif(1, generative_uniforms$drift_mean[1], generative_uniforms$drift_mean[2]),
           "nondt_mean" = qunif(scale_nondt_distribution, generative_uniforms$nondt_mean[1], generative_uniforms$nondt_mean[2])
         )
-        
-        # Sample hierarchical standard deviations from uniform distributions or use fixed values
-        if(length(generative_uniforms$bound_sdev) == 2) {
-          bound_sdev <- qunif(scale_bound_distribution, generative_uniforms$bound_sdev[1], generative_uniforms$bound_sdev[2])
-        } else {    bound_sdev <- generative_uniforms$bound_sdev      }
-        if(length(generative_uniforms$nondt_sdev) == 2) {
-          nondt_sdev <- qunif(scale_nondt_distribution, generative_uniforms$nondt_sdev[1], generative_uniforms$nondt_sdev[2])
-        } else {    nondt_sdev <- generative_uniforms$nondt_sdev      }
-        if(length(generative_uniforms$drift_sdev) == 2) {
-          drift_sdev <- runif(1, generative_uniforms$drift_sdev[1], generative_uniforms$drift_sdev[2])
-        } else {    drift_sdev <- generative_uniforms$drift_sdev      }
 
+        ##########################################################
+        # Sample HIERARCHICAL STANDARD DEVIATIONS
+        ##########################################################
+        if(is.null(generative_uniforms$bound_sdev)) {
+           bound_sdev <- bound_mean / 5
+        }else{          
+              if(length(generative_uniforms$bound_sdev) == 2) {
+                bound_sdev <- qunif(scale_bound_distribution, generative_uniforms$bound_sdev[1], generative_uniforms$bound_sdev[2])
+              } else {    bound_sdev <- generative_uniforms$bound_sdev      }
+        }
+
+        if(is.null(generative_uniforms$nondt_sdev)) {
+          nondt_sdev <- nondt_mean / 5
+        }else{          
+              if(length(generative_uniforms$nondt_sdev) == 2) {
+                nondt_sdev <- qunif(scale_nondt_distribution, generative_uniforms$nondt_sdev[1], generative_uniforms$nondt_sdev[2])
+              } else {    nondt_sdev <- generative_uniforms$nondt_sdev      }
+        }
+
+        if(is.null(generative_uniforms$drift_sdev)) {
+          drift_sdev <- drift_mean / 5
+        }else{          
+              if(length(generative_uniforms$drift_sdev) == 2) {
+                drift_sdev <- runif(1, generative_uniforms$drift_sdev[1], generative_uniforms$drift_sdev[2])
+              } else {    drift_sdev <- generative_uniforms$drift_sdev      }
+        }        
         # Add standard deviations to the parameter list
         hierarchical_parameters <- c(hierarchical_parameters, list("bound_sdev" = bound_sdev,
                                                                    "nondt_sdev" = nondt_sdev,
