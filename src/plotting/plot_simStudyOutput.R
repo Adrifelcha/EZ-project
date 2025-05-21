@@ -28,9 +28,8 @@ makeSimStudyPlot <- function(simStudyRData, param=NA, plotType=1, plot.range=NA,
       if(showStudy){ upper_margin <- 3.7    }
       par(pty="s", mfrow=c(5,5), mai=mai, oma=c(2.5,1.75,upper_margin,right_margin))
       
-      if(sum(is.na(plot.range))>0){    plot.range <- round(range(c(obj$true[[1]][,par,]
-                                                            ,obj$recovered[[1]][,par,]), na.rm = TRUE),1)
-      }
+      #plot.range <- round(range(c(obj$true[[1]][,par,],obj$recovered[[1]][,par,]), na.rm = TRUE),1)
+      plot.range <- round(range(c(obj$true[[1]][,par,]), na.rm = TRUE),1)
       
       print(par)
       panel_no <- 1
