@@ -1,15 +1,14 @@
 library(here)
 
 ### Load all function scripts nested in the ./code/functions/ directory
-for(archive in dir(here("src"))) {   
-   # Skip README file
-   if(grepl("README", archive, ignore.case = TRUE)){ 
-      next 
-    }
-   source(here("src", archive))     
-}
+# Call the function within the src directory
+source(here("src", "loading", "load_allFunctions.R"))
+load_allCustomFunctions()
 
 ## General design 
+cat("This script is used to run a short simulation study\n")
+cat("where we specify a design cell and run the simulation over many iterations (seeds)")
+cat("It is used to test the functionality of the simulation study.\n")
 
 ### Simulation settings
 n.participants <-  40 
@@ -59,6 +58,12 @@ simM <- HDDM_runSims(nParticipants = n.participants,
                      redo_if_bad_rhat = redo_if_bad_rhat,
                      modelType = modelType,
                      forceSim = TRUE)
+
+
+fileName <- nameOutput(nTrials = n.trials, nParticipants = n.participants, nDatasets = n.simulations, 
+                       modelType = modelType, fromPrior = fromPrior, output.folder = here("output", "RData-results"))
+
+cat("Output stored in", fileName, "\n")
 
 plot_recovery(simM)
 
