@@ -15,5 +15,5 @@ A full simulation study consists of 1,000 iterations of each cell.
 ## Repository Branch Organization
 
 - **This branch**: Archive of the working repository as of the day of submission (November 29, 2024). Ensures **reproducibility of simulation-study results**
-- **archive-revised**: Small fixes and changes to the paper's appendices (i.e. applied examples and hypothesis testing simulation) added before publication can be found on branch '[exact branch name]'
+- **archive-revised**: Small fixes and changes to the paper's appendices (i.e. applied examples and hypothesis testing simulation) added before publication can be found on branch 'archive-submitted'
 - **Main branch**: Please refer to the 'main' branch for the latest and most refined version of this repository
