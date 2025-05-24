@@ -1,40 +1,27 @@
-# EZ Bayesian Hierarchical Drift Diffusion Model!
+# Archive-revised: EZ Bayesian Hierarchical DDM 
 
-Welcome,
+This branch preserves the state of the repository at the moment of **submitting the revised version of our paper** to Psychonomic Bulletin & Review (on May, 2025). 
 
-This repository contains all code needed to replicate the results reported throughout all simulations and applied examples presented in our paper:
+The revised submission incorporated:
 
-> Chávez De la Peña, A. F., & Vandekerckhove, J. (preprint). An EZ Bayesian hierarchical drift diffusion model for response time and accuracy.
+- Minor changes to the manuscript's content (i.e., adding the JAGS code used with each appendix)
+- Small fixes to the figures generated from the **applied examples** in the appendices.
+- A major revision of the **hypothesis testing simulation study** reported in one of the appendices.
 
-This repository is organized as follows:
+The current branch also includes some changes made to the repo organization and source code improvements that were incorporated after submission. Please continue reading if you're interested in replicating any particular result or figure reported on the paper exactly.
 
-- `/src/` This folder contains the source code to support the simulation studies and plotting custom functions.
+### Replicability
 
-- `/demos/` This folder contains scripts (Rscripts and Rmarkdown executive reports) replicating the analysis and figures presented in each appendix in our paper. These include:
+1. **Applied examples** . To replicate the applied examples we present in the paper's appendices, please refer to the 'demos/applications/' folder, where you will find executive .Rmd report and code to replicate the exact same figures included in the paper and derived presentations.
 
-    - `/demos/applications/` : Materials related to the applied examples in Appendices B and C.
+2. **Hypothesis-testing simulation study**. To replicate the hypothesis-testing simulation study reported in one of the appendices, please run script 'runParallelSeeds.R' stored in the 'demos/simulation-studies/hypothesis_testing/' directory. Replicating this simulation study in full should take around 2 hours, depending on your computer. Code to replicate the figures included in the paper can be found in the '/scripts/' subfolder.
 
-        - `/demos/applications/shape_perception/` : Application example on a shape perception task run by Vandekerckhove et al. (2007) to showcase the use of our proxy model for hypothesis testing, by building a multiple linear regression model extension.
+3. **Parameter recovery simulation studies:** To replicate the exact same results reported for the main simulation study, please refer to the `archive-submitted` branch of the repo. 
 
-        - `/demos/applications/brightness_perception/` : Application example on a brightness perception task run by Ratcliff et al. (1998) to showcase the use of metaregression extensions on our proxy model, including a non-linear function.
+    **Note:** The current branch includes changes made to the source code used to run parameter recovery simulation studies. Code to run full parameter recovery simulation studies is provided in the 'demos/simulation-studies/' folder. The results are comparable to what is reported in the paper, and they take less time to run. However, they won't reproduce the exact same figures included in the paper.
 
-    - `/demos/simulations/` : Materials related to the simulation studies described in the paper
+## Repository Branch Organization
 
-        - `/demos/simulations/hypothesis_testing/` : Simulation study with a within-subject t-test design on the drift rate parameter. We use this simulation study to explore our proxy model's performance for hypothesis testing.
-
-        - `/demos/simulations/generative_uniforms/` : Simulation study where true parameter values used to generate data are sampled from uniform distributions.
-
-        - `/demos/simulations/generative_priors/` : Simulation study where true parameter values used to generate data are sampled from the prior distributions.
-
-- `/output/` This folder serves as a default output folder for all simulation results, figures and BUGS models.
-
-
-# Project reproducibility
-
-The repository includes a virtual machine image that can be used to replicate all results.
-
-# Contact
-
-For any questions or feedback, please contact me at:
-
-> Adriana Felisa Chávez De la Peña: adrifelcha@gmail.com 
+- **archive-submitted**: Archive of the working repository as of the day of submission (November 29, 2024). Ensures the reproducibility of the figures included when reporting the main simulation-study results.
+- **archive-revised (this branch)**: Archive of the working repository as of the day of revision submission (May 20, 2025). This branch incorporates some major changes to the hypothesis testing simulation study, and some minor revisions to the applied examples, that were included in the papers revision. This branch also includes some general changes and cleaning to the repo structure and organization.
+- **Main branch**: Please refer to the 'main' branch for the latest and most refined version of this repository.
