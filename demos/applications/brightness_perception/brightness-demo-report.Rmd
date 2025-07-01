@@ -274,6 +274,10 @@ end <- Sys.time()
 # chains to the variance within chains. Values close to 1.0 indicate good convergence.
 # Generally, we consider values below 1.05 to be acceptable.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+# This function is the same as stored in folder
+# ./src/run-JAGS/JAGS_getRhat.R
+# It's been rewritten here to make this report self-contained
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 getRhat <- function(posterior_chains, n.chains=NA) {
         # Ensure the input is a matrix
         # If a vector is provided, reshape it into a matrix with n.chains columns
